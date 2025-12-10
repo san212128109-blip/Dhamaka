@@ -1,179 +1,26 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dhamaka Daily Items</title>
+<title>Shop Home</title>
 <style>
-*{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:Arial,sans-serif;background:#d4edda;color:#155724;transition:0.3s;}
-body.dark{background:#121212;color:#ddd;}
-header{background:#28a745;color:white;padding:1em;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10;}
-header h1{margin:0;}
-nav a{color:white;margin-left:1em;text-decoration:none;font-weight:bold;}
-nav a:hover{text-decoration:underline;color:#ffc107;}
-nav button{margin-left:1em;cursor:pointer;}
-.page{display:none;padding:1em;}
-.product-list{display:flex;flex-wrap:wrap;gap:1em;}
-.product{border:1px solid #28a745;border-radius:12px;padding:1em;width:200px;text-align:center;background:#fff;box-shadow:2px2px10px rgba(0,0,0,0.1);}
-button{background:#28a745;color:white;border:none;padding:0.5em 1em;border-radius:5px;cursor:pointer;margin-top:0.5em;}
-button:hover{background:#218838;}
-input,select{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;border:1px solid #ccc;}
-#cartSummary{text-align:center;margin-top:1em;font-weight:bold;}
+body{font-family:Arial;padding:20px;}
+.banner{margin-bottom:15px;}
 </style>
 </head>
 <body>
 
-<header>
-<h1>Dhamaka Daily Items</h1>
-<nav>
-<a href="#home" onclick="showPage('home')">Home</a>
-<a href="#categories" onclick="showPage('categories')">Categories</a>
-<a id="cartLink" href="#cart" data-count="0" onclick="showPage('cart')">Cart</a>
-<button onclick="toggleDarkMode()">🌙</button>
-</nav>
-</header>
+<h2>Our Shop</h2>
 
-<div id="home" class="page">
-<h2>Featured Products</h2>
-<div class="product-list" id="homeList"></div>
-</div>
-
-<div id="categories" class="page">
-<h2>Categories</h2>
-<select id="categoryFilter" onchange="filterCategory()"><option value="All">All</option></select>
-<input type="text" id="searchInput" placeholder="Search Products..." oninput="filterCategory()">
-<div class="product-list" id="categoryList"></div>
-</div>
-
-<div id="cart" class="page">
-<h2>Your Cart</h2>
-<div class="product-list" id="cartList"></div>
-<div id="cartSummary"></div>
-<button onclick="checkout()">Checkout</button>
-</div>
-
-<div id="reviewsForm" class="page">
-<h2>Add Review</h2>
-<select id="reviewProduct"></select><br>
-<input type="text" id="reviewName" placeholder="Your Name"><br>
-<input type="number" id="reviewRating" placeholder="Rating (1-5)" min="1" max="5"><br>
-<textarea id="reviewComment" placeholder="Comment"></textarea><br>
-<button onclick="addReview()">Submit Review</button>
-</div>
+<div id="bannerArea"></div>
 
 <script>
-showPage('home');
-function showPage(page){ document.querySelectorAll('.page').forEach(p=>p.style.display='none'); document.getElementById(page).style.display='block'; }
-function toggleDarkMode(){ document.body.classList.toggle('dark'); }
-
-let products=JSON.parse(localStorage.getItem("products")||'[]').filter(p=>p.approved);
-let cart=JSON.parse(localStorage.getItem("cart")||"[]");
-let reviews=JSON.parse(localStorage.getItem("reviews")||'[]');
-
-const homeList=document.getElementById("homeList");
-const categoryList=document.getElementById("categoryList");
-const cartList=document.getElementById("cartList");
-const cartSummary=document.getElementById("cartSummary");
-const cartLink=document.getElementById("cartLink");
-const reviewProduct=document.getElementById("reviewProduct");
-
-// Images placeholder
-let imageMap={
-"smartphone":"https://via.placeholder.com/150?text=Smartphone",
-"tshirt":"https://via.placeholder.com/150?text=T-Shirt",
-"sofa":"https://via.placeholder.com/150?text=Sofa",
-"laptop":"https://via.placeholder.com/150?text=Laptop",
-"jeans":"https://via.placeholder.com/150?text=Jeans",
-"headphones":"https://via.placeholder.com/150?text=Headphones"
-};
-
-// Render products
-function renderProducts(list, arr){
-list.innerHTML='';
-if(arr.length===0){ list.innerHTML="<p>No products.</p>"; return; }
-arr.forEach((p,i)=>{
-const div=document.createElement('div'); div.className='product';
-let stars=''; for(let s=1;s<=5;s++){ stars += s<=p.rating ? '★':'☆'; }
-div.innerHTML=`<img src="${imageMap[p.image]}" width="150"><h3>${p.name}</h3>
-<p>Category: ${p.category}</p><p>Price: $${p.price}</p>
-<p>Stock: ${p.stock}</p>
-<button onclick="addToCart(${i})">Add to Cart</button>`;
-list.appendChild(div);
+let banners = JSON.parse(localStorage.getItem("banners")) || [];
+let html = "";
+banners.forEach(b => {
+    html += `<div class="banner"><img src="${b}" style="width:100%;border-radius:8px;"></div>`;
 });
-updateCartBadge();
-}
-
-// Cart functions
-function addToCart(i){ 
-if(products[i].stock<=0){ alert("Out of stock"); return; }
-cart.push({...products[i]}); 
-localStorage.setItem("cart",JSON.stringify(cart)); 
-alert("Added to cart!"); 
-renderCart(); 
-}
-
-function renderCart(){
-cartList.innerHTML='';
-if(cart.length===0){ cartList.innerHTML="<p>Cart is empty.</p>"; cartSummary.innerText=''; return; }
-cart.forEach((p,i)=>{
-const div=document.createElement('div'); div.className='product';
-div.innerHTML=`<p>${p.name} - $<span class="price">${p.price}</span></p>
-<input type="number" value="1" min="1" onchange="updateQuantity(${i},this.value)">
-<button onclick="removeFromCart(${i})">Remove</button>`;
-cartList.appendChild(div);
-});
-updateCartTotal();
-updateCartBadge();
-}
-
-function updateQuantity(i,val){ cart[i].price=Number(products[i].price)*Number(val); localStorage.setItem("cart",JSON.stringify(cart)); updateCartTotal(); }
-function removeFromCart(i){ cart.splice(i,1); localStorage.setItem("cart",JSON.stringify(cart)); renderCart(); }
-function updateCartTotal(){ let total=0; cart.forEach(p=>{ total+=Number(p.price); }); cartSummary.innerText=`Total: $${total}`; }
-function updateCartBadge(){ cartLink.setAttribute('data-count',cart.length); }
-
-// Category filter
-function renderCategoryFilter(){ 
-const select=document.getElementById("categoryFilter"); 
-const catSet=new Set(products.map(p=>p.category)); 
-select.innerHTML='<option value="All">All</option>'; 
-catSet.forEach(c=>{ const o=document.createElement('option'); o.value=c;o.innerText=c; select.appendChild(o); }); 
-filterCategory(); 
-}
-function filterCategory(){ 
-let filtered=[...products]; 
-const cat=document.getElementById("categoryFilter").value; if(cat!=='All'){ filtered=filtered.filter(p=>p.category===cat); }
-const search=document.getElementById("searchInput").value.toLowerCase(); if(search){ filtered=filtered.filter(p=>p.name.toLowerCase().includes(search)); }
-renderProducts(categoryList,filtered); 
-}
-
-// Reviews
-function addReview(){
-let pname = reviewProduct.value;
-let name = document.getElementById("reviewName").value;
-let rating = document.getElementById("reviewRating").value;
-let comment = document.getElementById("reviewComment").value;
-if(!pname || !name || !rating || !comment){ alert("Fill all fields"); return; }
-reviews.push({product:pname,customer:name,rating:rating,comment:comment});
-localStorage.setItem("reviews",JSON.stringify(reviews));
-alert("Review added!"); 
-}
-
-// Populate review products
-function populateReviewProducts(){
-reviewProduct.innerHTML='';
-products.forEach(p=>{ const o=document.createElement('option'); o.value=p.name; o.innerText=p.name; reviewProduct.appendChild(o); });
-}
-
-// Checkout
-function checkout(){ if(cart.length===0){ alert("Cart empty"); return; } alert("Order placed!"); cart=[]; localStorage.setItem("cart",JSON.stringify(cart)); renderCart(); }
-
-// Initial render
-renderProducts(homeList,products);
-renderProducts(categoryList,products);
-renderCart();
-renderCategoryFilter();
-populateReviewProducts();
+document.getElementById("bannerArea").innerHTML = html;
 </script>
+
 </body>
 </html>
