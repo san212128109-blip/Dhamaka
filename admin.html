@@ -11,10 +11,11 @@ form, .admin-products{max-width:500px;margin:0 auto;}
 input,select{padding:0.5em;margin:0.3em 0;width:100%;border-radius:5px;border:1px solid #ccc;}
 button{background:#28a745;color:white;border:none;padding:0.5em 1em;border-radius:5px;cursor:pointer;margin-top:0.5em;}
 button:hover{background:#218838;}
-.product{border:1px solid #28a745;padding:0.5em;margin:0.5em 0;border-radius:8px;position:relative;}
-.product img{width:80px;height:80px;object-fit:cover;vertical-align:middle;margin-right:10px;}
+.product{border:1px solid #28a745;padding:0.5em;margin:0.5em 0;border-radius:8px;position:relative;display:flex;align-items:center;}
+.product img{width:80px;height:80px;object-fit:cover;margin-right:10px;}
 .color-control{display:flex;justify-content:space-between;margin:1em 0;}
 .color-control input{width:48%;}
+#previewImg{display:block;margin:0.5em auto;width:150px;height:150px;object-fit:cover;border:1px solid #28a745;border-radius:8px;}
 </style>
 </head>
 <body>
@@ -43,7 +44,7 @@ button:hover{background:#218838;}
 <form id="addForm">
 <input type="text" id="pName" placeholder="Product Name" required>
 <input type="number" id="pPrice" placeholder="Price" required>
-<select id="pImage" required>
+<select id="pImage" required onchange="showPreview()">
 <option value="smartphone">Smartphone</option>
 <option value="tshirt">T-Shirt</option>
 <option value="sofa">Sofa</option>
@@ -51,6 +52,7 @@ button:hover{background:#218838;}
 <option value="jeans">Jeans</option>
 <option value="headphones">Headphones</option>
 </select>
+<img id="previewImg" src="https://via.placeholder.com/150?text=Smartphone" alt="Preview">
 <select id="pCategory" required>
 <option value="Electronics">Electronics</option>
 <option value="Clothing">Clothing</option>
@@ -83,7 +85,7 @@ let products=JSON.parse(localStorage.getItem("products")||'[]');
 
 function checkPass(){
 let pass=document.getElementById("adminPass").value;
-if(pass==="NAFIS128"){ document.getElementById("loginDiv").style.display='none'; document.getElementById("panelDiv").style.display='block'; renderProducts(); }
+if(pass==="NAFIS128"){ document.getElementById("loginDiv").style.display='none'; document.getElementById("panelDiv").style.display='block'; renderProducts(); showPreview(); }
 else{ document.getElementById("loginMsg").innerText="Wrong password!"; }
 }
 
@@ -92,6 +94,11 @@ if(type==='bg') document.body.style.background=document.getElementById("bgColor"
 else if(type==='text') document.body.style.color=document.getElementById("textColor").value;
 else if(type==='btn'){ document.querySelectorAll('button').forEach(b=>b.style.background=document.getElementById("btnColor").value); }
 else if(type==='btnText'){ document.querySelectorAll('button').forEach(b=>b.style.color=document.getElementById("btnTextColor").value); }
+}
+
+function showPreview(){
+let sel=document.getElementById("pImage").value;
+document.getElementById("previewImg").src=imageMap[sel];
 }
 
 document.getElementById("addForm").addEventListener("submit",function(e){
@@ -105,6 +112,7 @@ rating:5};
 products.push(p);
 localStorage.setItem("products",JSON.stringify(products));
 this.reset();
+showPreview();
 renderProducts();
 });
 
@@ -127,7 +135,7 @@ function editProduct(i){
 let p=products[i];
 let newName=prompt("Name:",p.name);
 let newPrice=prompt("Price:",p.price);
-let newImage=prompt("Image (use key): smartphone, tshirt...)",p.image);
+let newImage=prompt("Image key: smartphone, tshirt,...",p.image);
 let newCategory=prompt("Category:",p.category);
 let newBadge=prompt("Badge:",p.badge);
 if(newName && newPrice && newImage && newCategory){
