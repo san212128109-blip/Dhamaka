@@ -5,91 +5,112 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Vendor Panel</title>
 <style>
-body{font-family:Arial,sans-serif;background:#f5f5f5;color:#333;margin:0;padding:0;}
-header{background:#17a2b8;color:white;padding:1em;text-align:center;}
-nav{display:flex;justify-content:center;gap:10px;margin:10px;}
-nav button{padding:0.5em 1em;cursor:pointer;border:none;border-radius:5px;background:#007bff;color:white;}
-nav button:hover{background:#0056b3;}
-.page{display:none;padding:1em;}
-.product-list{display:flex;flex-wrap:wrap;gap:10px;}
-.product{border:1px solid #ccc;border-radius:8px;padding:10px;width:200px;text-align:center;background:white;}
-input[type=number], input[type=text]{width:90%; margin-bottom:5px;}
+body{font-family:Arial,sans-serif;background:#f8f9fa;color:#333;padding:1em;}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1em;}
+button{padding:0.5em 1em;margin:0.5em;cursor:pointer;}
+input,select,textarea{padding:0.5em;margin:0.3em 0;width:100%;border-radius:5px;border:1px solid #ccc;}
+#vendorPanel{display:none;}
+#loginForm{max-width:400px;margin:auto;}
+.product-list{border:1px solid #28a745;padding:1em;border-radius:10px;margin-top:1em;}
 </style>
 </head>
 <body>
 
-<header><h1>Vendor Panel</h1></header>
-<nav>
-<button onclick="showPage('myProducts')">My Products</button>
-<button onclick="showPage('addProduct')">Add Product</button>
-</nav>
+<header>
+<h1>Vendor Panel</h1>
+<button onclick="logout()">Logout</button>
+</header>
 
-<div id="myProducts" class="page">
-<h2>My Products</h2>
-<div id="productList" class="product-list"></div>
+<div id="loginForm">
+<h2>Vendor Login</h2>
+<input type="text" id="vendorID" placeholder="Vendor ID"><br>
+<input type="password" id="vendorPass" placeholder="Password"><br>
+<button onclick="loginVendor()">Login</button>
+<p id="loginMsg" style="color:red;"></p>
 </div>
 
-<div id="addProduct" class="page">
-<h2>Add New Product</h2>
-<input type="text" id="prodName" placeholder="Product Name"><br>
-<input type="number" id="prodPrice" placeholder="Price"><br>
-<input type="number" id="prodStock" placeholder="Stock Quantity"><br>
-<input type="text" id="prodCategory" placeholder="Category"><br>
-<button onclick="addProduct()">Add Product</button>
+<div id="vendorPanel">
+<h2>Welcome, <span id="vendorName"></span></h2>
+<h3>Add Product</h3>
+<input type="text" id="prodName" placeholder="Product Name">
+<input type="text" id="prodCategory" placeholder="Category">
+<input type="number" id="prodPrice" placeholder="Price">
+<input type="number" id="prodStock" placeholder="Stock">
+<select id="prodImage">
+<option value="smartphone">Smartphone</option>
+<option value="tshirt">T-Shirt</option>
+<option value="sofa">Sofa</option>
+<option value="laptop">Laptop</option>
+<option value="jeans">Jeans</option>
+<option value="headphones">Headphones</option>
+</select>
+<button onclick="addProduct()">Submit Product</button>
+
+<h3>Your Pending Products</h3>
+<div id="pendingList"></div>
 </div>
 
 <script>
-showPage('myProducts');
-function showPage(page){document.querySelectorAll('.page').forEach(p=>p.style.display='none'); document.getElementById(page).style.display='block';}
+let vendors = JSON.parse(localStorage.getItem("vendors")||'[]');
+let pendingProducts = JSON.parse(localStorage.getItem("pendingProducts")||'[]');
+let currentVendor = JSON.parse(sessionStorage.getItem("currentVendor")||'null');
 
-// Data
-let products = JSON.parse(localStorage.getItem('products')||'[]');
-let vendor = prompt("Enter your vendor name:") || "Vendor";
-
-// Render vendor products
-function renderProducts(){
-  const list = document.getElementById('productList');
-  list.innerHTML='';
-  products.filter(p=>p.vendor===vendor).forEach((p,i)=>{
-    const div = document.createElement('div'); div.className='product';
-    div.innerHTML=`<strong>${p.name}</strong><br>
-    Price: $${p.price}<br>
-    Stock: ${p.stock}<br>
-    Approved: ${p.approved ? 'Yes':'No'}<br>
-    <button onclick="deleteProduct(${i})">Delete</button>`;
-    list.appendChild(div);
-  });
+// Default vendor for testing
+if(vendors.length===0){
+vendors.push({id:"vendor1",pass:"12345",name:"Vendor One"});
+vendors.push({id:"vendor2",pass:"12345",name:"Vendor Two"});
+localStorage.setItem("vendors",JSON.stringify(vendors));
 }
 
-// Add new product
+function loginVendor(){
+let id=document.getElementById("vendorID").value;
+let pass=document.getElementById("vendorPass").value;
+let vendor=vendors.find(v=>v.id===id && v.pass===pass);
+if(vendor){
+currentVendor=vendor;
+sessionStorage.setItem("currentVendor",JSON.stringify(vendor));
+document.getElementById("loginForm").style.display="none";
+document.getElementById("vendorPanel").style.display="block";
+document.getElementById("vendorName").innerText=vendor.name;
+renderPendingProducts();
+}else{
+document.getElementById("loginMsg").innerText="Invalid ID or Password";
+}
+}
+
+function logout(){
+sessionStorage.removeItem("currentVendor");
+currentVendor=null;
+document.getElementById("loginForm").style.display="block";
+document.getElementById("vendorPanel").style.display="none";
+}
+
 function addProduct(){
-  const name = document.getElementById('prodName').value.trim();
-  const price = Number(document.getElementById('prodPrice').value);
-  const stock = Number(document.getElementById('prodStock').value);
-  const category = document.getElementById('prodCategory').value.trim();
-  if(!name || !price || !stock || !category){ alert('Fill all fields'); return; }
-  products.push({name, price, stock, category, vendor, approved:false});
-  localStorage.setItem('products',JSON.stringify(products));
-  alert('Product added! Waiting for admin approval.');
-  document.getElementById('prodName').value='';
-  document.getElementById('prodPrice').value='';
-  document.getElementById('prodStock').value='';
-  document.getElementById('prodCategory').value='';
-  renderProducts();
+if(!currentVendor) return alert("Login first");
+let name=document.getElementById("prodName").value;
+let category=document.getElementById("prodCategory").value;
+let price=document.getElementById("prodPrice").value;
+let stock=document.getElementById("prodStock").value;
+let image=document.getElementById("prodImage").value;
+if(!name || !category || !price || !stock) return alert("Fill all fields");
+pendingProducts.push({vendorID:currentVendor.id,name,category,price,stock,image,date:Date.now()});
+localStorage.setItem("pendingProducts",JSON.stringify(pendingProducts));
+alert("Product submitted for admin approval!");
+renderPendingProducts();
 }
 
-// Delete product
-function deleteProduct(i){
-  const confirmDel = confirm('Are you sure?');
-  if(confirmDel){
-    products.splice(i,1);
-    localStorage.setItem('products',JSON.stringify(products));
-    renderProducts();
-  }
-}
+function renderPendingProducts(){
+let list=document.getElementById("pendingList");
+list.innerHTML='';
+pendingProducts.filter(p=>p.vendorID===currentVendor.id).forEach(p=>{
+let div=document.createElement("div");
+div.className="product-list";
+div.innerHTML=`${p.name} - ${p.category} - $${p.price} - Stock: ${p.stock} <br> Submitted on: ${new Date(p.date).toLocaleDateString()}`;
+list.appendChild(div);
+});
 
-// Initial render
-renderProducts();
+// Optional: add delete if vendor wants to remove pending
+}
 </script>
 
 </body>
