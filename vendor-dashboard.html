@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Vendor Dashboard</title>
+<style>
+body{font-family:Arial;padding:20px;}
+</style>
+</head>
+<body>
+
+<h2>Vendor Dashboard</h2>
+<p>Welcome Vendor!</p>
+
+<button onclick="logout()">Logout</button>
+
+<script>
+let vendorSession = JSON.parse(localStorage.getItem("vendorSession"));
+if(!vendorSession){
+    window.location.href = "vendor-login.html";
+}
+let now = Date.now();
+if(now > vendorSession.expireTime){
+    alert("Your 7-day free trial expired! Contact WhatsApp 01913821910");
+    localStorage.removeItem("vendorSession");
+    window.location.href = "vendor-login.html";
+}
+
+if(!vendorSession.approved){
+    alert("Your account is pending approval!");
+    window.location.href = "vendor-login.html";
+}
+
+function logout(){
+    localStorage.removeItem("vendorSession");
+    window.location.href="vendor-login.html";
+}
+</script>
+
+</body>
+</html>
