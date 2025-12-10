@@ -1,92 +1,228 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Admin Panel</title>
 <style>
-body{font-family:Arial;padding:20px;}
-.box{border:1px solid #ddd;padding:15px;margin-bottom:15px;border-radius:10px;}
+body{font-family:Arial;background:#f4f6f8;padding:14px}
+.header{display:flex;justify-content:space-between;align-items:center}
+.box{background:#fff;padding:12px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.05);margin-top:12px}
+table{width:100%;border-collapse:collapse;margin-top:8px}
+th,td{border:1px solid #e2e8f0;padding:8px;text-align:left}
+button{padding:6px 8px;border-radius:6px;border:none;cursor:pointer}
+.approve{background:#28a745;color:#fff}
+.deny{background:#dc3545;color:#fff}
 </style>
 </head>
 <body>
 
-<h2>Admin Panel</h2>
+<div class="header">
+  <h2>Admin Panel</h2>
+  <div>
+    <input id="apass" type="password" placeholder="Admin password" />
+    <button onclick="adminLogin()">Login</button>
+  </div>
+</div>
 
-<h3>Vendor Accounts</h3>
-<div id="vendorList"></div>
+<div id="mainArea" style="display:none">
 
-<hr>
-<h3>Upload Homepage Banners</h3>
-<input type="text" id="bannerURL" placeholder="Enter Banner Image URL" style="width:70%;padding:8px;">
-<button onclick="addBanner()">Add Banner</button>
-<div id="bannerShow"></div>
+  <div class="box" style="display:flex;gap:12px;flex-wrap:wrap">
+    <!-- Vendors column (half width) -->
+    <div style="flex:1;min-width:320px">
+      <h3>Vendors</h3>
+      <table>
+        <thead><tr><th>ID</th><th>Name</th><th>Status</th><th>Trial End</th><th>Actions</th></tr></thead>
+        <tbody id="vendorT"></tbody>
+      </table>
+    </div>
+
+    <!-- Pending products column -->
+    <div style="flex:1;min-width:320px">
+      <h3>Pending Products</h3>
+      <table>
+        <thead><tr><th>Vendor</th><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Actions</th></tr></thead>
+        <tbody id="pendingT"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="box">
+    <h3>Approved Products (manage)</h3>
+    <table>
+      <thead><tr><th>Product</th><th>Vendor</th><th>Price</th><th>Stock</th><th>Actions</th></tr></thead>
+      <tbody id="approvedT"></tbody>
+    </table>
+  </div>
+
+  <div class="box">
+    <h3>Customer Reviews (Pending/All)</h3>
+    <table>
+      <thead><tr><th>Product</th><th>Customer</th><th>Text</th><th>Approved</th><th>Actions</th></tr></thead>
+      <tbody id="reviewsT"></tbody>
+    </table>
+  </div>
+
+  <div class="box">
+    <h3>Homepage Banners</h3>
+    <input id="bannerURL" placeholder="Image URL" style="width:70%;padding:8px"/> <button onclick="addBanner()">Add Banner</button>
+    <div id="bannersArea" style="margin-top:10px"></div>
+  </div>
+</div>
 
 <script>
-// ==================== VENDOR LIST LOADING ===================
-function loadVendors(){
-    let vendors = JSON.parse(localStorage.getItem("vendors")) || {};
-    let html = "";
+const ADMIN_PASS = "NAFIS128";
 
-    for(let id in vendors){
-        html += `
-        <div class="box">
-            <b>ID:</b> ${id}<br>
-            <b>Status:</b> ${vendors[id].approved ? "Approved" : "Pending"}<br><br>
-            <button onclick="approveVendor('${id}')">Approve</button>
-            <button onclick="denyVendor('${id}')">Deny</button>
-        </div>
-        `;
-    }
+/* storage keys:
+   vendors = {id: {id,name,pass,approved:false,approvedAt:timestamp}}
+   pendingProducts = []
+   approvedProducts = []
+   reviews = []  // {product,customer,text,approved:false}
+   banners = []
+*/
 
-    document.getElementById("vendorList").innerHTML = html;
+function adminLogin(){
+  const p = document.getElementById('apass').value;
+  if(p !== ADMIN_PASS){ alert('Wrong password'); return; }
+  document.getElementById('mainArea').style.display = 'block';
+  renderAll();
 }
-loadVendors();
 
-// ==================== APPROVE / DENY ===================
+/* Util load/save */
+function loadVendors(){ return JSON.parse(localStorage.getItem('vendors')||'{}'); }
+function saveVendors(v){ localStorage.setItem('vendors', JSON.stringify(v)); }
+function loadPending(){ return JSON.parse(localStorage.getItem('pendingProducts')||'[]'); }
+function savePending(a){ localStorage.setItem('pendingProducts', JSON.stringify(a)); }
+function loadApproved(){ return JSON.parse(localStorage.getItem('approvedProducts')||'[]'); }
+function saveApproved(a){ localStorage.setItem('approvedProducts', JSON.stringify(a)); }
+function loadReviews(){ return JSON.parse(localStorage.getItem('reviews')||'[]'); }
+function saveReviews(a){ localStorage.setItem('reviews', JSON.stringify(a)); }
+function loadBanners(){ return JSON.parse(localStorage.getItem('banners')||'[]'); }
+function saveBanners(a){ localStorage.setItem('banners', JSON.stringify(a)); }
+
+/* Render functions */
+function renderAll(){
+  renderVendors(); renderPendingProducts(); renderApproved(); renderReviews(); renderBanners();
+}
+
+function renderVendors(){
+  const vendors = loadVendors();
+  const tbody = document.getElementById('vendorT');
+  tbody.innerHTML = '';
+  Object.values(vendors).forEach(v=>{
+    const tr = document.createElement('tr');
+    const trialEnd = v.approvedAt ? new Date(v.approvedAt + 7*24*60*60*1000).toLocaleDateString() : '-';
+    tr.innerHTML = `<td>${v.id}</td><td>${v.name}</td><td>${v.approved? 'Approved':'Pending'}</td><td>${trialEnd}</td>
+      <td>
+        <button class="approve" onclick="approveVendor('${v.id}')">Approve</button>
+        <button class="deny" onclick="denyVendor('${v.id}')">Deny</button>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+}
+
 function approveVendor(id){
-    let vendors = JSON.parse(localStorage.getItem("vendors"));
-    vendors[id].approved = true;
-    localStorage.setItem("vendors", JSON.stringify(vendors));
-    loadVendors();
+  const vendors = loadVendors();
+  if(!vendors[id]) return;
+  vendors[id].approved = true;
+  vendors[id].approvedAt = Date.now();
+  saveVendors(vendors);
+  alert('Vendor approved. WhatsApp: 01913821910');
+  renderVendors();
 }
-
 function denyVendor(id){
-    let vendors = JSON.parse(localStorage.getItem("vendors"));
-    delete vendors[id];
-    localStorage.setItem("vendors", JSON.stringify(vendors));
-    loadVendors();
+  const vendors = loadVendors();
+  if(!vendors[id]) return;
+  if(confirm('Deny and remove vendor '+id+' ?')){ delete vendors[id]; saveVendors(vendors); renderVendors(); }
 }
 
-// ==================== BANNER SYSTEM ===================
-function loadBanners(){
-    let banners = JSON.parse(localStorage.getItem("banners")) || [];
-    let html = "";
-
-    banners.forEach((b,i)=>{
-        html += `<div class="box"><img src="${b}" style="width:100%;border-radius:8px;"><br><button onclick="removeBanner(${i})">Delete</button></div>`;
-    });
-
-    document.getElementById("bannerShow").innerHTML = html;
+/* Pending products */
+function renderPendingProducts(){
+  const list = loadPending();
+  const tbody = document.getElementById('pendingT'); tbody.innerHTML='';
+  list.forEach((p,i)=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${p.vendorId}</td><td>${p.name}</td><td>${p.category}</td><td>${p.price}</td><td>${p.stock}</td>
+      <td>
+        <button class="approve" onclick="approveProduct(${i})">Approve</button>
+        <button class="deny" onclick="denyProduct(${i})">Deny</button>
+      </td>`;
+    tbody.appendChild(tr);
+  });
 }
-loadBanners();
+function approveProduct(idx){
+  const pending = loadPending();
+  const approved = loadApproved();
+  const product = pending.splice(idx,1)[0];
+  // add vendorId and approvedAt
+  product.approvedAt = Date.now();
+  approved.push(product);
+  saveApproved(approved);
+  savePending(pending);
+  alert('Product approved');
+  renderPendingProducts(); renderApproved();
+}
+function denyProduct(idx){
+  const pending = loadPending();
+  if(confirm('Deny this product?')){
+    pending.splice(idx,1);
+    savePending(pending);
+  }
+  renderPendingProducts();
+}
 
+/* Approved products management */
+function renderApproved(){
+  const approved = loadApproved();
+  const tbody = document.getElementById('approvedT'); tbody.innerHTML='';
+  approved.forEach((p,i)=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${p.name}</td><td>${p.vendorId}</td>
+      <td><input type="number" value="${p.price}" onchange="updateApprovedPrice(${i},this.value)"></td>
+      <td><input type="number" value="${p.stock}" onchange="updateApprovedStock(${i},this.value)"></td>
+      <td><button onclick="removeApproved(${i})" class="deny">Remove</button></td>`;
+    tbody.appendChild(tr);
+  });
+}
+function updateApprovedPrice(i,val){ const a = loadApproved(); a[i].price = Number(val); saveApproved(a); renderApproved(); }
+function updateApprovedStock(i,val){ const a = loadApproved(); a[i].stock = Number(val); saveApproved(a); renderApproved(); }
+function removeApproved(i){ const a = loadApproved(); if(confirm('Remove product?')){ a.splice(i,1); saveApproved(a); renderApproved(); } }
+
+/* Reviews moderation */
+function renderReviews(){
+  const reviews = loadReviews();
+  const tbody = document.getElementById('reviewsT'); tbody.innerHTML = '';
+  reviews.forEach((r,i)=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${r.product}</td><td>${r.customer}</td><td>${r.text}</td><td>${r.approved? 'Yes':'No'}</td>
+      <td><button onclick="approveReview(${i})" class="approve">Approve</button> <button onclick="deleteReview(${i})" class="deny">Delete</button></td>`;
+    tbody.appendChild(tr);
+  });
+}
+function approveReview(i){ const r = loadReviews(); r[i].approved = true; saveReviews(r); renderReviews(); }
+function deleteReview(i){ const r = loadReviews(); r.splice(i,1); saveReviews(r); renderReviews(); }
+
+/* Banners */
 function addBanner(){
-    let url = document.getElementById("bannerURL").value;
-    if(url=="") return;
-
-    let banners = JSON.parse(localStorage.getItem("banners")) || [];
-    banners.push(url);
-    localStorage.setItem("banners", JSON.stringify(banners));
-    document.getElementById("bannerURL").value = "";
-    loadBanners();
+  const url = document.getElementById('bannerURL').value.trim();
+  if(!url) return alert('Enter image URL');
+  const b = loadBanners(); b.push(url); saveBanners(b); renderBanners(); document.getElementById('bannerURL').value='';
 }
-
-function removeBanner(i){
-    let banners = JSON.parse(localStorage.getItem("banners"));
-    banners.splice(i,1);
-    localStorage.setItem("banners", JSON.stringify(banners));
-    loadBanners();
+function renderBanners(){
+  const b = loadBanners();
+  const area = document.getElementById('bannersArea'); area.innerHTML = '';
+  b.forEach((u,i)=>{
+    const div = document.createElement('div');
+    div.style.marginBottom = '8px';
+    div.innerHTML = `<img src="${u}" style="max-width:240px;border-radius:6px"><br><button onclick="removeBanner(${i})" class="deny">Delete</button>`;
+    area.appendChild(div);
+  });
 }
+function removeBanner(i){ const b = loadBanners(); b.splice(i,1); saveBanners(b); renderBanners(); }
+
+/* initial */
+function renderPendingProducts(){ renderPendingProducts = renderPendingProducts; renderPendingProducts(); } // no-op to avoid lint
+renderAll();
 </script>
-
 </body>
 </html>
