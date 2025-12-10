@@ -5,75 +5,147 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin Panel</title>
 <style>
-*{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:Arial,sans-serif;background:#f0f0f0;color:#333;}
-header{background:#28a745;color:white;padding:1em;text-align:center;}
-header h1{margin:0;}
-.container{max-width:800px;margin:2em auto;}
-button{background:#28a745;color:white;border:none;padding:0.5em 1em;border-radius:5px;cursor:pointer;margin:0.3em;}
-button:hover{background:#218838;}
-input, select{padding:0.5em;margin:0.3em 0;width:100%;border-radius:5px;border:1px solid #ccc;}
-.product{background:white;padding:1em;margin:1em 0;border-radius:8px;box-shadow:0 0 5px rgba(0,0,0,0.1);}
+body{font-family:Arial,sans-serif;background:#f9f9f9;color:#333;padding:20px;}
+h1,h2{text-align:center;}
+input,select,button{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;border:1px solid #ccc;}
+button{background:#007bff;color:white;border:none;cursor:pointer;transition:0.3s;}
+button:hover{background:#0056b3;}
+.section{border:1px solid #ccc;padding:15px;margin:10px;border-radius:8px;background:#fff;}
+.product-item{border:1px solid #28a745;padding:10px;margin:5px;border-radius:8px;background:#e9ffe9;}
+.review-item{border:1px solid #ff9800;padding:10px;margin:5px;border-radius:8px;background:#fff3e0;}
 </style>
 </head>
 <body>
-<header>
-<h1>Admin Panel</h1>
-</header>
-<div class="container">
-<h3>Pending Products</h3>
-<div id="pendingList"></div>
-<h3>Theme Settings</h3>
-<label>Background Color:</label><input type="color" id="bgColor">
-<label>Text Color:</label><input type="color" id="textColor">
-<label>Button Color:</label><input type="color" id="btnColor">
-<label>Button Text Color:</label><input type="color" id="btnTextColor">
-<button onclick="saveTheme()">Save Theme</button>
-</div>
-<script>
-let pendingProducts = JSON.parse(localStorage.getItem('pendingProducts') || '[]');
-let products = JSON.parse(localStorage.getItem('products') || '[]');
-const pendingList = document.getElementById('pendingList');
 
+<h1>Admin Panel</h1>
+
+<h2>Login</h2>
+<input type="password" id="adminPass" placeholder="Enter Admin Password">
+<button onclick="adminLogin()">Login</button>
+<p id="loginMsg" style="color:red;"></p>
+
+<div id="adminPanel" style="display:none;">
+
+<h2>Pending Products</h2>
+<div class="section" id="pendingProducts"></div>
+
+<h2>Manage Products</h2>
+<div class="section" id="allProducts"></div>
+
+<h2>Customer Reviews</h2>
+<div class="section" id="reviewsList"></div>
+
+<h2>Theme / Color Settings</h2>
+<div class="section">
+<label>Background Color:</label>
+<input type="color" id="bgColor">
+<label>Text Color:</label>
+<input type="color" id="textColor">
+<label>Button Color:</label>
+<input type="color" id="btnColor">
+<label>Button Text Color:</label>
+<input type="color" id="btnTextColor">
+<button onclick="applyTheme()">Apply Theme</button>
+</div>
+
+</div>
+
+<script>
+const ADMIN_PASS = "NAFIS128";
+let pending = JSON.parse(localStorage.getItem("pending")||'[]');
+let products = JSON.parse(localStorage.getItem("products")||'[]');
+let reviews = JSON.parse(localStorage.getItem("reviews")||[]);
+
+function adminLogin(){
+  let pass=document.getElementById('adminPass').value;
+  if(pass===ADMIN_PASS){
+    document.getElementById('adminPanel').style.display='block';
+    document.getElementById('loginMsg').innerText='';
+    renderPending();
+    renderProducts();
+    renderReviews();
+  } else { document.getElementById('loginMsg').innerText="Wrong password"; }
+}
+
+// Pending products
 function renderPending(){
-    pendingList.innerHTML = '';
-    pendingProducts.forEach((p,i)=>{
-        const div = document.createElement('div');
-        div.className = 'product';
-        div.innerHTML = `<p>${p.name} - $${p.price} (${p.category})</p>
-        <button onclick='approveProduct(${i})'>Approve</button>
-        <button onclick='denyProduct(${i})'>Deny</button>`;
-        pendingList.appendChild(div);
-    });
+  const list = document.getElementById('pendingProducts');
+  list.innerHTML='';
+  pending.forEach((p,i)=>{
+    const div=document.createElement('div'); div.className='product-item';
+    div.innerHTML=`<strong>${p.name}</strong> - $${p.price} - Stock: ${p.stock} 
+      <button onclick="approveProduct(${i})">Approve</button>
+      <button onclick="rejectProduct(${i})">Reject</button>`;
+    list.appendChild(div);
+  });
 }
 
 function approveProduct(i){
-    pendingProducts[i].approved = true;
-    products.push(pendingProducts[i]);
-    pendingProducts.splice(i,1);
-    localStorage.setItem('pendingProducts', JSON.stringify(pendingProducts));
-    localStorage.setItem('products', JSON.stringify(products));
-    renderPending();
+  pending[i].approved=true;
+  products.push(pending[i]);
+  pending.splice(i,1);
+  saveData();
+  renderPending();
+  renderProducts();
 }
 
-function denyProduct(i){
-    pendingProducts.splice(i,1);
-    localStorage.setItem('pendingProducts', JSON.stringify(pendingProducts));
-    renderPending();
+function rejectProduct(i){
+  pending.splice(i,1);
+  saveData();
+  renderPending();
 }
 
-function saveTheme(){
-    const theme = {
-        bg: document.getElementById('bgColor').value,
-        text: document.getElementById('textColor').value,
-        btn: document.getElementById('btnColor').value,
-        btnText: document.getElementById('btnTextColor').value
-    };
-    localStorage.setItem('theme', JSON.stringify(theme));
-    alert('Theme saved!');
+// All products
+function renderProducts(){
+  const list = document.getElementById('allProducts');
+  list.innerHTML='';
+  products.forEach((p,i)=>{
+    const div=document.createElement('div'); div.className='product-item';
+    div.innerHTML=`<strong>${p.name}</strong> - $<input type="number" value="${p.price}" onchange="updatePrice(${i},this.value)"> 
+      - Stock: <input type="number" value="${p.stock}" onchange="updateStock(${i},this.value)">
+      <button onclick="deleteProduct(${i})">Delete</button>`;
+    list.appendChild(div);
+  });
 }
 
-renderPending();
+function updatePrice(i,val){ products[i].price=Number(val); saveData(); }
+function updateStock(i,val){ products[i].stock=Number(val); saveData(); }
+function deleteProduct(i){ products.splice(i,1); saveData(); renderProducts(); }
+
+// Reviews
+function renderReviews(){
+  const list = document.getElementById('reviewsList');
+  list.innerHTML='';
+  reviews.forEach((r,i)=>{
+    const div=document.createElement('div'); div.className='review-item';
+    div.innerHTML=`<strong>${r.product}</strong> - ${r.user}: ${r.comment} 
+      <button onclick="deleteReview(${i})">Delete</button>`;
+    list.appendChild(div);
+  });
+}
+
+function deleteReview(i){ reviews.splice(i,1); saveData(); renderReviews(); }
+
+// Theme
+function applyTheme(){
+  const bg=document.getElementById('bgColor').value;
+  const text=document.getElementById('textColor').value;
+  const btn=document.getElementById('btnColor').value;
+  const btnText=document.getElementById('btnTextColor').value;
+  document.body.style.background=bg;
+  document.body.style.color=text;
+  document.querySelectorAll('button').forEach(b=>{
+    b.style.background=btn;
+    b.style.color=btnText;
+  });
+}
+
+// Save to localStorage
+function saveData(){
+  localStorage.setItem("pending",JSON.stringify(pending));
+  localStorage.setItem("products",JSON.stringify(products));
+  localStorage.setItem("reviews",JSON.stringify(reviews));
+}
 </script>
 </body>
 </html>
