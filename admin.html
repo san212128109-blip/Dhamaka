@@ -3,155 +3,143 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dhamaka Admin Panel</title>
+<title>Admin Panel</title>
 <style>
 body{font-family:Arial,sans-serif;background:#f4f4f4;color:#333;transition:0.3s;}
-body.dark{background:#121212;color:#ddd;}
 h1,h2{text-align:center;}
 .container{width:90%;max-width:800px;margin:1em auto;}
-input,select,button{padding:0.5em;margin:0.3em 0;width:100%;border-radius:5px;border:1px solid #ccc;}
+input,select,button{padding:0.5em;margin:0.3em 0;border-radius:5px;border:1px solid #ccc;}
 button{cursor:pointer;background:#28a745;color:white;border:none;}
 button:hover{background:#218838;}
 .product{border:1px solid #28a745;padding:1em;margin:0.5em 0;border-radius:10px;background:#fff;}
+.preview{width:80px;height:80px;object-fit:cover;border-radius:5px;}
+.theme-input{width:48%;display:inline-block;margin-right:2%;}
 </style>
 </head>
 <body>
+
 <h1>Admin Panel</h1>
 
 <div class="container">
-<h2>Admin Login</h2>
-<input type="password" id="adminPass" placeholder="Enter Admin Password">
-<button onclick="adminLogin()">Login</button>
-<p id="loginMsg" style="color:red;"></p>
+<h2>Theme Settings</h2>
+<input type="color" id="bgColor" class="theme-input" placeholder="Background Color">
+<input type="color" id="textColor" class="theme-input" placeholder="Text Color">
+<input type="color" id="btnColor" class="theme-input" placeholder="Button Color">
+<input type="color" id="btnTextColor" class="theme-input" placeholder="Button Text Color">
+<button onclick="applyTheme()">Apply Theme</button>
 </div>
 
-<div class="container" id="adminPanel" style="display:none;">
-<h2>Theme Customization</h2>
-<label>Background Color:</label>
-<input type="color" id="bgColor">
-<label>Text Color:</label>
-<input type="color" id="textColor">
-<label>Button Color:</label>
-<input type="color" id="btnColor">
-<label>Button Text Color:</label>
-<input type="color" id="btnTextColor">
-<button onclick="saveTheme()">Save Theme</button>
+<div class="container">
+<h2>Pending Products (Vendor Submission)</h2>
+<div id="pendingList"></div>
+</div>
 
-<hr>
-
-<h2>Product Management</h2>
-<div id="productList"></div>
-
-<hr>
-
-<h2>Orders</h2>
-<div id="orderList"></div>
+<div class="container">
+<h2>Approved Products</h2>
+<div id="approvedList"></div>
 </div>
 
 <script>
-let adminPassword = "NAFIS128";
-let products = JSON.parse(localStorage.getItem("products")||'[]');
 let pending = JSON.parse(localStorage.getItem("pending")||'[]');
-let orders = JSON.parse(localStorage.getItem("orders")||'[]');
-let theme = JSON.parse(localStorage.getItem("theme")||'{}');
+let products = JSON.parse(localStorage.getItem("products")||'[]');
 
-function adminLogin(){
-  let pass = document.getElementById("adminPass").value;
-  if(pass === adminPassword){
-    document.getElementById("adminPanel").style.display="block";
-    document.getElementById("loginMsg").innerText="";
-    loadTheme();
-    renderProducts();
-    renderOrders();
-  } else {
-    document.getElementById("loginMsg").innerText="Wrong password!";
-  }
-}
-
-// ===== Theme =====
+// Apply saved theme
 function loadTheme(){
-  if(theme.bg) document.body.style.background = theme.bg;
-  if(theme.text) document.body.style.color = theme.text;
+  let theme = JSON.parse(localStorage.getItem("theme")||'{}');
+  if(theme.bg) document.body.style.background=theme.bg;
+  if(theme.text) document.body.style.color=theme.text;
   if(theme.btn) document.querySelectorAll('button').forEach(b=>b.style.background=theme.btn);
   if(theme.btnText) document.querySelectorAll('button').forEach(b=>b.style.color=theme.btnText);
-  document.getElementById("bgColor").value = theme.bg||"#f4f4f4";
-  document.getElementById("textColor").value = theme.text||"#333333";
-  document.getElementById("btnColor").value = theme.btn||"#28a745";
-  document.getElementById("btnTextColor").value = theme.btnText||"#ffffff";
-}
-function saveTheme(){
-  theme.bg = document.getElementById("bgColor").value;
-  theme.text = document.getElementById("textColor").value;
-  theme.btn = document.getElementById("btnColor").value;
-  theme.btnText = document.getElementById("btnTextColor").value;
-  localStorage.setItem("theme",JSON.stringify(theme));
-  loadTheme();
-  alert("Theme saved!");
+  if(theme.bg) document.getElementById("bgColor").value = theme.bg;
+  if(theme.text) document.getElementById("textColor").value = theme.text;
+  if(theme.btn) document.getElementById("btnColor").value = theme.btn;
+  if(theme.btnText) document.getElementById("btnTextColor").value = theme.btnText;
 }
 
-// ===== Product Management =====
-function renderProducts(){
-  let list = document.getElementById("productList");
+// Apply theme
+function applyTheme(){
+  let bg = document.getElementById("bgColor").value;
+  let text = document.getElementById("textColor").value;
+  let btn = document.getElementById("btnColor").value;
+  let btnText = document.getElementById("btnTextColor").value;
+  document.body.style.background = bg;
+  document.body.style.color = text;
+  document.querySelectorAll('button').forEach(b=>{b.style.background=btn;b.style.color=btnText;});
+  localStorage.setItem("theme", JSON.stringify({bg,text,btn,btnText}));
+}
+
+// Render Pending products
+function renderPending(){
+  let list = document.getElementById("pendingList");
   list.innerHTML="";
-  if(pending.length===0) list.innerHTML="<p>No pending products</p>";
-  pending.forEach((p,i)=>{
+  let pend = pending.filter(p=>p.status==="pending");
+  if(pend.length===0){ list.innerHTML="<p>No pending products</p>"; return;}
+  pend.forEach((p,i)=>{
     let div = document.createElement('div');
     div.className="product";
-    div.innerHTML=`<strong>${p.name}</strong> - $${p.price}<br>Category: ${p.category}<br>
-      <button onclick="approveProduct(${i})">Approve</button>
-      <button onclick="editProduct(${i})">Edit</button>
-      <button onclick="rejectProduct(${i})">Reject</button>`;
+    div.innerHTML = `<strong>${p.name}</strong> - $<span class="price">${p.price}</span><br>
+    Category: ${p.category}<br>Vendor: ${p.vendor}<br>
+    <img src="${p.image}" class="preview"><br>
+    <button onclick="approveProduct(${i})">Approve</button>
+    <button onclick="denyProduct(${i})">Deny</button>
+    <input type="number" value="${p.price}" min="1" onchange="editPrice(${i},this.value)">`;
     list.appendChild(div);
   });
 }
 
+// Render Approved products
+function renderApproved(){
+  let list = document.getElementById("approvedList");
+  list.innerHTML="";
+  if(products.length===0){ list.innerHTML="<p>No approved products</p>"; return;}
+  products.forEach((p,i)=>{
+    let div = document.createElement('div');
+    div.className="product";
+    div.innerHTML = `<strong>${p.name}</strong> - $<span class="price">${p.price}</span><br>
+    Category: ${p.category}<br>Vendor: ${p.vendor}<br>
+    <img src="${p.image}" class="preview">
+    <input type="number" value="${p.price}" min="1" onchange="editApprovedPrice(${i},this.value)">`;
+    list.appendChild(div);
+  });
+}
+
+// Approve
 function approveProduct(i){
-  products.push(pending[i]);
+  let prod = pending[i];
+  prod.status="approved";
+  products.push(prod);
+  localStorage.setItem("products", JSON.stringify(products));
   pending.splice(i,1);
-  localStorage.setItem("products",JSON.stringify(products));
-  localStorage.setItem("pending",JSON.stringify(pending));
-  renderProducts();
+  localStorage.setItem("pending", JSON.stringify(pending));
+  renderPending();
+  renderApproved();
 }
 
-function rejectProduct(i){
+// Deny
+function denyProduct(i){
   pending.splice(i,1);
-  localStorage.setItem("pending",JSON.stringify(pending));
-  renderProducts();
+  localStorage.setItem("pending", JSON.stringify(pending));
+  renderPending();
 }
 
-function editProduct(i){
-  let p = pending[i];
-  let newName = prompt("Edit Name:",p.name);
-  let newPrice = prompt("Edit Price:",p.price);
-  let newCategory = prompt("Edit Category:",p.category);
-  if(newName) p.name=newName;
-  if(newPrice) p.price=Number(newPrice);
-  if(newCategory) p.category=newCategory;
-  pending[i]=p;
-  localStorage.setItem("pending",JSON.stringify(pending));
-  renderProducts();
+// Edit price before approval
+function editPrice(i,val){
+  pending[i].price = Number(val);
+  localStorage.setItem("pending", JSON.stringify(pending));
 }
 
-// ===== Orders =====
-function renderOrders(){
-  let list = document.getElementById("orderList");
-  list.innerHTML="";
-  if(orders.length===0) list.innerHTML="<p>No orders yet</p>";
-  orders.forEach((o,i)=>{
-    let div = document.createElement('div');
-    div.className="product";
-    div.innerHTML=`<strong>${o.customer}</strong> - Total: $${o.total} - Payment: ${o.payment}<br>
-      <button onclick="completeOrder(${i})">${o.completed?"Completed":"Mark Complete"}</button>`;
-    list.appendChild(div);
-  });
+// Edit price of approved products
+function editApprovedPrice(i,val){
+  products[i].price = Number(val);
+  localStorage.setItem("products", JSON.stringify(products));
+  renderApproved();
 }
 
-function completeOrder(i){
-  orders[i].completed = true;
-  localStorage.setItem("orders",JSON.stringify(orders));
-  renderOrders();
-}
-
+// Initial render
+loadTheme();
+renderPending();
+renderApproved();
 </script>
+
 </body>
 </html>
