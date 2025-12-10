@@ -5,66 +5,93 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Vendor Panel</title>
 <style>
-body{font-family:Arial,sans-serif;background:#f0f0f0;color:#333;padding:20px;}
-h1,h2{text-align:center;}
-input,select,button{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;border:1px solid #ccc;}
-button{background:#28a745;color:white;border:none;cursor:pointer;transition:0.3s;}
-button:hover{background:#218838;}
-.product-list{margin-top:1em;}
-.product-item{border:1px solid #28a745;padding:10px;margin:5px;border-radius:8px;background:#fff;}
+body{font-family:Arial,sans-serif;background:#f0f0f0;color:#333;margin:0;padding:0;}
+header{background:#ff9800;color:white;padding:1em;text-align:center;}
+nav{display:flex;justify-content:center;gap:10px;margin:10px;}
+nav button{padding:0.5em 1em;cursor:pointer;border:none;border-radius:5px;background:#007bff;color:white;}
+nav button:hover{background:#0056b3;}
+.page{display:none;padding:1em;}
+.product-list{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;}
+.product-item{border:1px solid #ccc;padding:10px;border-radius:8px;background:#fff;width:200px;}
+input,select,textarea{width:90%;padding:0.5em;margin:0.3em 0;border-radius:5px;border:1px solid #ccc;}
+button.add-product{width:95%;}
 </style>
 </head>
 <body>
-<h1>Vendor Panel</h1>
 
-<h2>Login</h2>
-<input type="text" id="vendorName" placeholder="Vendor Name">
-<input type="password" id="vendorPass" placeholder="Password">
-<button onclick="vendorLogin()">Login</button>
+<header><h1>Vendor Panel</h1></header>
+<nav>
+<button onclick="showPage('vendorLogin')">Login/Register</button>
+<button onclick="showPage('vendorAdd')">Add Product</button>
+<button onclick="showPage('vendorList')">My Products</button>
+</nav>
+
+<div id="vendorLogin" class="page">
+<h2>Vendor Login / Register</h2>
+<input type="text" id="vendorUsername" placeholder="Username">
+<button onclick="vendorLogin()">Login/Register</button>
 <p id="loginMsg" style="color:red;"></p>
+</div>
 
-<div id="vendorPanel" style="display:none;">
-<h2>Add Product</h2>
+<div id="vendorAdd" class="page">
+<h2>Add New Product</h2>
 <input type="text" id="prodName" placeholder="Product Name">
 <input type="number" id="prodPrice" placeholder="Price">
 <input type="number" id="prodStock" placeholder="Stock Quantity">
-<button onclick="addProduct()">Add Product</button>
+<input type="text" id="prodCategory" placeholder="Category">
+<button class="add-product" onclick="addProduct()">Add Product</button>
+</div>
 
-<h2>Pending Products</h2>
-<div class="product-list" id="pendingList"></div>
+<div id="vendorList" class="page">
+<h2>My Products (Pending Approval)</h2>
+<div class="product-list" id="myProducts"></div>
 </div>
 
 <script>
-let pending = JSON.parse(localStorage.getItem("pending")||'[]');
+let vendors = JSON.parse(localStorage.getItem("vendors")||'[]');
+let products = JSON.parse(localStorage.getItem("products")||'[]');
+let currentVendor = null;
+
+function showPage(page){
+  document.querySelectorAll('.page').forEach(p=>p.style.display='none');
+  document.getElementById(page).style.display='block';
+}
+showPage('vendorLogin');
 
 function vendorLogin(){
-  let name=document.getElementById('vendorName').value;
-  let pass=document.getElementById('vendorPass').value;
-  if(name && pass){ 
-    alert("Welcome "+name);
-    document.getElementById('vendorPanel').style.display='block';
-    document.getElementById('loginMsg').innerText='';
-    renderPending();
-  } else { document.getElementById('loginMsg').innerText="Enter credentials"; }
+  let user = document.getElementById('vendorUsername').value;
+  if(!user){ document.getElementById('loginMsg').innerText="Enter username"; return; }
+  currentVendor = user;
+  if(!vendors.includes(user)){ vendors.push(user); localStorage.setItem("vendors",JSON.stringify(vendors)); }
+  document.getElementById('loginMsg').innerText='';
+  renderMyProducts();
+  showPage('vendorAdd');
 }
 
 function addProduct(){
-  let name=document.getElementById('prodName').value;
-  let price=document.getElementById('prodPrice').value;
-  let stock=document.getElementById('prodStock').value;
-  if(!name||!price||!stock) return alert("Fill all fields");
-  pending.push({id:Date.now(), name, price:Number(price), stock:Number(stock), approved:false});
-  localStorage.setItem("pending",JSON.stringify(pending));
-  alert("Product added, waiting for admin approval!");
-  renderPending();
+  const name=document.getElementById('prodName').value;
+  const price=Number(document.getElementById('prodPrice').value);
+  const stock=Number(document.getElementById('prodStock').value);
+  const category=document.getElementById('prodCategory').value;
+  if(!name || !price || !stock){ alert("Fill all fields"); return; }
+  const prod={name:name,price:price,stock:stock,category:category,vendor:currentVendor,approved:false};
+  products.push(prod);
+  localStorage.setItem("products",JSON.stringify(products));
+  alert("Product added! Pending admin approval.");
+  document.getElementById('prodName').value='';
+  document.getElementById('prodPrice').value='';
+  document.getElementById('prodStock').value='';
+  document.getElementById('prodCategory').value='';
+  renderMyProducts();
 }
 
-function renderPending(){
-  const list = document.getElementById('pendingList');
+function renderMyProducts(){
+  const list = document.getElementById('myProducts');
   list.innerHTML='';
-  pending.forEach((p,i)=>{
+  products.filter(p=>p.vendor===currentVendor).forEach(p=>{
     const div=document.createElement('div'); div.className='product-item';
-    div.innerHTML=`<strong>${p.name}</strong> - $${p.price} - Stock: ${p.stock} - Approved: ${p.approved}`;
+    div.innerHTML=`<strong>${p.name}</strong><br>Price: $${p.price}<br>Stock: ${p.stock}<br>
+      Category: ${p.category}<br>Status: ${p.approved?'Approved':'Pending'}`;
     list.appendChild(div);
   });
 }
