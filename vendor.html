@@ -5,128 +5,64 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Vendor Panel</title>
 <style>
-body{font-family:Arial,sans-serif;background:#f4f4f4;color:#333;transition:0.3s;}
-h1,h2{text-align:center;}
-.container{width:90%;max-width:500px;margin:1em auto;}
-input,select,button{padding:0.5em;margin:0.3em 0;width:100%;border-radius:5px;border:1px solid #ccc;}
-button{cursor:pointer;background:#28a745;color:white;border:none;}
-button:hover{background:#218838;}
-.product{border:1px solid #28a745;padding:1em;margin:0.5em 0;border-radius:10px;background:#fff;}
-img.preview{width:100px;height:100px;object-fit:cover;margin-top:0.5em;border-radius:5px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:Arial,sans-serif;background:#f0f0f0;color:#333;}
+header{background:#007bff;color:white;padding:1em;text-align:center;}
+header h1{margin:0;}
+form{max-width:400px;margin:2em auto;background:white;padding:1em;border-radius:8px;box-shadow:0 0 10px rgba(0,0,0,0.1);}
+input, select, textarea{width:100%;padding:0.5em;margin:0.5em 0;border-radius:5px;border:1px solid #ccc;}
+button{background:#007bff;color:white;border:none;padding:0.5em 1em;border-radius:5px;cursor:pointer;}
+button:hover{background:#0056b3;}
+.product-list{max-width:600px;margin:2em auto;}
+.product{background:white;padding:1em;margin:1em 0;border-radius:8px;box-shadow:0 0 5px rgba(0,0,0,0.1);}
 </style>
 </head>
 <body>
-
+<header>
 <h1>Vendor Panel</h1>
-
-<div class="container" id="loginDiv">
-<h2>Vendor Login</h2>
-<input type="text" id="vendorName" placeholder="Enter your name">
-<button onclick="vendorLogin()">Login</button>
-<p id="loginMsg" style="color:red;"></p>
+</header>
+<form id="vendorForm">
+<h3>Add Product</h3>
+<input type="text" id="name" placeholder="Product Name" required>
+<input type="number" id="price" placeholder="Price" required>
+<input type="text" id="category" placeholder="Category" required>
+<input type="text" id="image" placeholder="Image URL">
+<button type="submit">Submit for Approval</button>
+<p id="msg" style="color:red;"></p>
+</form>
+<div class="product-list" id="pendingList">
+<h3>Pending Products</h3>
 </div>
-
-<div class="container" id="vendorPanel" style="display:none;">
-<h2>Submit Product</h2>
-<input type="text" id="prodName" placeholder="Product Name">
-<input type="number" id="prodPrice" placeholder="Product Price">
-<select id="prodCategory"></select>
-<input type="text" id="prodImage" placeholder="Image URL" oninput="updatePreview()">
-<img id="imgPreview" class="preview" style="display:none;">
-<button onclick="submitProduct()">Submit Product</button>
-
-<hr>
-<h2>My Submitted Products (Pending)</h2>
-<div id="pendingList"></div>
-</div>
-
 <script>
-let pending = JSON.parse(localStorage.getItem("pending")||'[]');
-let products = JSON.parse(localStorage.getItem("products")||'[]');
-let currentVendor = "";
+let pendingProducts = JSON.parse(localStorage.getItem('pendingProducts') || '[]');
+const form = document.getElementById('vendorForm');
+const pendingList = document.getElementById('pendingList');
 
-// Render category options from existing products
-function renderCategoryOptions(){
-  let catSet = new Set(products.map(p=>p.category));
-  const select = document.getElementById("prodCategory");
-  select.innerHTML = "<option value=''>Select Category</option>";
-  catSet.forEach(c=>{
-    let opt = document.createElement('option');
-    opt.value=c; opt.innerText=c;
-    select.appendChild(opt);
-  });
-}
-
-function vendorLogin(){
-  let name = document.getElementById("vendorName").value;
-  if(name){
-    currentVendor = name;
-    document.getElementById("loginDiv").style.display="none";
-    document.getElementById("vendorPanel").style.display="block";
-    renderCategoryOptions();
+form.addEventListener('submit', function(e){
+    e.preventDefault();
+    const name = document.getElementById('name').value;
+    const price = document.getElementById('price').value;
+    const category = document.getElementById('category').value;
+    const image = document.getElementById('image').value;
+    const product = {name, price, category, image, approved:false};
+    pendingProducts.push(product);
+    localStorage.setItem('pendingProducts', JSON.stringify(pendingProducts));
+    document.getElementById('msg').innerText = 'Product submitted for approval!';
+    form.reset();
     renderPending();
-  } else {
-    document.getElementById("loginMsg").innerText="Enter your name";
-  }
-}
-
-function updatePreview(){
-  const url = document.getElementById("prodImage").value;
-  const img = document.getElementById("imgPreview");
-  if(url){
-    img.src = url;
-    img.style.display="block";
-  } else {
-    img.style.display="none";
-  }
-}
-
-function submitProduct(){
-  let name = document.getElementById("prodName").value;
-  let price = document.getElementById("prodPrice").value;
-  let category = document.getElementById("prodCategory").value;
-  let image = document.getElementById("prodImage").value;
-
-  if(!name || !price || !category || !image){
-    alert("All fields required!");
-    return;
-  }
-
-  let product = {
-    name: name,
-    price: Number(price),
-    category: category,
-    image: image,
-    vendor: currentVendor,
-    status: "pending"
-  };
-
-  pending.push(product);
-  localStorage.setItem("pending", JSON.stringify(pending));
-  alert("Product submitted for admin approval!");
-  document.getElementById("prodName").value="";
-  document.getElementById("prodPrice").value="";
-  document.getElementById("prodCategory").value="";
-  document.getElementById("prodImage").value="";
-  updatePreview();
-  renderPending();
-}
+});
 
 function renderPending(){
-  let list = document.getElementById("pendingList");
-  list.innerHTML="";
-  let myPending = pending.filter(p => p.vendor === currentVendor && p.status === "pending");
-  if(myPending.length === 0){
-    list.innerHTML="<p>No pending products</p>";
-  }
-  myPending.forEach((p,i)=>{
-    let div = document.createElement('div');
-    div.className="product";
-    div.innerHTML=`<strong>${p.name}</strong> - $${p.price}<br>Category: ${p.category}<br><img src="${p.image}" class="preview">`;
-    list.appendChild(div);
-  });
+    pendingList.innerHTML = '<h3>Pending Products</h3>';
+    pendingProducts.forEach((p,i)=>{
+        const div = document.createElement('div');
+        div.className = 'product';
+        div.innerHTML = `<p>${p.name} - $${p.price} (${p.category})</p>`;
+        pendingList.appendChild(div);
+    });
 }
-</script>
 
+renderPending();
+</script>
 </body>
 </html>
