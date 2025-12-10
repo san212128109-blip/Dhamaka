@@ -24,31 +24,35 @@ p{color:red;}
 </form>
 
 <script>
+// Vendors data in LocalStorage
 let vendors = JSON.parse(localStorage.getItem("vendors")||'[]');
 
 // Dummy vendor accounts if empty
 if(vendors.length===0){
-vendors.push({id:'vendor1',password:'1234',name:'Vendor One',status:'Pending'});
-vendors.push({id:'vendor2',password:'1234',name:'Vendor Two',status:'Pending'});
-localStorage.setItem("vendors",JSON.stringify(vendors));
+  vendors.push({id:'vendor1',password:'1234',name:'Vendor One',status:'Pending'});
+  vendors.push({id:'vendor2',password:'1234',name:'Vendor Two',status:'Approved'});
+  localStorage.setItem("vendors",JSON.stringify(vendors));
 }
 
-document.getElementById('vendorLoginForm').addEventListener('submit',function(e){
-e.preventDefault();
-let id = document.getElementById('vendorId').value;
-let pass = document.getElementById('vendorPass').value;
-let v = vendors.find(v=>v.id===id && v.password===pass);
-if(v){
-if(v.status==='Approved'){
-localStorage.setItem('currentVendor',JSON.stringify(v));
-window.location.href='vendor-dashboard.html';
-}else{
-document.getElementById('msg').innerText='Your account is not approved yet. Contact WhatsApp: 01913821910';
-}
-}else{
-document.getElementById('msg').innerText='Invalid ID or Password';
-}
+// Vendor login form submit
+document.getElementById('vendorLoginForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  let id = document.getElementById('vendorId').value.trim();
+  let pass = document.getElementById('vendorPass').value.trim();
+  let v = vendors.find(v=>v.id===id && v.password===pass);
+
+  if(v){
+    if(v.status==='Approved'){
+      localStorage.setItem('currentVendor',JSON.stringify(v));
+      window.location.href='vendor-dashboard.html';
+    } else {
+      document.getElementById('msg').innerText='Your account is not approved yet. Contact WhatsApp: 01913821910';
+    }
+  } else {
+    document.getElementById('msg').innerText='Invalid ID or Password';
+  }
 });
 </script>
+
 </body>
 </html>
