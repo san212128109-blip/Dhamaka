@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Vendor Login</title>
+<style>
+body{font-family:Arial; padding:20px;}
+.box{max-width:400px;margin:auto;border:1px solid #ddd;padding:20px;border-radius:10px;}
+</style>
+</head>
+<body>
+
+<div class="box">
+<h2>Vendor Login</h2>
+
+<input id="vendorUser" placeholder="Vendor ID" style="width:100%;padding:8px;"><br><br>
+<input id="vendorPass" type="password" placeholder="Password" style="width:100%;padding:8px;"><br><br>
+
+<button onclick="loginVendor()" style="width:100%;padding:10px;">Login</button>
+
+<p id="msg"></p>
+</div>
+
+<script>
+// ==================== AUTO LOGIN CHECK ===================
+let vendorSession = JSON.parse(localStorage.getItem("vendorSession"));
+if(vendorSession){
+    let now = Date.now();
+    if(now < vendorSession.expireTime){
+        if(vendorSession.approved){
+            window.location.href = "vendor-dashboard.html";
+        } else {
+            document.getElementById("msg").innerHTML = "Your account is pending admin approval.";
+        }
+    } else {
+        localStorage.removeItem("vendorSession");
+    }
+}
+
+// ==================== LOGIN SYSTEM ===================
+function loginVendor(){
+    let u = document.getElementById("vendorUser").value;
+    let p = document.getElementById("vendorPass").value;
+
+    if(u=="" || p==""){
+        document.getElementById("msg").innerHTML = "Please fill all fields!";
+        return;
+    }
+
+    let vendors = JSON.parse(localStorage.getItem("vendors")) || {};
+
+    if(!vendors[u]){
+        document.getElementById("msg").innerHTML = "Account not found!";
+        return;
+    }
+
+    if(vendors[u].pass !== p){
+        document.getElementById("msg").innerHTML = "Wrong password!";
+        return;
+    }
+
+    // 7 days = 7*24*60*60*1000 ms
+    let expire = Date.now() + 7*24*60*60*1000;
+
+    localStorage.setItem("vendorSession", JSON.stringify({
+        user:u,
+        approved: vendors[u].approved,
+        expireTime: expire
+    }));
+
+    if(!vendors[u].approved){
+        document.getElementById("msg").innerHTML = "Your Account is Pending Approval. Contact WhatsApp: 01913821910";
+        return;
+    }
+
+    window.location.href = "vendor-dashboard.html";
+}
+</script>
+
+</body>
+</html>
