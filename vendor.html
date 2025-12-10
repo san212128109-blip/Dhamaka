@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vendor Dashboard - Dhamaka</title>
+<title>Vendor System - Dhamaka</title>
 <style>
 body{font-family:Arial,sans-serif;background:#f8f9fa;color:#212529;margin:0;padding:0;}
 header{background:#28a745;color:white;padding:1em;display:flex;justify-content:space-between;align-items:center;}
@@ -18,20 +18,33 @@ button.delete{background:#dc3545;color:white;}
 table{width:100%;border-collapse:collapse;margin-top:1em;}
 table,th,td{border:1px solid #ccc;}
 th,td{padding:0.5em;text-align:center;}
+.page{display:none;}
 </style>
 </head>
 <body>
 
 <header>
-<h1>Vendor Dashboard</h1>
-<div>
-<span id="vendorName"></span>
-<button onclick="logout()">Logout</button>
-</div>
+<h1>Vendor System</h1>
+<div id="headerInfo"></div>
 </header>
 
 <div class="container">
-<h2>Add / Update Products</h2>
+
+<!-- Vendor Login -->
+<div id="loginPage" class="page">
+<h2>Vendor Login</h2>
+<input type="text" id="vendorId" placeholder="Vendor ID">
+<input type="password" id="vendorPass" placeholder="Password">
+<button onclick="vendorLogin()">Login</button>
+<p id="msg" style="color:red;"></p>
+</div>
+
+<!-- Vendor Dashboard -->
+<div id="dashboardPage" class="page">
+<h2>Welcome, <span id="vendorName"></span></h2>
+<button onclick="logout()">Logout</button>
+
+<h3>Add Product</h3>
 <input type="text" id="prodName" placeholder="Product Name">
 <input type="text" id="prodCategory" placeholder="Category">
 <input type="number" id="prodPrice" placeholder="Price">
@@ -46,7 +59,7 @@ th,td{padding:0.5em;text-align:center;}
 </select>
 <button class="add" onclick="addProduct()">Add Product</button>
 
-<h2>My Products</h2>
+<h3>My Products</h3>
 <table id="productTable">
 <thead>
 <tr>
@@ -62,16 +75,53 @@ th,td{padding:0.5em;text-align:center;}
 </table>
 </div>
 
-<script>
-let currentVendor = JSON.parse(localStorage.getItem('currentVendor')||'null');
-if(!currentVendor){
-  alert("Please login first.");
-  window.location.href='vendor-login.html';
-}
-document.getElementById('vendorName').innerText = currentVendor.name+" ("+currentVendor.id+")";
+</div>
 
+<script>
+// Vendors Data
+let vendors = JSON.parse(localStorage.getItem("vendors")||'[]');
+if(vendors.length===0){
+  vendors.push({id:'vendor1',password:'1234',name:'Vendor One',status:'Approved'});
+  vendors.push({id:'vendor2',password:'1234',name:'Vendor Two',status:'Pending'});
+  localStorage.setItem("vendors",JSON.stringify(vendors));
+}
+
+// Products Data
 let products = JSON.parse(localStorage.getItem('products')||'[]');
 
+// Pages
+const loginPage = document.getElementById('loginPage');
+const dashboardPage = document.getElementById('dashboardPage');
+
+// Current Vendor
+let currentVendor = JSON.parse(localStorage.getItem('currentVendor')||'null');
+if(currentVendor){ showPage('dashboard'); } else { showPage('login'); }
+
+function showPage(page){
+  loginPage.style.display = (page==='login')?'block':'none';
+  dashboardPage.style.display = (page==='dashboard')?'block':'none';
+  if(page==='dashboard'){ renderProducts(); document.getElementById('vendorName').innerText=currentVendor.name; }
+}
+
+function vendorLogin(){
+  let id = document.getElementById('vendorId').value.trim();
+  let pass = document.getElementById('vendorPass').value.trim();
+  let v = vendors.find(v=>v.id===id && v.password===pass);
+  if(v){
+    if(v.status==='Approved'){
+      currentVendor = v;
+      localStorage.setItem('currentVendor',JSON.stringify(v));
+      showPage('dashboard');
+    } else {
+      document.getElementById('msg').innerText='Account not approved yet. Contact WhatsApp: 01913821910';
+    }
+  } else { document.getElementById('msg').innerText='Invalid ID or Password'; }
+}
+
+// Logout
+function logout(){ localStorage.removeItem('currentVendor'); currentVendor=null; showPage('login'); }
+
+// Products
 function renderProducts(){
   let tbody = document.querySelector('#productTable tbody');
   tbody.innerHTML='';
@@ -116,7 +166,7 @@ function editProduct(i){
   document.getElementById('prodPrice').value = p.price;
   document.getElementById('prodStock').value = p.stock;
   document.getElementById('prodImage').value = p.image;
-  products.splice(i,1); // remove old entry to update
+  products.splice(i,1);
   localStorage.setItem('products',JSON.stringify(products));
 }
 
@@ -126,13 +176,6 @@ function deleteProduct(i){
   localStorage.setItem('products',JSON.stringify(products));
   renderProducts();
 }
-
-function logout(){
-  localStorage.removeItem('currentVendor');
-  window.location.href='vendor-login.html';
-}
-
-renderProducts();
 </script>
 
 </body>
