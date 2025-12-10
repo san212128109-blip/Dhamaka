@@ -13,9 +13,9 @@ header h1{margin:0;font-size:1.5em;}
 nav a{color:white;margin-left:1em;text-decoration:none;font-weight:bold;transition:0.3s;}
 nav a:hover{text-decoration:underline;color:#ffc107;}
 .page{display:none;padding:1em;}
-.product-list,.cart-list,.vendor-list,.review-list{display:flex;flex-wrap:wrap;gap:1em;justify-content:center;margin-top:1em;}
-.product,.vendor,.review{border:1px solid #28a745;border-radius:12px;padding:1em;width:250px;text-align:center;background:#fff;box-shadow:2px2px10px rgba(0,0,0,0.1);transition:0.3s;position:relative;overflow:hidden;}
-.product:hover,.vendor:hover,.review:hover{transform:scale(1.05);box-shadow:4px4px15px rgba(0,0,0,0.2);}
+.product-list,.vendor-list,.review-list,.order-list{display:flex;flex-wrap:wrap;gap:1em;justify-content:center;margin-top:1em;}
+.product,.vendor,.review,.order{border:1px solid #28a745;border-radius:12px;padding:1em;width:250px;text-align:center;background:#fff;box-shadow:2px2px10px rgba(0,0,0,0.1);transition:0.3s;position:relative;overflow:hidden;}
+.product:hover,.vendor:hover,.review:hover,.order:hover{transform:scale(1.05);box-shadow:4px4px15px rgba(0,0,0,0.2);}
 button{background:#28a745;color:white;border:none;padding:0.5em 1em;border-radius:5px;cursor:pointer;margin-top:0.5em;transition:0.3s;}
 button:hover{background:#218838;}
 input,select{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;border:1px solid #ccc;}
@@ -31,6 +31,7 @@ input,select{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;border:1px
 <a href="#products" onclick="showPage('products')">Products</a>
 <a href="#vendors" onclick="showPage('vendors')">Vendors</a>
 <a href="#reviews" onclick="showPage('reviews')">Reviews</a>
+<a href="#orders" onclick="showPage('orders')">Orders</a>
 <button onclick="toggleDarkMode()">🌙</button>
 </nav>
 </header>
@@ -67,6 +68,11 @@ input,select{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;border:1px
 <div class="review-list" id="reviewList"></div>
 </div>
 
+<div id="orders" class="page">
+<h2>Orders</h2>
+<div class="order-list" id="orderList"></div>
+</div>
+
 <div id="support" onclick="openWhatsApp()">💬 Support</div>
 
 <script>
@@ -74,75 +80,119 @@ let adminLoggedIn = false;
 let products = JSON.parse(localStorage.getItem('products')||'[]');
 let vendors = JSON.parse(localStorage.getItem('vendors')||'[]');
 let reviews = JSON.parse(localStorage.getItem('reviews')||'[]');
+let orders = JSON.parse(localStorage.getItem('orders')||'[]');
 
 function showPage(page){
-if(!adminLoggedIn && page!=='loginPage'){alert('Login required'); return;}
-document.querySelectorAll('.page').forEach(p=>p.style.display='none');
-document.getElementById(page).style.display='block';
-renderAll();
+  if(!adminLoggedIn && page!=='loginPage'){alert('Login required'); return;}
+  document.querySelectorAll('.page').forEach(p=>p.style.display='none');
+  document.getElementById(page).style.display='block';
+  renderAll();
 }
 
 showPage('loginPage');
 
 function adminLogin(){
-let pass = document.getElementById('adminPassword').value;
-if(pass==='NAFIS128'){
-adminLoggedIn=true;
-showPage('dashboard');
-}else{
-document.getElementById('loginMsg').innerText='Wrong Password';
-}
+  let pass = document.getElementById('adminPassword').value;
+  if(pass==='NAFIS128'){
+    adminLoggedIn=true;
+    showPage('dashboard');
+  } else {
+    document.getElementById('loginMsg').innerText='Wrong Password';
+  }
 }
 
 function toggleDarkMode(){ document.body.classList.toggle('dark'); }
 
 function applyTheme(){
-document.body.style.background=document.getElementById('bgColor').value;
-document.body.style.color=document.getElementById('textColor').value;
-document.querySelectorAll('button').forEach(b=>{b.style.background=document.getElementById('btnColor').value;b.style.color=document.getElementById('btnTextColor').value;});
+  document.body.style.background=document.getElementById('bgColor').value;
+  document.body.style.color=document.getElementById('textColor').value;
+  document.querySelectorAll('button').forEach(b=>{
+    b.style.background=document.getElementById('btnColor').value;
+    b.style.color=document.getElementById('btnTextColor').value;
+  });
 }
 
-function renderAll(){ renderProducts(); renderVendors(); renderReviews(); }
+function renderAll(){
+  renderProducts(); 
+  renderVendors(); 
+  renderReviews(); 
+  renderOrders();
+}
 
+// ===== PRODUCTS =====
 function renderProducts(){
-let list=document.getElementById('productList'); list.innerHTML='';
-if(products.length===0){list.innerHTML='<p>No products</p>'; return;}
-products.forEach((p,i)=>{
-let div=document.createElement('div'); div.className='product';
-div.innerHTML=`<h3>${p.name}</h3><p>Price: $${p.price}</p><p>Stock: ${p.stock}</p><button onclick="deleteProduct(${i})">Delete</button>`;
-list.appendChild(div);
-});
+  let list=document.getElementById('productList'); list.innerHTML='';
+  if(products.length===0){list.innerHTML='<p>No products</p>'; return;}
+  products.forEach((p,i)=>{
+    let div=document.createElement('div'); div.className='product';
+    div.innerHTML=`<h3>${p.name}</h3>
+                   <p>Category: ${p.category}</p>
+                   <p>Price: $${p.price}</p>
+                   <p>Stock: ${p.stock}</p>
+                   <p>Image URL: ${p.image}</p>
+                   <button onclick="deleteProduct(${i})">Delete</button>`;
+    list.appendChild(div);
+  });
 }
 
-function deleteProduct(i){products.splice(i,1); localStorage.setItem('products',JSON.stringify(products)); renderProducts();}
+function deleteProduct(i){
+  products.splice(i,1); 
+  localStorage.setItem('products',JSON.stringify(products)); 
+  renderProducts();
+}
 
+// ===== VENDORS =====
 function renderVendors(){
-let list=document.getElementById('vendorList'); list.innerHTML='';
-if(vendors.length===0){list.innerHTML='<p>No vendors</p>'; return;}
-vendors.forEach((v,i)=>{
-let div=document.createElement('div'); div.className='vendor';
-div.innerHTML=`<h3>${v.id}</h3><p>Status: ${v.status}</p>
-<button onclick="approveVendor(${i})">Approve</button>
-<button onclick="denyVendor(${i})">Deny</button>`;
-list.appendChild(div);
-});
+  let list=document.getElementById('vendorList'); list.innerHTML='';
+  if(vendors.length===0){list.innerHTML='<p>No vendors</p>'; return;}
+  vendors.forEach((v,i)=>{
+    let div=document.createElement('div'); div.className='vendor';
+    div.innerHTML=`<h3>${v.username || v.id}</h3>
+                   <p>Status: ${v.status}</p>
+                   <p>WhatsApp: ${v.whatsapp || '-'}</p>
+                   <button onclick="approveVendor(${i})">Approve</button>
+                   <button onclick="denyVendor(${i})">Deny</button>`;
+    list.appendChild(div);
+  });
 }
 
 function approveVendor(i){vendors[i].status='Approved'; localStorage.setItem('vendors',JSON.stringify(vendors)); renderVendors();}
 function denyVendor(i){vendors[i].status='Denied'; localStorage.setItem('vendors',JSON.stringify(vendors)); renderVendors();}
 
+// ===== REVIEWS =====
 function renderReviews(){
-let list=document.getElementById('reviewList'); list.innerHTML='';
-if(reviews.length===0){list.innerHTML='<p>No reviews</p>'; return;}
-reviews.forEach((r,i)=>{
-let div=document.createElement('div'); div.className='review';
-div.innerHTML=`<p>${r.customer}: ${r.text}</p><button onclick="deleteReview(${i})">Delete</button>`;
-list.appendChild(div);
-});
+  let list=document.getElementById('reviewList'); list.innerHTML='';
+  if(reviews.length===0){list.innerHTML='<p>No reviews</p>'; return;}
+  reviews.forEach((r,i)=>{
+    let div=document.createElement('div'); div.className='review';
+    div.innerHTML=`<p><b>${r.customer}</b>: ${r.text}</p>
+                   <button onclick="deleteReview(${i})">Delete</button>`;
+    list.appendChild(div);
+  });
 }
+
 function deleteReview(i){reviews.splice(i,1); localStorage.setItem('reviews',JSON.stringify(reviews)); renderReviews();}
 
-function openWhatsApp(){window.open('https://wa.me/01913821910','_blank');}
+// ===== ORDERS =====
+function renderOrders(){
+  let list=document.getElementById('orderList'); list.innerHTML='';
+  if(orders.length===0){ list.innerHTML='<p>No orders yet</p>'; return; }
+  orders.forEach((o,i)=>{
+    let div=document.createElement('div'); div.className='order';
+    let productsStr = o.products.map(p=>`${p.name} ($${p.price})`).join(', ');
+    div.innerHTML=`<p><b>Customer:</b> ${o.customerName}</p>
+                   <p><b>WhatsApp:</b> ${o.customerWhatsapp}</p>
+                   <p><b>Products:</b> ${productsStr}</p>
+                   <p><b>Total:</b> $${o.total}</p>
+                   <button onclick="deleteOrder(${i})">Delete</button>`;
+    list.appendChild(div);
+  });
+}
+
+function deleteOrder(i){orders.splice(i,1); localStorage.setItem('orders',JSON.stringify(orders)); renderOrders();}
+
+// ===== SUPPORT =====
+function openWhatsApp(){ window.open('https://wa.me/01913821910','_blank'); }
 </script>
 
 </body>
