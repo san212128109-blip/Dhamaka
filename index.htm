@@ -35,7 +35,6 @@ input,select{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;border:1px
 .modal-content{background:#fff;padding:1em;border-radius:12px;width:90%;max-width:400px;text-align:center;}
 .modal button{width:45%;margin:0.5em;}
 @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
-.category-icon{width:24px;height:24px;vertical-align:middle;margin-right:5px;}
 .mini-carousel{display:flex;overflow-x:auto;gap:10px;margin:10px 0;}
 .mini-carousel img{width:100px;height:100px;object-fit:cover;border-radius:8px;transition:0.3s;}
 .mini-carousel img:hover{transform:scale(1.1);}
@@ -119,10 +118,13 @@ function showPage(page){ document.querySelectorAll('.page').forEach(p=>p.style.d
 showPage('home');
 function toggleDarkMode(){ document.body.classList.toggle('dark'); }
 
-// Load products & theme from localStorage
 let products=JSON.parse(localStorage.getItem("products")||'[]');
 let theme=JSON.parse(localStorage.getItem("theme")||'{}');
+let cart=JSON.parse(localStorage.getItem("cart")||"[]");
+let orders=JSON.parse(localStorage.getItem("orders")||"[]");
+
 applyTheme();
+
 function applyTheme(){
 if(theme.bg) document.body.style.background=theme.bg;
 if(theme.text) document.body.style.color=theme.text;
@@ -130,16 +132,15 @@ if(theme.btn) document.querySelectorAll('button').forEach(b=>b.style.background=
 if(theme.btnText) document.querySelectorAll('button').forEach(b=>b.style.color=theme.btnText);
 }
 
-let cart=JSON.parse(localStorage.getItem("cart")||"[]");
 const homeList=document.getElementById("homeList");
 const categoryList=document.getElementById("categoryList");
 const cartList=document.getElementById("cartList");
 const cartSummary=document.getElementById("cartSummary");
+const cartLink=document.getElementById("cartLink");
 const carousel=document.getElementById("carousel");
 const paymentModal=document.getElementById("paymentModal");
 const paymentTotal=document.getElementById("paymentTotal");
 const paymentInput=document.getElementById("paymentInput");
-const cartLink=document.getElementById("cartLink");
 
 let imageMap={
 "smartphone":"https://via.placeholder.com/150?text=Smartphone",
@@ -150,7 +151,6 @@ let imageMap={
 "headphones":"https://via.placeholder.com/150?text=Headphones"
 };
 
-// Render functions
 function renderProducts(list, arr){
 list.innerHTML='';
 if(arr.length===0){ list.innerHTML="<p>No products.</p>"; return; }
@@ -168,10 +168,10 @@ updateCartBadge();
 
 function updateCartBadge(){ cartLink.setAttribute('data-count',cart.length); }
 
-let carouselIdx=0;
 function renderCarousel(){ carousel.innerHTML=''; products.slice(0,3).forEach(p=>{
 const img=document.createElement('img'); img.src=imageMap[p.image]; carousel.appendChild(img);
 }); carouselSlide(); }
+let carouselIdx=0;
 function carouselSlide(){ setInterval(()=>{ const imgs=carousel.querySelectorAll('img'); imgs.forEach((img,i)=>{ img.style.transform=`translateX(-${carouselIdx*100}%)`; }); carouselIdx=(carouselIdx+1)%3; },3000); }
 
 function renderCart(){
@@ -212,13 +212,22 @@ localStorage.setItem("cart",JSON.stringify(cart)); renderCart();
 });
 }
 
-// Payment
-function checkout(){ if(cart.length===0){ alert("Cart empty!"); return; }
-let total=cart.reduce((a,b)=>a+Number(b.price),0); paymentTotal.innerText=`Total: $${total}`; paymentInput.value=''; paymentModal.style.display='flex'; }
-function closePayment(){ paymentModal.style.display='none'; }
-function confirmPayment(){ let pay=Number(paymentInput.value); let total=cart.reduce((a,b)=>a+Number(b.price),0);
-if(pay>=total){ alert("Payment successful! Use Bkash/Nogod to send payment. Thank you!"); cart=[]; localStorage.setItem("cart",JSON.stringify(cart)); renderCart(); closePayment(); }
-else{ alert("Payment failed. Insufficient amount."); }}
+// ===== Checkout + Orders =====
+function checkout(){
+if(cart.length===0){ alert("Cart empty!"); return; }
+let total=cart.reduce((a,b)=>a.price*1,a=0);
+let customer=prompt("Enter your name:");
+if(!customer){ alert("Name required"); return; }
+let payment=prompt("Payment method (Bkash/Nogod):");
+if(!payment){ alert("Payment method required"); return; }
+let order={customer:customer, items:cart, total:total, payment:payment, completed:false};
+orders.push(order);
+localStorage.setItem("orders",JSON.stringify(orders));
+cart=[];
+localStorage.setItem("cart",JSON.stringify(cart));
+alert("Order placed successfully!");
+renderCart();
+}
 
 // Category Filter
 function renderCategoryFilter(){ const select=document.getElementById("categoryFilter"); const catSet=new Set(products.map(p=>p.category)); select.innerHTML='<option value="All">All</option>'; catSet.forEach(c=>{ const o=document.createElement('option'); o.value=c;o.innerText=c; select.appendChild(o); }); filterCategory(); }
