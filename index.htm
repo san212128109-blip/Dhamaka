@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dhamaka Daily Items</title>
 <style>
-/* ===== Global Styles ===== */
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:Arial,sans-serif;background:#d4edda;color:#155724;transition:0.3s;scroll-behavior:smooth;}
 body.dark{background:#121212;color:#ddd;}
@@ -42,6 +41,8 @@ input,select{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;border:1px
 .mini-carousel img:hover{transform:scale(1.1);}
 .cart-list .product{width:90%;cursor:grab;}
 .cart-list .product.dragging{opacity:0.5;border:2px dashed #28a745;}
+#loginForm{max-width:400px;margin:1em auto;text-align:center;}
+#loginForm input{width:80%;margin-bottom:0.5em;}
 @media(max-width:600px){ .product{width:45%; } header{flex-direction:column;align-items:flex-start;} nav a{margin:0.3em 0;} .mini-carousel img{width:80px;height:80px;} }
 </style>
 </head>
@@ -53,7 +54,6 @@ input,select{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;border:1px
 <a href="#home" onclick="showPage('home')">Home</a>
 <a href="#categories" onclick="showPage('categories')">Categories</a>
 <a id="cartLink" href="#cart" data-count="0" onclick="showPage('cart')">Cart</a>
-<a href="admin.html">Admin</a>
 <button onclick="toggleDarkMode()">🌙</button>
 </nav>
 </header>
@@ -67,7 +67,6 @@ input,select{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;border:1px
 
 <div id="categories" class="page">
 <h2>Categories</h2>
-<div id="categoryCarousels"></div>
 <select id="categoryFilter" onchange="filterCategory()"><option value="All">All</option></select>
 <input type="text" id="searchInput" placeholder="Search Products..." oninput="filterCategory()">
 <select id="sortSelect" onchange="filterCategory()">
@@ -85,6 +84,14 @@ input,select{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;border:1px
 <div class="cart-list" id="cartList"></div>
 <div id="cartSummary"></div>
 <button onclick="checkout()">Checkout</button>
+</div>
+
+<div id="loginForm" class="page">
+<h2>Public Login/Register</h2>
+<input type="text" id="username" placeholder="Username">
+<input type="password" id="password" placeholder="Password">
+<button onclick="publicLogin()">Login/Register</button>
+<p id="loginMsg" style="color:red;"></p>
 </div>
 
 <div id="paymentModal" class="modal">
@@ -135,8 +142,8 @@ const paymentModal=document.getElementById("paymentModal");
 const paymentTotal=document.getElementById("paymentTotal");
 const paymentInput=document.getElementById("paymentInput");
 const cartLink=document.getElementById("cartLink");
-const categoryCarousels=document.getElementById("categoryCarousels");
 
+// Render Products
 function renderProducts(list, arr){
 list.innerHTML='';
 if(arr.length===0){ list.innerHTML="<p>No products.</p>"; return; }
@@ -180,9 +187,7 @@ function addToCart(i){ cart.push({...products[i]}); localStorage.setItem("cart",
 function removeFromCart(i){ cart.splice(i,1); localStorage.setItem("cart",JSON.stringify(cart)); renderCart(); }
 function updateQuantity(i,val){ cart[i].price=Number(cart[i].price)*Number(val); localStorage.setItem("cart",JSON.stringify(cart)); updateCartTotal(); }
 
-function updateCartTotal(){ let total=0;
-cart.forEach(p=>{ total+=Number(p.price); });
-cartSummary.innerText=`Total: $${total}`; }
+function updateCartTotal(){ let total=0; cart.forEach(p=>{ total+=Number(p.price); }); cartSummary.innerText=`Total: $${total}`; }
 
 function initDragDrop(){
 let dragSrcEl=null;
@@ -208,30 +213,18 @@ function confirmPayment(){ let pay=Number(paymentInput.value); let total=cart.re
 if(pay>=total){ alert("Payment successful! Thank you for your order."); cart=[]; localStorage.setItem("cart",JSON.stringify(cart)); renderCart(); closePayment(); }
 else{ alert("Payment failed. Insufficient amount."); }}
 
-// Category Filter & Carousels
-function renderCategoryFilter(){ const catSet=new Set(products.map(p=>p.category)); const select=document.getElementById("categoryFilter");
-select.innerHTML='<option value="All">All</option>'; catSet.forEach(c=>{ const o=document.createElement('option'); o.value=c;o.innerText=c; select.appendChild(o); }); renderCategoryCarousels(); }
+// Category Filter
+function renderCategoryFilter(){ const select=document.getElementById("categoryFilter"); const catSet=new Set(products.map(p=>p.category)); select.innerHTML='<option value="All">All</option>'; catSet.forEach(c=>{ const o=document.createElement('option'); o.value=c;o.innerText=c; select.appendChild(o); }); filterCategory(); }
 function filterCategory(){ let filtered=[...products]; const cat=document.getElementById("categoryFilter").value; if(cat!=='All'){ filtered=filtered.filter(p=>p.category===cat); }
 const search=document.getElementById("searchInput").value.toLowerCase(); if(search){ filtered=filtered.filter(p=>p.name.toLowerCase().includes(search)); }
-const sort=document.getElementById("sortSelect").value;
-if(sort==='price-asc'){ filtered.sort((a,b)=>a.price-b.price); }
-else if(sort==='price-desc'){ filtered.sort((a,b)=>b.price-a.price); }
-else if(sort==='name-asc'){ filtered.sort((a,b)=>a.name.localeCompare(b.name)); }
-else if(sort==='name-desc'){ filtered.sort((a,b)=>b.name.localeCompare(a.name)); }
-renderProducts(categoryList,filtered); }
+renderProducts(categoryList,filtered);
+}
 
-function renderCategoryCarousels(){
-categoryCarousels.innerHTML='';
-let catSet=[...new Set(products.map(p=>p.category))];
-catSet.forEach(cat=>{
-let div=document.createElement('div');
-div.innerHTML=`<h3><img class="category-icon" src="https://via.placeholder.com/24" alt="${cat}">${cat}</h3><div class="mini-carousel"></div>`;
-categoryCarousels.appendChild(div);
-let miniDiv=div.querySelector('.mini-carousel');
-products.filter(p=>p.category===cat).forEach(p=>{
-let img=document.createElement('img'); img.src=imageMap[p.image]; img.title=p.name; miniDiv.appendChild(img);
-});
-});
+// Public login/register (dummy)
+function publicLogin(){
+let user=document.getElementById("username").value;
+if(user){ alert("Welcome, "+user+"! (Dummy Login)"); showPage('home'); }
+else{ document.getElementById("loginMsg").innerText="Enter username"; }
 }
 
 // Initial Render
@@ -240,7 +233,6 @@ renderProducts(categoryList,products);
 renderCart();
 renderCarousel();
 renderCategoryFilter();
-renderCategoryCarousels();
 </script>
 </body>
 </html>
