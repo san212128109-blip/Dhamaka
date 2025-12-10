@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Customer Panel</title>
+<style>
+body{font-family:Arial,sans-serif;background:#f9f9f9;color:#333;margin:0;padding:0;}
+header{background:#28a745;color:white;padding:1em;text-align:center;}
+nav{display:flex;justify-content:center;gap:10px;margin:10px;}
+nav button{padding:0.5em 1em;cursor:pointer;border:none;border-radius:5px;background:#007bff;color:white;}
+nav button:hover{background:#0056b3;}
+.page{display:none;padding:1em;}
+.product-list,.cart-list,.review-list{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;}
+.product-item,.review-item{border:1px solid #ccc;padding:10px;border-radius:8px;background:#fff;width:200px;}
+input,select,textarea{width:90%;padding:0.5em;margin:0.3em 0;border-radius:5px;border:1px solid #ccc;}
+button.add-cart,button.submit-review{width:95%;}
+</style>
+</head>
+<body>
+
+<header><h1>Customer Panel</h1></header>
+<nav>
+<button onclick="showPage('loginPage')">Login/Register</button>
+<button onclick="showPage('shopPage')">Shop</button>
+<button onclick="showPage('cartPage')">Cart</button>
+<button onclick="showPage('reviewPage')">My Reviews</button>
+</nav>
+
+<!-- Pages -->
+<div id="loginPage" class="page">
+<h2>Login / Register</h2>
+<input type="text" id="custUsername" placeholder="Username">
+<input type="password" id="custPassword" placeholder="Password">
+<button onclick="customerLogin()">Login/Register</button>
+<p id="loginMsg" style="color:red;"></p>
+</div>
+
+<div id="shopPage" class="page">
+<h2>Products</h2>
+<div class="product-list" id="productsList"></div>
+</div>
+
+<div id="cartPage" class="page">
+<h2>Your Cart</h2>
+<div class="cart-list" id="cartList"></div>
+<div id="cartTotal"></div>
+<button onclick="checkout()">Checkout</button>
+</div>
+
+<div id="reviewPage" class="page">
+<h2>Write Review</h2>
+<select id="reviewProduct"></select>
+<textarea id="reviewComment" placeholder="Write your review..."></textarea>
+<button class="submit-review" onclick="addReview()">Submit Review</button>
+
+<h2>My Reviews</h2>
+<div class="review-list" id="myReviews"></div>
+</div>
+
+<script>
+let customers = JSON.parse(localStorage.getItem("customers")||'[]');
+let products = JSON.parse(localStorage.getItem("products")||'[]');
+let reviews = JSON.parse(localStorage.getItem("reviews")||'[]');
+let cart = JSON.parse(localStorage.getItem("cart")||'[]');
+let currentUser = null;
+
+function showPage(page){
+  document.querySelectorAll('.page').forEach(p=>p.style.display='none');
+  document.getElementById(page).style.display='block';
+}
+showPage('loginPage');
+
+function customerLogin(){
+  let user = document.getElementById('custUsername').value;
+  if(!user){ document.getElementById('loginMsg').innerText="Enter username"; return; }
+  currentUser=user;
+  if(!customers.includes(user)){ customers.push(user); localStorage.setItem("customers",JSON.stringify(customers)); }
+  document.getElementById('loginMsg').innerText='';
+  showPage('shopPage');
+  renderProducts();
+  renderReviewProduct();
+  renderMyReviews();
+}
+
+// Render products
+function renderProducts(){
+  const list = document.getElementById('productsList');
+  list.innerHTML='';
+  products.forEach((p,i)=>{
+    if(p.approved){
+      const div=document.createElement('div'); div.className='product-item';
+      div.innerHTML=`<strong>${p.name}</strong><br>Price: $${p.price}<br>Stock: ${p.stock}<br>
+        <button class="add-cart" onclick="addToCart(${i})">Add to Cart</button>`;
+      list.appendChild(div);
+    }
+  });
+}
+
+// Cart functions
+function addToCart(i){
+  if(products[i].stock<1){ alert("Out of stock"); return; }
+  cart.push({...products[i]});
+  localStorage.setItem("cart",JSON.stringify(cart));
+  alert("Added to cart!");
+  renderCart();
+}
+
+function renderCart(){
+  const list=document.getElementById('cartList');
+  const totalDiv=document.getElementById('cartTotal');
+  list.innerHTML=''; let total=0;
+  cart.forEach((p,i)=>{
+    total+=Number(p.price);
+    const div=document.createElement('div'); div.className='product-item';
+    div.innerHTML=`${p.name} - $${p.price} <button onclick="removeCart(${i})">Remove</button>`;
+    list.appendChild(div);
+  });
+  totalDiv.innerText=`Total: $${total}`;
+}
+
+function removeCart(i){ cart.splice(i,1); localStorage.setItem("cart",JSON.stringify(cart)); renderCart(); }
+
+function checkout(){
+  if(cart.length===0){ alert("Cart empty"); return; }
+  cart.forEach(c=>{ let p=products.find(pr=>pr.name===c.name); if(p) p.stock-=1; });
+  localStorage.setItem("products",JSON.stringify(products));
+  cart=[]; localStorage.setItem("cart",JSON.stringify(cart));
+  alert("Order placed!");
+  renderProducts(); renderCart();
+}
+
+// Reviews
+function renderReviewProduct(){
+  const sel=document.getElementById('reviewProduct'); sel.innerHTML='';
+  products.filter(p=>p.approved).forEach(p=>{ let o=document.createElement('option'); o.value=p.name; o.innerText=p.name; sel.appendChild(o); });
+}
+
+function addReview(){
+  const prod=document.getElementById('reviewProduct').value;
+  const comment=document.getElementById('reviewComment').value;
+  if(!comment){ alert("Write a comment"); return; }
+  reviews.push({product:prod,user:currentUser,comment:comment});
+  localStorage.setItem("reviews",JSON.stringify(reviews));
+  document.getElementById('reviewComment').value='';
+  renderMyReviews();
+}
+
+function renderMyReviews(){
+  const list=document.getElementById('myReviews');
+  list.innerHTML='';
+  reviews.filter(r=>r.user===currentUser).forEach((r,i)=>{
+    const div=document.createElement('div'); div.className='review-item';
+    div.innerHTML=`${r.product}: ${r.comment} <button onclick="deleteReview(${i})">Delete</button>`;
+    list.appendChild(div);
+  });
+}
+
+function deleteReview(i){
+  let userReviews = reviews.filter(r=>r.user===currentUser);
+  let reviewIndex = reviews.indexOf(userReviews[i]);
+  if(reviewIndex>-1){ reviews.splice(reviewIndex,1); localStorage.setItem("reviews",JSON.stringify(reviews)); renderMyReviews(); }
+}
+</script>
+</body>
+</html>
