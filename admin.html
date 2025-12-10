@@ -1,186 +1,139 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Admin Panel</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel - Dhamaka</title>
 <style>
-  body{font-family:Arial, sans-serif;margin:0;padding:10px;background:#f6f8fa;}
-  .wrap{max-width:900px;margin:0 auto}
-  .card{background:#fff;padding:18px;margin:12px 0;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,0.08)}
-  h2,h3{margin:0 0 12px}
-  input[type=password]{padding:8px;margin-right:8px;border-radius:6px;border:1px solid #ccc}
-  button{padding:8px 12px;border-radius:6px;border:0;background:#28a745;color:#fff;cursor:pointer;margin:2px}
-  .deny{background:#b21f2d}
-  .list-item{padding:10px;border:1px solid #ddd;border-radius:8px;margin:6px 0;background:#fafafa}
-  .section{margin-top:20px}
+body{font-family:Arial,sans-serif;background:#f8f9fa;color:#212529;transition:0.3s;}
+body.dark{background:#121212;color:#ddd;}
+header{background:#28a745;color:white;padding:1em;display:flex;justify-content:space-between;flex-wrap:wrap;align-items:center;}
+header h1{margin:0;font-size:1.5em;}
+nav button{margin-left:1em;cursor:pointer;}
+.page{display:none;padding:1em;}
+h2,h3{text-align:center;margin-bottom:0.5em;}
+table{width:100%;border-collapse:collapse;margin:1em 0;}
+table, th, td{border:1px solid #28a745;}
+th, td{padding:0.5em;text-align:center;}
+input,select{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;border:1px solid #ccc;}
+button{background:#28a745;color:white;border:none;padding:0.5em 1em;border-radius:5px;cursor:pointer;margin:0.2em;}
+button:hover{background:#218838;}
 </style>
 </head>
 <body>
+<header>
+<h1>Admin Panel</h1>
+<button onclick="toggleDarkMode()">🌙 Theme</button>
+</header>
 
-<div class="wrap">
+<div id="dashboard" class="page">
+<h2>Dashboard</h2>
 
-  <div class="card" id="loginCard">
-    <h2>Admin Login</h2>
-    <input type="password" id="adminPass" placeholder="Enter Admin Password"/>
-    <button onclick="adminLogin()">Login</button>
-    <p id="loginMsg" style="color:red"></p>
-  </div>
+<h3>Site Theme Control</h3>
+<label>Background: <input type="color" id="bgColor"></label>
+<label>Text: <input type="color" id="textColor"></label>
+<label>Button: <input type="color" id="btnColor"></label>
+<label>Button Text: <input type="color" id="btnTextColor"></label>
+<button onclick="applyTheme()">Apply Theme</button>
 
-  <div id="adminPanel" style="display:none">
+<h3>Vendor Management</h3>
+<table id="vendorTable">
+<tr><th>ID</th><th>Name</th><th>Status</th><th>Action</th></tr>
+</table>
 
-    <div class="card section">
-      <h3>Pending Vendor Approvals</h3>
-      <div id="pendingVendors"></div>
-    </div>
+<h3>Product Management</h3>
+<table id="productTable">
+<tr><th>ID</th><th>Name</th><th>Category</th><th>Price</th><th>Stock</th><th>Action</th></tr>
+</table>
+<button onclick="addProduct()">Add Product</button>
 
-    <div class="card section">
-      <h3>Pending Products</h3>
-      <div id="pendingProducts"></div>
-    </div>
-
-    <div class="card section">
-      <h3>Approved Vendors</h3>
-      <div id="approvedVendors"></div>
-    </div>
-
-    <div class="card section">
-      <h3>Approved Products</h3>
-      <div id="approvedProducts"></div>
-    </div>
-
-  </div>
+<h3>Customer Reviews</h3>
+<table id="reviewTable">
+<tr><th>Name</th><th>Review</th><th>Action</th></tr>
+</table>
 </div>
 
 <script>
-// --- Admin login ---
-function adminLogin(){
-  const pass = document.getElementById('adminPass').value;
-  if(pass === 'NAFIS128'){
-    document.getElementById('loginCard').style.display='none';
-    document.getElementById('adminPanel').style.display='block';
-    loadData();
-  } else{
-    document.getElementById('loginMsg').innerText='Wrong password!';
-  }
+let vendors = JSON.parse(localStorage.getItem("vendors")||'[]');
+let products = JSON.parse(localStorage.getItem("products")||'[]');
+let reviews = JSON.parse(localStorage.getItem("reviews")||'[]');
+let theme = JSON.parse(localStorage.getItem("theme")||'{}');
+
+function toggleDarkMode(){ document.body.classList.toggle('dark'); }
+
+function applyTheme(){
+theme.bg = document.getElementById('bgColor').value;
+theme.text = document.getElementById('textColor').value;
+theme.btn = document.getElementById('btnColor').value;
+theme.btnText = document.getElementById('btnTextColor').value;
+document.body.style.background=theme.bg;
+document.body.style.color=theme.text;
+document.querySelectorAll('button').forEach(b=>{ b.style.background=theme.btn; b.style.color=theme.btnText; });
+localStorage.setItem("theme",JSON.stringify(theme));
 }
 
-// --- localStorage helpers ---
-function getVendors(){ return JSON.parse(localStorage.getItem('vendors')||'{}'); }
-function setVendors(v){ localStorage.setItem('vendors', JSON.stringify(v)); }
-function getPendingProducts(){ return JSON.parse(localStorage.getItem('pendingProducts')||'[]'); }
-function setPendingProducts(p){ localStorage.setItem('pendingProducts', JSON.stringify(p)); }
-function getApprovedProducts(){ return JSON.parse(localStorage.getItem('approvedProducts')||'[]'); }
-function setApprovedProducts(p){ localStorage.setItem('approvedProducts', JSON.stringify(p)); }
-
-// --- load all data ---
-function loadData(){
-  loadPendingVendors();
-  loadPendingProducts();
-  loadApprovedVendors();
-  loadApprovedProducts();
+function renderVendors(){
+let table = document.getElementById("vendorTable");
+table.innerHTML='<tr><th>ID</th><th>Name</th><th>Status</th><th>Action</th></tr>';
+vendors.forEach((v,i)=>{
+let tr=document.createElement('tr');
+tr.innerHTML=`<td>${v.id}</td><td>${v.name}</td><td>${v.status}</td>
+<td>
+<button onclick="approveVendor(${i})">Approve</button>
+<button onclick="denyVendor(${i})">Deny</button>
+</td>`;
+table.appendChild(tr);
+});
 }
 
-// --- Pending Vendors ---
-function loadPendingVendors(){
-  const container = document.getElementById('pendingVendors');
-  container.innerHTML = '';
-  const vendors = getVendors();
-  for(let id in vendors){
-    if(!vendors[id].approved){
-      const div = document.createElement('div');
-      div.className='list-item';
-      div.innerHTML=`<b>${vendors[id].name}</b> (ID: ${id})<br>
-      Trial: 7 days<br>
-      <button onclick="approveVendor('${id}')">Approve</button>
-      <button class="deny" onclick="denyVendor('${id}')">Deny</button>`;
-      container.appendChild(div);
-    }
-  }
-  if(container.innerHTML===''){ container.innerHTML='<p>No pending vendors.</p>'; }
+function approveVendor(i){ vendors[i].status='Approved'; localStorage.setItem("vendors",JSON.stringify(vendors)); renderVendors(); }
+function denyVendor(i){ vendors[i].status='Denied'; localStorage.setItem("vendors",JSON.stringify(vendors)); renderVendors(); }
+
+function renderProducts(){
+let table = document.getElementById("productTable");
+table.innerHTML='<tr><th>ID</th><th>Name</th><th>Category</th><th>Price</th><th>Stock</th><th>Action</th></tr>';
+products.forEach((p,i)=>{
+let tr=document.createElement('tr');
+tr.innerHTML=`<td>${i}</td><td>${p.name}</td><td>${p.category}</td><td><input type="number" value="${p.price}" onchange="updatePrice(${i},this.value)"></td>
+<td><input type="number" value="${p.stock}" onchange="updateStock(${i},this.value)"></td>
+<td><button onclick="deleteProduct(${i})">Delete</button></td>`;
+table.appendChild(tr);
+});
 }
 
-function approveVendor(id){
-  const vendors = getVendors();
-  vendors[id].approved=true;
-  vendors[id].approvedAt=Date.now();
-  setVendors(vendors);
-  loadPendingVendors();
-  loadApprovedVendors();
+function addProduct(){
+let name=prompt("Product name:");
+if(!name) return;
+let category=prompt("Category:");
+let price=prompt("Price:");
+let stock=prompt("Stock:");
+products.push({name,category,price:Number(price),stock:Number(stock),image:'smartphone',rating:5});
+localStorage.setItem("products",JSON.stringify(products));
+renderProducts();
 }
 
-function denyVendor(id){
-  const vendors = getVendors();
-  delete vendors[id];
-  setVendors(vendors);
-  loadPendingVendors();
-}
+function updatePrice(i,val){ products[i].price=Number(val); localStorage.setItem("products",JSON.stringify(products)); }
+function updateStock(i,val){ products[i].stock=Number(val); localStorage.setItem("products",JSON.stringify(products)); }
+function deleteProduct(i){ products.splice(i,1); localStorage.setItem("products",JSON.stringify(products)); renderProducts(); }
 
-// --- Pending Products ---
-function loadPendingProducts(){
-  const container = document.getElementById('pendingProducts');
-  container.innerHTML='';
-  const list = getPendingProducts();
-  if(list.length===0){ container.innerHTML='<p>No pending products.</p>'; return; }
-  list.forEach((p,i)=>{
-    const div=document.createElement('div');
-    div.className='list-item';
-    div.innerHTML=`<b>${p.name}</b> by Vendor ID: ${p.vendor}<br>
-    ${p.desc}<br>
-    <button onclick="approveProduct(${i})">Approve</button>
-    <button class="deny" onclick="deleteProduct(${i})">Delete</button>`;
-    container.appendChild(div);
-  });
+function renderReviews(){
+let table=document.getElementById("reviewTable");
+table.innerHTML='<tr><th>Name</th><th>Review</th><th>Action</th></tr>';
+reviews.forEach((r,i)=>{
+let tr=document.createElement('tr');
+tr.innerHTML=`<td>${r.name}</td><td>${r.text}</td><td><button onclick="deleteReview(${i})">Delete</button></td>`;
+table.appendChild(tr);
+});
 }
+function deleteReview(i){ reviews.splice(i,1); localStorage.setItem("reviews",JSON.stringify(reviews)); renderReviews(); }
 
-function approveProduct(i){
-  const list = getPendingProducts();
-  const approved = getApprovedProducts();
-  approved.push(list[i]);
-  setApprovedProducts(approved);
-  list.splice(i,1);
-  setPendingProducts(list);
-  loadPendingProducts();
-  loadApprovedProducts();
-}
-
-function deleteProduct(i){
-  const list = getPendingProducts();
-  list.splice(i,1);
-  setPendingProducts(list);
-  loadPendingProducts();
-}
-
-// --- Approved Vendors ---
-function loadApprovedVendors(){
-  const container = document.getElementById('approvedVendors');
-  container.innerHTML='';
-  const vendors = getVendors();
-  for(let id in vendors){
-    if(vendors[id].approved){
-      const div = document.createElement('div');
-      div.className='list-item';
-      div.innerHTML=`<b>${vendors[id].name}</b> (ID: ${id})<br>
-      Approved At: ${new Date(vendors[id].approvedAt).toLocaleString()}`;
-      container.appendChild(div);
-    }
-  }
-}
-
-// --- Approved Products ---
-function loadApprovedProducts(){
-  const container = document.getElementById('approvedProducts');
-  container.innerHTML='';
-  const list = getApprovedProducts();
-  if(list.length===0){ container.innerHTML='<p>No approved products.</p>'; return; }
-  list.forEach(p=>{
-    const div=document.createElement('div');
-    div.className='list-item';
-    div.innerHTML=`<b>${p.name}</b> by Vendor ID: ${p.vendor}<br>${p.desc}`;
-    container.appendChild(div);
-  });
-}
+renderVendors();
+renderProducts();
+renderReviews();
+document.getElementById('bgColor').value=theme.bg||'#d4edda';
+document.getElementById('textColor').value=theme.text||'#212529';
+document.getElementById('btnColor').value=theme.btn||'#28a745';
+document.getElementById('btnTextColor').value=theme.btnText||'#fff';
 </script>
-
 </body>
 </html>
