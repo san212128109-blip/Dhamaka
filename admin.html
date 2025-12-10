@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dhamaka Admin Panel</title>
+<title>Dhamaka All-in-One System</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:Arial,sans-serif;background:#f8f9fa;color:#333;transition:0.3s;}
@@ -25,174 +25,219 @@ input,select{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;border:1px
 <body>
 
 <header>
-<h1>Dhamaka Admin Panel</h1>
+<h1>Dhamaka System</h1>
 <nav>
-<a href="#dashboard" onclick="showPage('dashboard')">Dashboard</a>
-<a href="#products" onclick="showPage('products')">Products</a>
-<a href="#vendors" onclick="showPage('vendors')">Vendors</a>
-<a href="#reviews" onclick="showPage('reviews')">Reviews</a>
-<a href="#orders" onclick="showPage('orders')">Orders</a>
+<a href="#admin" onclick="showPage('adminLogin')">Admin</a>
+<a href="#vendor" onclick="showPage('vendorLogin')">Vendor</a>
+<a href="#customer" onclick="showPage('customerLogin')">Customer</a>
 <button onclick="toggleDarkMode()">🌙</button>
 </nav>
 </header>
 
-<!-- Pages -->
-<div id="loginPage" class="page">
+<!-- ===== Admin Login ===== -->
+<div id="adminLogin" class="page">
 <h2>Admin Login</h2>
 <input type="password" id="adminPassword" placeholder="Enter Password">
 <button onclick="adminLogin()">Login</button>
 <p id="loginMsg" style="color:red"></p>
 </div>
 
-<div id="dashboard" class="page">
-<h2>Dashboard</h2>
-<p>Welcome, Admin!</p>
-<label>Background Color: <input type="color" id="bgColor" onchange="applyTheme()"></label>
-<label>Text Color: <input type="color" id="textColor" onchange="applyTheme()"></label>
-<label>Button Color: <input type="color" id="btnColor" onchange="applyTheme()"></label>
-<label>Button Text Color: <input type="color" id="btnTextColor" onchange="applyTheme()"></label>
+<!-- ===== Admin Panel ===== -->
+<div id="adminPanel" class="page">
+<h2>Admin Panel</h2>
+<div>
+<label>Background: <input type="color" id="bgColor" onchange="applyTheme()"></label>
+<label>Text: <input type="color" id="textColor" onchange="applyTheme()"></label>
+<label>Button: <input type="color" id="btnColor" onchange="applyTheme()"></label>
+<label>Button Text: <input type="color" id="btnTextColor" onchange="applyTheme()"></label>
+</div>
+<h3>Products</h3><div class="product-list" id="productList"></div>
+<h3>Vendors</h3><div class="vendor-list" id="vendorList"></div>
+<h3>Reviews</h3><div class="review-list" id="reviewList"></div>
+<h3>Orders</h3><div class="order-list" id="orderList"></div>
 </div>
 
-<div id="products" class="page">
-<h2>Products</h2>
-<div class="product-list" id="productList"></div>
+<!-- ===== Vendor Login/Dashboard ===== -->
+<div id="vendorLogin" class="page">
+<h2>Vendor Login / Sign-Up</h2>
+<input type="text" id="vendorUsername" placeholder="Username">
+<input type="text" id="vendorWhatsapp" placeholder="WhatsApp Number">
+<input type="password" id="vendorPassword" placeholder="Password">
+<button onclick="vendorSignIn()">Sign In / Login</button>
+<p id="vendorMsg" style="color:red"></p>
+</div>
+<div id="vendorPanel" class="page">
+<h2>Welcome, <span id="vendorName"></span></h2>
+<button onclick="vendorLogout()">Logout</button>
+<h3>Add Product</h3>
+<input type="text" id="prodName" placeholder="Product Name">
+<input type="text" id="prodCategory" placeholder="Category">
+<input type="number" id="prodPrice" placeholder="Price">
+<input type="number" id="prodStock" placeholder="Stock">
+<input type="text" id="prodImage" placeholder="Image URL">
+<button onclick="addProduct()">Add Product</button>
+<h3>My Products</h3><div class="product-list" id="vendorProductList"></div>
 </div>
 
-<div id="vendors" class="page">
-<h2>Vendors</h2>
-<div class="vendor-list" id="vendorList"></div>
+<!-- ===== Customer Login / Checkout ===== -->
+<div id="customerLogin" class="page">
+<h2>Customer Login / Sign-Up</h2>
+<input type="text" id="customerName" placeholder="Name">
+<input type="text" id="customerWhatsapp" placeholder="WhatsApp Number">
+<button onclick="customerSignIn()">Login / Sign-Up</button>
+<p id="customerMsg" style="color:red"></p>
 </div>
-
-<div id="reviews" class="page">
-<h2>Customer Reviews</h2>
-<div class="review-list" id="reviewList"></div>
-</div>
-
-<div id="orders" class="page">
-<h2>Orders</h2>
-<div class="order-list" id="orderList"></div>
+<div id="customerPanel" class="page">
+<h2>Welcome, <span id="customerDisplay"></span></h2>
+<button onclick="customerLogout()">Logout</button>
+<h3>Products</h3>
+<div class="product-list" id="customerProductList"></div>
+<h3>Cart</h3>
+<div class="order-list" id="cartList"></div>
+<button onclick="checkout()">Checkout</button>
 </div>
 
 <div id="support" onclick="openWhatsApp()">💬 Support</div>
 
 <script>
-let adminLoggedIn = false;
-let products = JSON.parse(localStorage.getItem('products')||'[]');
-let vendors = JSON.parse(localStorage.getItem('vendors')||'[]');
-let reviews = JSON.parse(localStorage.getItem('reviews')||'[]');
-let orders = JSON.parse(localStorage.getItem('orders')||'[]');
+// ===== LocalStorage Data =====
+let adminLoggedIn=false;
+let vendors=JSON.parse(localStorage.getItem('vendors')||'[]');
+let products=JSON.parse(localStorage.getItem('products')||'[]');
+let reviews=JSON.parse(localStorage.getItem('reviews')||'[]');
+let orders=JSON.parse(localStorage.getItem('orders')||'[]');
+let currentVendor=JSON.parse(localStorage.getItem('currentVendor')||'null');
+let currentCustomer=JSON.parse(localStorage.getItem('currentCustomer')||'null');
+let cart=[];
 
 function showPage(page){
-  if(!adminLoggedIn && page!=='loginPage'){alert('Login required'); return;}
   document.querySelectorAll('.page').forEach(p=>p.style.display='none');
   document.getElementById(page).style.display='block';
   renderAll();
 }
 
-showPage('loginPage');
+showPage('adminLogin');
 
+// ===== Admin =====
 function adminLogin(){
-  let pass = document.getElementById('adminPassword').value;
-  if(pass==='NAFIS128'){
+  if(document.getElementById('adminPassword').value==='NAFIS128'){
     adminLoggedIn=true;
-    showPage('dashboard');
-  } else {
-    document.getElementById('loginMsg').innerText='Wrong Password';
-  }
+    showPage('adminPanel');
+  }else document.getElementById('loginMsg').innerText='Wrong Password';
 }
-
-function toggleDarkMode(){ document.body.classList.toggle('dark'); }
-
+function toggleDarkMode(){document.body.classList.toggle('dark');}
 function applyTheme(){
   document.body.style.background=document.getElementById('bgColor').value;
   document.body.style.color=document.getElementById('textColor').value;
-  document.querySelectorAll('button').forEach(b=>{
-    b.style.background=document.getElementById('btnColor').value;
-    b.style.color=document.getElementById('btnTextColor').value;
-  });
+  document.querySelectorAll('button').forEach(b=>{b.style.background=document.getElementById('btnColor').value;b.style.color=document.getElementById('btnTextColor').value;});
 }
 
 function renderAll(){
-  renderProducts(); 
-  renderVendors(); 
-  renderReviews(); 
-  renderOrders();
+  renderProducts(); renderVendors(); renderReviews(); renderOrders(); renderVendorProducts(); renderCustomerProducts(); renderCart();
 }
 
-// ===== PRODUCTS =====
+// ===== Products =====
 function renderProducts(){
   let list=document.getElementById('productList'); list.innerHTML='';
-  if(products.length===0){list.innerHTML='<p>No products</p>'; return;}
   products.forEach((p,i)=>{
     let div=document.createElement('div'); div.className='product';
-    div.innerHTML=`<h3>${p.name}</h3>
-                   <p>Category: ${p.category}</p>
-                   <p>Price: $${p.price}</p>
-                   <p>Stock: ${p.stock}</p>
-                   <p>Image URL: ${p.image}</p>
-                   <button onclick="deleteProduct(${i})">Delete</button>`;
+    div.innerHTML=`<h3>${p.name}</h3><p>Category: ${p.category}</p><p>Price: $${p.price}</p><p>Stock: ${p.stock}</p><p>Image: ${p.image}</p><button onclick='deleteProduct(${i})'>Delete</button>`;
     list.appendChild(div);
   });
 }
+function deleteProduct(i){products.splice(i,1); localStorage.setItem('products',JSON.stringify(products)); renderAll();}
 
-function deleteProduct(i){
-  products.splice(i,1); 
-  localStorage.setItem('products',JSON.stringify(products)); 
-  renderProducts();
+// ===== Vendors =====
+function vendorSignIn(){
+  let u=document.getElementById('vendorUsername').value.trim();
+  let w=document.getElementById('vendorWhatsapp').value.trim();
+  let p=document.getElementById('vendorPassword').value.trim();
+  if(!u||!w||!p){document.getElementById('vendorMsg').innerText='Fill all fields'; return;}
+  let v=vendors.find(v=>v.username===u);
+  if(v){
+    if(v.password===p){currentVendor=v; localStorage.setItem('currentVendor',JSON.stringify(v)); showPage('vendorPanel');}
+    else document.getElementById('vendorMsg').innerText='Wrong password';
+  }else{
+    let newV={username:u, whatsapp:w, password:p, status:'Pending', id:'v'+Date.now()};
+    vendors.push(newV); localStorage.setItem('vendors',JSON.stringify(vendors)); currentVendor=newV; localStorage.setItem('currentVendor',JSON.stringify(newV)); showPage('vendorPanel');
+  }
+  document.getElementById('vendorName').innerText=currentVendor.username;
+}
+function vendorLogout(){currentVendor=null; localStorage.removeItem('currentVendor'); showPage('vendorLogin');}
+function renderVendorProducts(){
+  let list=document.getElementById('vendorProductList'); list.innerHTML='';
+  if(!currentVendor) return;
+  products.forEach((p,i)=>{if(p.vendorId===currentVendor.id){
+    let div=document.createElement('div'); div.className='product';
+    div.innerHTML=`<h3>${p.name}</h3><p>Category:${p.category}</p><p>Price:$${p.price}</p><p>Stock:${p.stock}</p><button onclick='deleteProduct(${i})'>Delete</button>`;
+    list.appendChild(div);
+  }});
+}
+function addProduct(){
+  let n=document.getElementById('prodName').value.trim();
+  let c=document.getElementById('prodCategory').value.trim();
+  let pr=parseFloat(document.getElementById('prodPrice').value);
+  let s=parseInt(document.getElementById('prodStock').value);
+  let img=document.getElementById('prodImage').value.trim();
+  if(!n||!c||isNaN(pr)||isNaN(s)){alert('Fill all fields'); return;}
+  let newP={name:n,category:c,price:pr,stock:s,image:img,vendorId:currentVendor.id};
+  products.push(newP); localStorage.setItem('products',JSON.stringify(products)); renderAll();
 }
 
-// ===== VENDORS =====
+// ===== Customers =====
+function customerSignIn(){
+  let n=document.getElementById('customerName').value.trim();
+  let w=document.getElementById('customerWhatsapp').value.trim();
+  if(!n||!w){document.getElementById('customerMsg').innerText='Fill all fields'; return;}
+  currentCustomer={name:n, whatsapp:w}; localStorage.setItem('currentCustomer',JSON.stringify(currentCustomer)); showPage('customerPanel');
+  document.getElementById('customerDisplay').innerText=n;
+}
+function customerLogout(){currentCustomer=null; localStorage.removeItem('currentCustomer'); cart=[]; showPage('customerLogin');}
+function renderCustomerProducts(){
+  let list=document.getElementById('customerProductList'); list.innerHTML='';
+  products.forEach((p,i)=>{
+    let div=document.createElement('div'); div.className='product';
+    div.innerHTML=`<h3>${p.name}</h3><p>Price: $${p.price}</p><button onclick='addToCart(${i})'>Add to Cart</button>`;
+    list.appendChild(div);
+  });
+}
+function addToCart(i){cart.push(products[i]); renderCart();}
+function renderCart(){
+  let list=document.getElementById('cartList'); list.innerHTML='';
+  let total=0;
+  cart.forEach((p,i)=>{total+=p.price; let div=document.createElement('div'); div.className='order'; div.innerHTML=`<p>${p.name} - $${p.price}</p><button onclick='removeFromCart(${i})'>Remove</button>`; list.appendChild(div);});
+}
+function removeFromCart(i){cart.splice(i,1); renderCart();}
+function checkout(){
+  if(!currentCustomer || cart.length===0){alert('Add products first'); return;}
+  let total=cart.reduce((sum,p)=>sum+p.price,0);
+  orders.push({customerName:currentCustomer.name, customerWhatsapp:currentCustomer.whatsapp, products:cart, total:total});
+  localStorage.setItem('orders',JSON.stringify(orders)); cart=[]; renderCart(); alert('Order placed'); renderOrders();
+}
+
+// ===== Admin Render =====
 function renderVendors(){
   let list=document.getElementById('vendorList'); list.innerHTML='';
-  if(vendors.length===0){list.innerHTML='<p>No vendors</p>'; return;}
-  vendors.forEach((v,i)=>{
-    let div=document.createElement('div'); div.className='vendor';
-    div.innerHTML=`<h3>${v.username || v.id}</h3>
-                   <p>Status: ${v.status}</p>
-                   <p>WhatsApp: ${v.whatsapp || '-'}</p>
-                   <button onclick="approveVendor(${i})">Approve</button>
-                   <button onclick="denyVendor(${i})">Deny</button>`;
-    list.appendChild(div);
-  });
+  vendors.forEach((v,i)=>{let div=document.createElement('div'); div.className='vendor'; div.innerHTML=`<h3>${v.username}</h3><p>Status:${v.status}</p><p>WhatsApp:${v.whatsapp}</p><button onclick='approveVendor(${i})'>Approve</button><button onclick='denyVendor(${i})'>Deny</button>`; list.appendChild(div);});
 }
+function approveVendor(i){vendors[i].status='Approved'; localStorage.setItem('vendors',JSON.stringify(vendors)); renderAll();}
+function denyVendor(i){vendors[i].status='Denied'; localStorage.setItem('vendors',JSON.stringify(vendors)); renderAll();}
 
-function approveVendor(i){vendors[i].status='Approved'; localStorage.setItem('vendors',JSON.stringify(vendors)); renderVendors();}
-function denyVendor(i){vendors[i].status='Denied'; localStorage.setItem('vendors',JSON.stringify(vendors)); renderVendors();}
-
-// ===== REVIEWS =====
 function renderReviews(){
   let list=document.getElementById('reviewList'); list.innerHTML='';
-  if(reviews.length===0){list.innerHTML='<p>No reviews</p>'; return;}
-  reviews.forEach((r,i)=>{
-    let div=document.createElement('div'); div.className='review';
-    div.innerHTML=`<p><b>${r.customer}</b>: ${r.text}</p>
-                   <button onclick="deleteReview(${i})">Delete</button>`;
-    list.appendChild(div);
-  });
+  reviews.forEach((r,i)=>{let div=document.createElement('div'); div.className='review'; div.innerHTML=`<p>${r.customer}: ${r.text}</p><button onclick='deleteReview(${i})'>Delete</button>`; list.appendChild(div);});
 }
+function deleteReview(i){reviews.splice(i,1); localStorage.setItem('reviews',JSON.stringify(reviews)); renderAll();}
 
-function deleteReview(i){reviews.splice(i,1); localStorage.setItem('reviews',JSON.stringify(reviews)); renderReviews();}
-
-// ===== ORDERS =====
 function renderOrders(){
   let list=document.getElementById('orderList'); list.innerHTML='';
-  if(orders.length===0){ list.innerHTML='<p>No orders yet</p>'; return; }
-  orders.forEach((o,i)=>{
-    let div=document.createElement('div'); div.className='order';
-    let productsStr = o.products.map(p=>`${p.name} ($${p.price})`).join(', ');
-    div.innerHTML=`<p><b>Customer:</b> ${o.customerName}</p>
-                   <p><b>WhatsApp:</b> ${o.customerWhatsapp}</p>
-                   <p><b>Products:</b> ${productsStr}</p>
-                   <p><b>Total:</b> $${o.total}</p>
-                   <button onclick="deleteOrder(${i})">Delete</button>`;
-    list.appendChild(div);
-  });
+  orders.forEach((o,i)=>{let div=document.createElement('div'); div.className='order'; let prodStr=o.products.map(p=>p.name+' ($'+p.price+')').join(', ');
+  div.innerHTML=`<p><b>${o.customerName}</b> (${o.customerWhatsapp})</p><p>Products: ${prodStr}</p><p>Total: $${o.total}</p><button onclick='deleteOrder(${i})'>Delete</button>`; list.appendChild(div);});
 }
+function deleteOrder(i){orders.splice(i,1); localStorage.setItem('orders',JSON.stringify(orders)); renderAll();}
 
-function deleteOrder(i){orders.splice(i,1); localStorage.setItem('orders',JSON.stringify(orders)); renderOrders();}
+function openWhatsApp(){window.open('https://wa.me/01913821910','_blank');}
 
-// ===== SUPPORT =====
-function openWhatsApp(){ window.open('https://wa.me/01913821910','_blank'); }
 </script>
 
 </body>
