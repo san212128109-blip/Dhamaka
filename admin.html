@@ -6,16 +6,18 @@
 <title>Admin Panel - Dhamaka</title>
 <style>
 body{font-family:Arial,sans-serif;background:#d4edda;color:#155724;transition:0.3s;}
-h1,h2,h3{text-align:center;margin-bottom:0.5em;}
-form, .admin-products{max-width:500px;margin:0 auto;}
+h1,h2{text-align:center;margin-bottom:0.5em;}
+form, .admin-products,.admin-orders{max-width:500px;margin:0 auto;}
 input,select{padding:0.5em;margin:0.3em 0;width:100%;border-radius:5px;border:1px solid #ccc;}
 button{background:#28a745;color:white;border:none;padding:0.5em 1em;border-radius:5px;cursor:pointer;margin-top:0.5em;}
 button:hover{background:#218838;}
-.product{border:1px solid #28a745;padding:0.5em;margin:0.5em 0;border-radius:8px;position:relative;display:flex;align-items:center;}
+.product{border:1px solid #28a745;padding:0.5em;margin:0.5em 0;border-radius:8px;display:flex;align-items:center;}
 .product img{width:80px;height:80px;object-fit:cover;margin-right:10px;}
+#previewImg{display:block;margin:0.5em auto;width:150px;height:150px;object-fit:cover;border:1px solid #28a745;border-radius:8px;}
+.order{border:1px solid #28a745;padding:0.5em;margin:0.5em 0;border-radius:8px;}
+.order.completed{background:#c3e6cb;}
 .color-control{display:flex;justify-content:space-between;margin:1em 0;}
 .color-control input{width:48%;}
-#previewImg{display:block;margin:0.5em auto;width:150px;height:150px;object-fit:cover;border:1px solid #28a745;border-radius:8px;}
 </style>
 </head>
 <body>
@@ -30,7 +32,8 @@ button:hover{background:#218838;}
 </div>
 
 <div id="panelDiv" style="display:none;">
-<h2>Color Theme Control</h2>
+
+<h2>Theme Control</h2>
 <div class="color-control">
 <input type="color" id="bgColor" onchange="updateColor('bg')"> Background
 <input type="color" id="textColor" onchange="updateColor('text')"> Text
@@ -69,6 +72,10 @@ button:hover{background:#218838;}
 
 <h2>Products</h2>
 <div class="admin-products" id="adminProducts"></div>
+
+<h2>Orders</h2>
+<div class="admin-orders" id="adminOrders"></div>
+
 </div>
 
 <script>
@@ -81,19 +88,36 @@ let imageMap={
 "headphones":"https://via.placeholder.com/150?text=Headphones"
 };
 
+// LocalStorage
 let products=JSON.parse(localStorage.getItem("products")||'[]');
+let orders=JSON.parse(localStorage.getItem("orders")||'[]');
+let theme=JSON.parse(localStorage.getItem("theme")||'{}');
 
 function checkPass(){
 let pass=document.getElementById("adminPass").value;
-if(pass==="NAFIS128"){ document.getElementById("loginDiv").style.display='none'; document.getElementById("panelDiv").style.display='block'; renderProducts(); showPreview(); }
-else{ document.getElementById("loginMsg").innerText="Wrong password!"; }
+if(pass==="NAFIS128"){ 
+    document.getElementById("loginDiv").style.display='none'; 
+    document.getElementById("panelDiv").style.display='block'; 
+    renderProducts(); 
+    renderOrders(); 
+    showPreview(); 
+    applyTheme(); 
+}else{ document.getElementById("loginMsg").innerText="Wrong password!"; }
 }
 
 function updateColor(type){
-if(type==='bg') document.body.style.background=document.getElementById("bgColor").value;
-else if(type==='text') document.body.style.color=document.getElementById("textColor").value;
-else if(type==='btn'){ document.querySelectorAll('button').forEach(b=>b.style.background=document.getElementById("btnColor").value); }
-else if(type==='btnText'){ document.querySelectorAll('button').forEach(b=>b.style.color=document.getElementById("btnTextColor").value); }
+if(type==='bg'){ document.body.style.background=document.getElementById("bgColor").value; theme.bg=document.getElementById("bgColor").value; }
+else if(type==='text'){ document.body.style.color=document.getElementById("textColor").value; theme.text=document.getElementById("textColor").value; }
+else if(type==='btn'){ document.querySelectorAll('button').forEach(b=>b.style.background=document.getElementById("btnColor").value); theme.btn=document.getElementById("btnColor").value; }
+else if(type==='btnText'){ document.querySelectorAll('button').forEach(b=>b.style.color=document.getElementById("btnTextColor").value); theme.btnText=document.getElementById("btnTextColor").value; }
+localStorage.setItem("theme",JSON.stringify(theme));
+}
+
+function applyTheme(){
+if(theme.bg) document.body.style.background=theme.bg;
+if(theme.text) document.body.style.color=theme.text;
+if(theme.btn) document.querySelectorAll('button').forEach(b=>b.style.background=theme.btn);
+if(theme.btnText) document.querySelectorAll('button').forEach(b=>b.style.color=theme.btnText);
 }
 
 function showPreview(){
@@ -142,6 +166,29 @@ if(newName && newPrice && newImage && newCategory){
 products[i]={name:newName,price:newPrice,image:newImage,category:newCategory,badge:newBadge,rating:p.rating};
 localStorage.setItem("products",JSON.stringify(products)); renderProducts();
 }
+}
+
+// ===== Orders =====
+function renderOrders(){
+let div=document.getElementById("adminOrders");
+div.innerHTML='';
+if(orders.length===0){ div.innerHTML="<p>No orders yet.</p>"; return; }
+orders.forEach((o,i)=>{
+let od=document.createElement('div'); od.className='order';
+od.classList.toggle('completed', o.completed);
+od.innerHTML=`<strong>Customer:</strong> ${o.customer}<br>
+<strong>Products:</strong> ${o.items.map(it=>it.name+"($"+it.price+")").join(", ")}<br>
+<strong>Total:</strong> $${o.total}<br>
+<strong>Payment:</strong> ${o.payment}<br>
+<button onclick="markCompleted(${i})">${o.completed?'Undo':'Mark Completed'}</button>`;
+div.appendChild(od);
+});
+}
+
+function markCompleted(i){
+orders[i].completed = !orders[i].completed;
+localStorage.setItem("orders",JSON.stringify(orders));
+renderOrders();
 }
 </script>
 </body>
