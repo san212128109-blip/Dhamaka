@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel</title>
+<style>
+body{font-family:Arial;margin:0;padding:0;background:#f8f9fa;color:#333;}
+.container{max-width:600px;margin:2em auto;padding:1em;}
+input,button{padding:0.5em;margin:0.3em 0;width:95%;border-radius:5px;border:1px solid #ccc;}
+button{background:#28a745;color:white;border:none;cursor:pointer;}
+button:hover{background:#218838;}
+.product{border:1px solid #28a745;border-radius:8px;padding:1em;margin-top:1em;background:#fff;}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Admin Login</h1>
+<div id="loginDiv">
+<input type="password" id="adminPass" placeholder="Enter Admin Password">
+<button onclick="checkPassword()">Login</button>
+<p id="loginMsg" style="color:red;"></p>
+</div>
+
+<div id="adminPanel" style="display:none;">
+<h2>Admin Panel</h2>
+<form id="addProductForm">
+<input type="text" id="productName" placeholder="Product Name" required>
+<input type="number" id="productPrice" placeholder="Price" required>
+<input type="text" id="productImage" placeholder="Image URL" required>
+<select id="productCategory" required>
+<option value="Electronics">Electronics</option>
+<option value="Clothing">Clothing</option>
+<option value="Home">Home & Living</option>
+</select>
+<button type="submit">Add Product</button>
+</form>
+<h3>Products</h3>
+<div id="adminList"></div>
+</div>
+
+<script>
+// Password
+function checkPassword(){
+let pass=document.getElementById("adminPass").value;
+if(pass==="NAFIS128"){ document.getElementById("loginDiv").style.display="none"; document.getElementById("adminPanel").style.display="block"; renderAdmin(); }
+else{ document.getElementById("loginMsg").innerText="Wrong password!"; }
+}
+
+// Products
+let products=JSON.parse(localStorage.getItem("products")||"[]");
+const adminList=document.getElementById("adminList");
+document.getElementById("addProductForm").addEventListener("submit",function(e){
+e.preventDefault();
+const name=document.getElementById("productName").value;
+const price=document.getElementById("productPrice").value;
+const image=document.getElementById("productImage").value;
+const category=document.getElementById("productCategory").value;
+products.push({name,price,image,category});
+localStorage.setItem("products",JSON.stringify(products));
+this.reset();
+renderAdmin();
+});
+
+function renderAdmin(){ adminList.innerHTML=''; products.forEach((p,i)=>{
+const div=document.createElement('div'); div.className='product';
+div.innerHTML=`<img src="${p.image}" width="100"><strong>${p.name}</strong><br>Category: ${p.category}<br>Price: $${p.price}<br>
+<button onclick="editProduct(${i})">Edit</button> <button onclick="deleteProduct(${i})">Delete</button>`;
+adminList.appendChild(div);
+}); }
+
+function deleteProduct(i){ if(confirm("Delete product?")){ products.splice(i,1); localStorage.setItem("products",JSON.stringify(products)); renderAdmin(); }}
+function editProduct(i){ const p=products[i]; const newName=prompt("Edit Name:",p.name); const newPrice=prompt("Edit Price:",p.price);
+const newImage=prompt("Edit Image URL:",p.image); const newCategory=prompt("Edit Category:",p.category);
+if(newName && newPrice && newImage && newCategory){ products[i]={name:newName,price:newPrice,image:newImage,category:newCategory}; localStorage.setItem("products",JSON.stringify(products)); renderAdmin(); }}
+</script>
+
+</body>
+</html>
