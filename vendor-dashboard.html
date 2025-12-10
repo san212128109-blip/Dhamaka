@@ -5,90 +5,135 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Vendor Dashboard - Dhamaka</title>
 <style>
-body{font-family:Arial,sans-serif;background:#f8f9fa;color:#212529;padding:1em;}
-h2{text-align:center;}
-form{max-width:400px;margin:1em auto;background:white;padding:1em;border-radius:12px;box-shadow:2px2px10px rgba(0,0,0,0.2);}
-input,select{width:100%;padding:0.5em;margin:0.3em 0;border-radius:5px;border:1px solid #ccc;}
-button{width:100%;padding:0.5em;border:none;border-radius:5px;background:#28a745;color:white;cursor:pointer;margin-top:0.5em;}
-button:hover{background:#218838;}
-#msg{color:red;text-align:center;}
-#myProducts{margin-top:2em;}
-.product-item{background:white;padding:1em;margin:0.5em 0;border-radius:8px;box-shadow:1px1px5px rgba(0,0,0,0.1);}
-.product-item span{display:block;margin-top:0.3em;}
+body{font-family:Arial,sans-serif;background:#f8f9fa;color:#212529;margin:0;padding:0;}
+header{background:#28a745;color:white;padding:1em;display:flex;justify-content:space-between;align-items:center;}
+header h1{margin:0;}
+header button{padding:0.5em 1em;border:none;border-radius:5px;background:#ffc107;color:#212529;cursor:pointer;}
+.container{padding:1em;}
+input,select,textarea{width:100%;padding:0.5em;margin:0.3em 0;border-radius:5px;border:1px solid #ccc;}
+button.add,button.update,button.delete{padding:0.5em 1em;margin:0.3em;border:none;border-radius:5px;cursor:pointer;}
+button.add{background:#28a745;color:white;}
+button.update{background:#007bff;color:white;}
+button.delete{background:#dc3545;color:white;}
+table{width:100%;border-collapse:collapse;margin-top:1em;}
+table,th,td{border:1px solid #ccc;}
+th,td{padding:0.5em;text-align:center;}
 </style>
 </head>
 <body>
 
-<h2>Vendor Dashboard</h2>
+<header>
+<h1>Vendor Dashboard</h1>
+<div>
+<span id="vendorName"></span>
 <button onclick="logout()">Logout</button>
+</div>
+</header>
 
-<form id="addProductForm">
-<h3>Add New Product</h3>
-<input type="text" id="pName" placeholder="Product Name" required>
-<input type="number" id="pPrice" placeholder="Price" required>
-<input type="number" id="pStock" placeholder="Stock Quantity" required>
-<select id="pCategory">
-<option value="All">Select Category</option>
-<option value="Electronics">Electronics</option>
-<option value="Clothing">Clothing</option>
-<option value="Home">Home</option>
+<div class="container">
+<h2>Add / Update Products</h2>
+<input type="text" id="prodName" placeholder="Product Name">
+<input type="text" id="prodCategory" placeholder="Category">
+<input type="number" id="prodPrice" placeholder="Price">
+<input type="number" id="prodStock" placeholder="Stock Quantity">
+<select id="prodImage">
+<option value="smartphone">Smartphone</option>
+<option value="tshirt">T-Shirt</option>
+<option value="sofa">Sofa</option>
+<option value="laptop">Laptop</option>
+<option value="jeans">Jeans</option>
+<option value="headphones">Headphones</option>
 </select>
-<button type="submit">Add Product</button>
-<p id="msg"></p>
-</form>
+<button class="add" onclick="addProduct()">Add Product</button>
 
-<div id="myProducts">
-<h3>My Products (Pending Admin Approval)</h3>
-<div id="productList"></div>
+<h2>My Products</h2>
+<table id="productTable">
+<thead>
+<tr>
+<th>Name</th>
+<th>Category</th>
+<th>Price</th>
+<th>Stock</th>
+<th>Image</th>
+<th>Actions</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
 </div>
 
 <script>
-let currentVendor = JSON.parse(localStorage.getItem('currentVendor')||'{}');
-if(!currentVendor.id){
-alert('Please login first');
-window.location.href='vendor-login.html';
+let currentVendor = JSON.parse(localStorage.getItem('currentVendor')||'null');
+if(!currentVendor){
+  alert("Please login first.");
+  window.location.href='vendor-login.html';
 }
+document.getElementById('vendorName').innerText = currentVendor.name+" ("+currentVendor.id+")";
 
 let products = JSON.parse(localStorage.getItem('products')||'[]');
 
-function renderMyProducts(){
-let list = document.getElementById('productList');
-list.innerHTML='';
-products.filter(p=>p.vendor===currentVendor.id).forEach(p=>{
-let div = document.createElement('div');
-div.className='product-item';
-div.innerHTML=`<strong>${p.name}</strong> - $${p.price} | Stock: ${p.stock} <span>Status: ${p.status}</span>`;
-list.appendChild(div);
-});
+function renderProducts(){
+  let tbody = document.querySelector('#productTable tbody');
+  tbody.innerHTML='';
+  products.forEach((p,i)=>{
+    if(p.vendorId===currentVendor.id){
+      let tr = document.createElement('tr');
+      tr.innerHTML=`<td>${p.name}</td>
+                    <td>${p.category}</td>
+                    <td>${p.price}</td>
+                    <td>${p.stock}</td>
+                    <td>${p.image}</td>
+                    <td>
+                    <button class="update" onclick="editProduct(${i})">Edit</button>
+                    <button class="delete" onclick="deleteProduct(${i})">Delete</button>
+                    </td>`;
+      tbody.appendChild(tr);
+    }
+  });
 }
 
-document.getElementById('addProductForm').addEventListener('submit',function(e){
-e.preventDefault();
-let name = document.getElementById('pName').value;
-let price = document.getElementById('pPrice').value;
-let stock = document.getElementById('pStock').value;
-let category = document.getElementById('pCategory').value;
-let newProduct = {
-name:name,
-price:Number(price),
-stock:Number(stock),
-category:category,
-vendor:currentVendor.id,
-status:'Pending' // admin approval needed
-};
-products.push(newProduct);
-localStorage.setItem('products',JSON.stringify(products));
-document.getElementById('msg').innerText='Product added! Waiting for admin approval.';
-renderMyProducts();
-});
+function addProduct(){
+  let name = document.getElementById('prodName').value.trim();
+  let category = document.getElementById('prodCategory').value.trim();
+  let price = parseFloat(document.getElementById('prodPrice').value);
+  let stock = parseInt(document.getElementById('prodStock').value);
+  let image = document.getElementById('prodImage').value;
+  if(!name||!category||isNaN(price)||isNaN(stock)){ alert("Fill all fields"); return; }
+  products.push({name,category,price,stock,image,vendorId:currentVendor.id});
+  localStorage.setItem('products',JSON.stringify(products));
+  renderProducts();
+  document.getElementById('prodName').value='';
+  document.getElementById('prodCategory').value='';
+  document.getElementById('prodPrice').value='';
+  document.getElementById('prodStock').value='';
+}
+
+function editProduct(i){
+  let p = products[i];
+  if(p.vendorId!==currentVendor.id){ alert("Not your product"); return; }
+  document.getElementById('prodName').value = p.name;
+  document.getElementById('prodCategory').value = p.category;
+  document.getElementById('prodPrice').value = p.price;
+  document.getElementById('prodStock').value = p.stock;
+  document.getElementById('prodImage').value = p.image;
+  products.splice(i,1); // remove old entry to update
+  localStorage.setItem('products',JSON.stringify(products));
+}
+
+function deleteProduct(i){
+  if(products[i].vendorId!==currentVendor.id){ alert("Not your product"); return; }
+  products.splice(i,1);
+  localStorage.setItem('products',JSON.stringify(products));
+  renderProducts();
+}
 
 function logout(){
-localStorage.removeItem('currentVendor');
-window.location.href='vendor-login.html';
+  localStorage.removeItem('currentVendor');
+  window.location.href='vendor-login.html';
 }
 
-// Initial render
-renderMyProducts();
+renderProducts();
 </script>
+
 </body>
 </html>
