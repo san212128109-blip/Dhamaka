@@ -3,137 +3,147 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin Panel - Dhamaka</title>
+<title>Dhamaka Admin Panel</title>
 <style>
-body{font-family:Arial,sans-serif;background:#f8f9fa;color:#212529;transition:0.3s;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:Arial,sans-serif;background:#f8f9fa;color:#333;transition:0.3s;}
 body.dark{background:#121212;color:#ddd;}
-header{background:#28a745;color:white;padding:1em;display:flex;justify-content:space-between;flex-wrap:wrap;align-items:center;}
+header{background:#28a745;color:white;padding:1em;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10;}
 header h1{margin:0;font-size:1.5em;}
-nav button{margin-left:1em;cursor:pointer;}
+nav a{color:white;margin-left:1em;text-decoration:none;font-weight:bold;transition:0.3s;}
+nav a:hover{text-decoration:underline;color:#ffc107;}
 .page{display:none;padding:1em;}
-h2,h3{text-align:center;margin-bottom:0.5em;}
-table{width:100%;border-collapse:collapse;margin:1em 0;}
-table, th, td{border:1px solid #28a745;}
-th, td{padding:0.5em;text-align:center;}
-input,select{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;border:1px solid #ccc;}
-button{background:#28a745;color:white;border:none;padding:0.5em 1em;border-radius:5px;cursor:pointer;margin:0.2em;}
+.product-list,.cart-list,.vendor-list,.review-list{display:flex;flex-wrap:wrap;gap:1em;justify-content:center;margin-top:1em;}
+.product,.vendor,.review{border:1px solid #28a745;border-radius:12px;padding:1em;width:250px;text-align:center;background:#fff;box-shadow:2px2px10px rgba(0,0,0,0.1);transition:0.3s;position:relative;overflow:hidden;}
+.product:hover,.vendor:hover,.review:hover{transform:scale(1.05);box-shadow:4px4px15px rgba(0,0,0,0.2);}
+button{background:#28a745;color:white;border:none;padding:0.5em 1em;border-radius:5px;cursor:pointer;margin-top:0.5em;transition:0.3s;}
 button:hover{background:#218838;}
+input,select{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;border:1px solid #ccc;}
+#support{position:fixed;bottom:20px;right:20px;background:#25D366;color:white;padding:10px 15px;border-radius:50px;cursor:pointer;box-shadow:2px2px10px rgba(0,0,0,0.2);}
 </style>
 </head>
 <body>
+
 <header>
-<h1>Admin Panel</h1>
-<button onclick="toggleDarkMode()">🌙 Theme</button>
+<h1>Dhamaka Admin Panel</h1>
+<nav>
+<a href="#dashboard" onclick="showPage('dashboard')">Dashboard</a>
+<a href="#products" onclick="showPage('products')">Products</a>
+<a href="#vendors" onclick="showPage('vendors')">Vendors</a>
+<a href="#reviews" onclick="showPage('reviews')">Reviews</a>
+<button onclick="toggleDarkMode()">🌙</button>
+</nav>
 </header>
+
+<!-- Pages -->
+<div id="loginPage" class="page">
+<h2>Admin Login</h2>
+<input type="password" id="adminPassword" placeholder="Enter Password">
+<button onclick="adminLogin()">Login</button>
+<p id="loginMsg" style="color:red"></p>
+</div>
 
 <div id="dashboard" class="page">
 <h2>Dashboard</h2>
-
-<h3>Site Theme Control</h3>
-<label>Background: <input type="color" id="bgColor"></label>
-<label>Text: <input type="color" id="textColor"></label>
-<label>Button: <input type="color" id="btnColor"></label>
-<label>Button Text: <input type="color" id="btnTextColor"></label>
-<button onclick="applyTheme()">Apply Theme</button>
-
-<h3>Vendor Management</h3>
-<table id="vendorTable">
-<tr><th>ID</th><th>Name</th><th>Status</th><th>Action</th></tr>
-</table>
-
-<h3>Product Management</h3>
-<table id="productTable">
-<tr><th>ID</th><th>Name</th><th>Category</th><th>Price</th><th>Stock</th><th>Action</th></tr>
-</table>
-<button onclick="addProduct()">Add Product</button>
-
-<h3>Customer Reviews</h3>
-<table id="reviewTable">
-<tr><th>Name</th><th>Review</th><th>Action</th></tr>
-</table>
+<p>Welcome, Admin!</p>
+<label>Background Color: <input type="color" id="bgColor" onchange="applyTheme()"></label>
+<label>Text Color: <input type="color" id="textColor" onchange="applyTheme()"></label>
+<label>Button Color: <input type="color" id="btnColor" onchange="applyTheme()"></label>
+<label>Button Text Color: <input type="color" id="btnTextColor" onchange="applyTheme()"></label>
 </div>
 
+<div id="products" class="page">
+<h2>Products</h2>
+<div class="product-list" id="productList"></div>
+</div>
+
+<div id="vendors" class="page">
+<h2>Vendors</h2>
+<div class="vendor-list" id="vendorList"></div>
+</div>
+
+<div id="reviews" class="page">
+<h2>Customer Reviews</h2>
+<div class="review-list" id="reviewList"></div>
+</div>
+
+<div id="support" onclick="openWhatsApp()">💬 Support</div>
+
 <script>
-let vendors = JSON.parse(localStorage.getItem("vendors")||'[]');
-let products = JSON.parse(localStorage.getItem("products")||'[]');
-let reviews = JSON.parse(localStorage.getItem("reviews")||'[]');
-let theme = JSON.parse(localStorage.getItem("theme")||'{}');
+let adminLoggedIn = false;
+let products = JSON.parse(localStorage.getItem('products')||'[]');
+let vendors = JSON.parse(localStorage.getItem('vendors')||'[]');
+let reviews = JSON.parse(localStorage.getItem('reviews')||'[]');
+
+function showPage(page){
+if(!adminLoggedIn && page!=='loginPage'){alert('Login required'); return;}
+document.querySelectorAll('.page').forEach(p=>p.style.display='none');
+document.getElementById(page).style.display='block';
+renderAll();
+}
+
+showPage('loginPage');
+
+function adminLogin(){
+let pass = document.getElementById('adminPassword').value;
+if(pass==='NAFIS128'){
+adminLoggedIn=true;
+showPage('dashboard');
+}else{
+document.getElementById('loginMsg').innerText='Wrong Password';
+}
+}
 
 function toggleDarkMode(){ document.body.classList.toggle('dark'); }
 
 function applyTheme(){
-theme.bg = document.getElementById('bgColor').value;
-theme.text = document.getElementById('textColor').value;
-theme.btn = document.getElementById('btnColor').value;
-theme.btnText = document.getElementById('btnTextColor').value;
-document.body.style.background=theme.bg;
-document.body.style.color=theme.text;
-document.querySelectorAll('button').forEach(b=>{ b.style.background=theme.btn; b.style.color=theme.btnText; });
-localStorage.setItem("theme",JSON.stringify(theme));
+document.body.style.background=document.getElementById('bgColor').value;
+document.body.style.color=document.getElementById('textColor').value;
+document.querySelectorAll('button').forEach(b=>{b.style.background=document.getElementById('btnColor').value;b.style.color=document.getElementById('btnTextColor').value;});
 }
 
-function renderVendors(){
-let table = document.getElementById("vendorTable");
-table.innerHTML='<tr><th>ID</th><th>Name</th><th>Status</th><th>Action</th></tr>';
-vendors.forEach((v,i)=>{
-let tr=document.createElement('tr');
-tr.innerHTML=`<td>${v.id}</td><td>${v.name}</td><td>${v.status}</td>
-<td>
-<button onclick="approveVendor(${i})">Approve</button>
-<button onclick="denyVendor(${i})">Deny</button>
-</td>`;
-table.appendChild(tr);
-});
-}
-
-function approveVendor(i){ vendors[i].status='Approved'; localStorage.setItem("vendors",JSON.stringify(vendors)); renderVendors(); }
-function denyVendor(i){ vendors[i].status='Denied'; localStorage.setItem("vendors",JSON.stringify(vendors)); renderVendors(); }
+function renderAll(){ renderProducts(); renderVendors(); renderReviews(); }
 
 function renderProducts(){
-let table = document.getElementById("productTable");
-table.innerHTML='<tr><th>ID</th><th>Name</th><th>Category</th><th>Price</th><th>Stock</th><th>Action</th></tr>';
+let list=document.getElementById('productList'); list.innerHTML='';
+if(products.length===0){list.innerHTML='<p>No products</p>'; return;}
 products.forEach((p,i)=>{
-let tr=document.createElement('tr');
-tr.innerHTML=`<td>${i}</td><td>${p.name}</td><td>${p.category}</td><td><input type="number" value="${p.price}" onchange="updatePrice(${i},this.value)"></td>
-<td><input type="number" value="${p.stock}" onchange="updateStock(${i},this.value)"></td>
-<td><button onclick="deleteProduct(${i})">Delete</button></td>`;
-table.appendChild(tr);
+let div=document.createElement('div'); div.className='product';
+div.innerHTML=`<h3>${p.name}</h3><p>Price: $${p.price}</p><p>Stock: ${p.stock}</p><button onclick="deleteProduct(${i})">Delete</button>`;
+list.appendChild(div);
 });
 }
 
-function addProduct(){
-let name=prompt("Product name:");
-if(!name) return;
-let category=prompt("Category:");
-let price=prompt("Price:");
-let stock=prompt("Stock:");
-products.push({name,category,price:Number(price),stock:Number(stock),image:'smartphone',rating:5});
-localStorage.setItem("products",JSON.stringify(products));
-renderProducts();
+function deleteProduct(i){products.splice(i,1); localStorage.setItem('products',JSON.stringify(products)); renderProducts();}
+
+function renderVendors(){
+let list=document.getElementById('vendorList'); list.innerHTML='';
+if(vendors.length===0){list.innerHTML='<p>No vendors</p>'; return;}
+vendors.forEach((v,i)=>{
+let div=document.createElement('div'); div.className='vendor';
+div.innerHTML=`<h3>${v.id}</h3><p>Status: ${v.status}</p>
+<button onclick="approveVendor(${i})">Approve</button>
+<button onclick="denyVendor(${i})">Deny</button>`;
+list.appendChild(div);
+});
 }
 
-function updatePrice(i,val){ products[i].price=Number(val); localStorage.setItem("products",JSON.stringify(products)); }
-function updateStock(i,val){ products[i].stock=Number(val); localStorage.setItem("products",JSON.stringify(products)); }
-function deleteProduct(i){ products.splice(i,1); localStorage.setItem("products",JSON.stringify(products)); renderProducts(); }
+function approveVendor(i){vendors[i].status='Approved'; localStorage.setItem('vendors',JSON.stringify(vendors)); renderVendors();}
+function denyVendor(i){vendors[i].status='Denied'; localStorage.setItem('vendors',JSON.stringify(vendors)); renderVendors();}
 
 function renderReviews(){
-let table=document.getElementById("reviewTable");
-table.innerHTML='<tr><th>Name</th><th>Review</th><th>Action</th></tr>';
+let list=document.getElementById('reviewList'); list.innerHTML='';
+if(reviews.length===0){list.innerHTML='<p>No reviews</p>'; return;}
 reviews.forEach((r,i)=>{
-let tr=document.createElement('tr');
-tr.innerHTML=`<td>${r.name}</td><td>${r.text}</td><td><button onclick="deleteReview(${i})">Delete</button></td>`;
-table.appendChild(tr);
+let div=document.createElement('div'); div.className='review';
+div.innerHTML=`<p>${r.customer}: ${r.text}</p><button onclick="deleteReview(${i})">Delete</button>`;
+list.appendChild(div);
 });
 }
-function deleteReview(i){ reviews.splice(i,1); localStorage.setItem("reviews",JSON.stringify(reviews)); renderReviews(); }
+function deleteReview(i){reviews.splice(i,1); localStorage.setItem('reviews',JSON.stringify(reviews)); renderReviews();}
 
-renderVendors();
-renderProducts();
-renderReviews();
-document.getElementById('bgColor').value=theme.bg||'#d4edda';
-document.getElementById('textColor').value=theme.text||'#212529';
-document.getElementById('btnColor').value=theme.btn||'#28a745';
-document.getElementById('btnTextColor').value=theme.btnText||'#fff';
+function openWhatsApp(){window.open('https://wa.me/01913821910','_blank');}
 </script>
+
 </body>
 </html>
