@@ -1,40 +1,139 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Vendor Dashboard</title>
 <style>
-body{font-family:Arial;padding:20px;}
+body{font-family:Arial;background:#f7f9fb;padding:16px}
+.header{display:flex;justify-content:space-between;align-items:center}
+.card{background:#fff;padding:12px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.05);margin-top:12px}
+input,select,textarea{width:100%;padding:8px;margin:6px 0;border-radius:6px;border:1px solid #ddd}
+button{padding:8px 12px;border-radius:6px;border:none;background:#007bff;color:#fff;cursor:pointer}
+.small{font-size:0.9em;color:#555}
+.warn{color:#b21f2d}
 </style>
 </head>
 <body>
+<div class="header">
+  <h2>Vendor Dashboard</h2>
+  <div>
+    <span id="vWelcome"></span>
+    <button onclick="logout()">Logout</button>
+  </div>
+</div>
 
-<h2>Vendor Dashboard</h2>
-<p>Welcome Vendor!</p>
+<div class="card">
+  <h3>Add Product (submits to Admin for approval)</h3>
+  <input id="pname" placeholder="Product name" />
+  <input id="pcat" placeholder="Category" />
+  <input id="pprice" type="number" placeholder="Price" />
+  <input id="pstock" type="number" placeholder="Stock" />
+  <select id="pimage">
+    <option value="smartphone">Smartphone</option>
+    <option value="tshirt">T-Shirt</option>
+    <option value="sofa">Sofa</option>
+    <option value="laptop">Laptop</option>
+    <option value="jeans">Jeans</option>
+    <option value="headphones">Headphones</option>
+  </select>
+  <div style="margin-top:8px">
+    <button onclick="submitProduct()">Submit Product</button>
+    <p class="small">Submitted products will remain pending until admin approves.</p>
+  </div>
+  <p id="msg" class="warn"></p>
+</div>
 
-<button onclick="logout()">Logout</button>
+<div class="card">
+  <h3>Your Products</h3>
+  <div id="myProductsList"></div>
+</div>
+
+<div class="card">
+  <h3>Support</h3>
+  <p>WhatsApp: <b>01913821910</b></p>
+  <p class="small">Note: After approval, vendor will have a 7-day trial from the approval date. After 7 days the session will expire and vendor must contact support.</p>
+</div>
 
 <script>
-let vendorSession = JSON.parse(localStorage.getItem("vendorSession"));
-if(!vendorSession){
-    window.location.href = "vendor-login.html";
+function loadVendors(){ return JSON.parse(localStorage.getItem('vendors')||'{}'); }
+function saveVendors(v){ localStorage.setItem('vendors', JSON.stringify(v)); }
+function loadProducts(){ return JSON.parse(localStorage.getItem('pendingProducts')||'[]'); }
+function savePending(p){ localStorage.setItem('pendingProducts', JSON.stringify(p)); }
+function loadApproved(){ return JSON.parse(localStorage.getItem('approvedProducts')||'[]'); }
+function saveApproved(a){ localStorage.setItem('approvedProducts', JSON.stringify(a)); }
+
+let session = JSON.parse(localStorage.getItem('vendorSession')||'null');
+if(!session){ alert('No active vendor session. Please login.'); location.href='vendor-login.html'; }
+if(Date.now() > session.expireTime){
+  // expired
+  localStorage.removeItem('vendorSession');
+  alert('Your 7-day trial expired. Contact WhatsApp 01913821910');
+  location.href = 'vendor-login.html';
 }
-let now = Date.now();
-if(now > vendorSession.expireTime){
-    alert("Your 7-day free trial expired! Contact WhatsApp 01913821910");
-    localStorage.removeItem("vendorSession");
-    window.location.href = "vendor-login.html";
+const vendors = loadVendors();
+const me = vendors[session.id];
+if(!me || !me.approved){
+  alert('Your account is not approved or removed. Contact WhatsApp 01913821910');
+  localStorage.removeItem('vendorSession');
+  location.href='vendor-login.html';
+}
+document.getElementById('vWelcome').innerText = me.name + ' ('+me.id+')';
+
+function submitProduct(){
+  const name = document.getElementById('pname').value.trim();
+  const cat = document.getElementById('pcat').value.trim();
+  const price = Number(document.getElementById('pprice').value);
+  const stock = Number(document.getElementById('pstock').value);
+  const image = document.getElementById('pimage').value;
+  if(!name || !cat || !price || !stock){ showMsg('Fill all fields'); return; }
+  const pending = loadProducts();
+  pending.push({ id: 'p'+Date.now(), vendorId: session.id, name, category:cat, price, stock, image, submittedAt:Date.now() });
+  savePending(pending);
+  showMsg('Product submitted for admin approval', false);
+  renderMyProducts();
+  // clear
+  document.getElementById('pname').value=''; document.getElementById('pcat').value=''; document.getElementById('pprice').value=''; document.getElementById('pstock').value='';
 }
 
-if(!vendorSession.approved){
-    alert("Your account is pending approval!");
-    window.location.href = "vendor-login.html";
+function renderMyProducts(){
+  const pending = loadProducts();
+  const approved = loadApproved();
+  const area = document.getElementById('myProductsList');
+  area.innerHTML = '<h4>Pending</h4>';
+  const myPending = pending.filter(p=>p.vendorId===session.id);
+  if(myPending.length===0) area.innerHTML += '<p class="small">No pending products</p>';
+  myPending.forEach(p=>{
+    area.innerHTML += `<div style="padding:6px;border-bottom:1px solid #eee">
+      <b>${p.name}</b> (${p.category}) — $${p.price} — stock: ${p.stock} — <span class="small">Pending</span>
+    </div>`;
+  });
+  area.innerHTML += '<h4 style="margin-top:12px">Approved</h4>';
+  const myApproved = approved.filter(p=>p.vendorId===session.id);
+  if(myApproved.length===0) area.innerHTML += '<p class="small">No approved products</p>';
+  myApproved.forEach(p=>{
+    area.innerHTML += `<div style="padding:6px;border-bottom:1px solid #eee">
+      <b>${p.name}</b> (${p.category}) — $${p.price} — stock: ${p.stock} — <span style="color:green">Approved</span>
+    </div>`;
+  });
 }
 
-function logout(){
-    localStorage.removeItem("vendorSession");
-    window.location.href="vendor-login.html";
-}
+function showMsg(t, isErr=true){ const el=document.getElementById('msg'); el.textContent=t; el.style.color=isErr? '#b21f2d':'#2b7a0b'; }
+
+// render initially
+renderMyProducts();
+
+// auto-check every hour if expired (also page navigations will check)
+setInterval(()=>{
+  const s = JSON.parse(localStorage.getItem('vendorSession')||'null');
+  if(!s || Date.now() > s.expireTime){
+    alert('Your 7-day trial expired. Logging out. Contact WhatsApp 01913821910');
+    localStorage.removeItem('vendorSession');
+    location.href='vendor-login.html';
+  }
+}, 3600*1000);
+
+function logout(){ localStorage.removeItem('vendorSession'); location.href = 'vendor-login.html'; }
 </script>
-
 </body>
 </html>
