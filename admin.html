@@ -5,141 +5,75 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin Panel</title>
 <style>
-body{font-family:Arial,sans-serif;background:#f4f4f4;color:#333;transition:0.3s;}
-h1,h2{text-align:center;}
-.container{width:90%;max-width:800px;margin:1em auto;}
-input,select,button{padding:0.5em;margin:0.3em 0;border-radius:5px;border:1px solid #ccc;}
-button{cursor:pointer;background:#28a745;color:white;border:none;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:Arial,sans-serif;background:#f0f0f0;color:#333;}
+header{background:#28a745;color:white;padding:1em;text-align:center;}
+header h1{margin:0;}
+.container{max-width:800px;margin:2em auto;}
+button{background:#28a745;color:white;border:none;padding:0.5em 1em;border-radius:5px;cursor:pointer;margin:0.3em;}
 button:hover{background:#218838;}
-.product{border:1px solid #28a745;padding:1em;margin:0.5em 0;border-radius:10px;background:#fff;}
-.preview{width:80px;height:80px;object-fit:cover;border-radius:5px;}
-.theme-input{width:48%;display:inline-block;margin-right:2%;}
+input, select{padding:0.5em;margin:0.3em 0;width:100%;border-radius:5px;border:1px solid #ccc;}
+.product{background:white;padding:1em;margin:1em 0;border-radius:8px;box-shadow:0 0 5px rgba(0,0,0,0.1);}
 </style>
 </head>
 <body>
-
+<header>
 <h1>Admin Panel</h1>
-
+</header>
 <div class="container">
-<h2>Theme Settings</h2>
-<input type="color" id="bgColor" class="theme-input" placeholder="Background Color">
-<input type="color" id="textColor" class="theme-input" placeholder="Text Color">
-<input type="color" id="btnColor" class="theme-input" placeholder="Button Color">
-<input type="color" id="btnTextColor" class="theme-input" placeholder="Button Text Color">
-<button onclick="applyTheme()">Apply Theme</button>
-</div>
-
-<div class="container">
-<h2>Pending Products (Vendor Submission)</h2>
+<h3>Pending Products</h3>
 <div id="pendingList"></div>
+<h3>Theme Settings</h3>
+<label>Background Color:</label><input type="color" id="bgColor">
+<label>Text Color:</label><input type="color" id="textColor">
+<label>Button Color:</label><input type="color" id="btnColor">
+<label>Button Text Color:</label><input type="color" id="btnTextColor">
+<button onclick="saveTheme()">Save Theme</button>
 </div>
-
-<div class="container">
-<h2>Approved Products</h2>
-<div id="approvedList"></div>
-</div>
-
 <script>
-let pending = JSON.parse(localStorage.getItem("pending")||'[]');
-let products = JSON.parse(localStorage.getItem("products")||'[]');
+let pendingProducts = JSON.parse(localStorage.getItem('pendingProducts') || '[]');
+let products = JSON.parse(localStorage.getItem('products') || '[]');
+const pendingList = document.getElementById('pendingList');
 
-// Apply saved theme
-function loadTheme(){
-  let theme = JSON.parse(localStorage.getItem("theme")||'{}');
-  if(theme.bg) document.body.style.background=theme.bg;
-  if(theme.text) document.body.style.color=theme.text;
-  if(theme.btn) document.querySelectorAll('button').forEach(b=>b.style.background=theme.btn);
-  if(theme.btnText) document.querySelectorAll('button').forEach(b=>b.style.color=theme.btnText);
-  if(theme.bg) document.getElementById("bgColor").value = theme.bg;
-  if(theme.text) document.getElementById("textColor").value = theme.text;
-  if(theme.btn) document.getElementById("btnColor").value = theme.btn;
-  if(theme.btnText) document.getElementById("btnTextColor").value = theme.btnText;
-}
-
-// Apply theme
-function applyTheme(){
-  let bg = document.getElementById("bgColor").value;
-  let text = document.getElementById("textColor").value;
-  let btn = document.getElementById("btnColor").value;
-  let btnText = document.getElementById("btnTextColor").value;
-  document.body.style.background = bg;
-  document.body.style.color = text;
-  document.querySelectorAll('button').forEach(b=>{b.style.background=btn;b.style.color=btnText;});
-  localStorage.setItem("theme", JSON.stringify({bg,text,btn,btnText}));
-}
-
-// Render Pending products
 function renderPending(){
-  let list = document.getElementById("pendingList");
-  list.innerHTML="";
-  let pend = pending.filter(p=>p.status==="pending");
-  if(pend.length===0){ list.innerHTML="<p>No pending products</p>"; return;}
-  pend.forEach((p,i)=>{
-    let div = document.createElement('div');
-    div.className="product";
-    div.innerHTML = `<strong>${p.name}</strong> - $<span class="price">${p.price}</span><br>
-    Category: ${p.category}<br>Vendor: ${p.vendor}<br>
-    <img src="${p.image}" class="preview"><br>
-    <button onclick="approveProduct(${i})">Approve</button>
-    <button onclick="denyProduct(${i})">Deny</button>
-    <input type="number" value="${p.price}" min="1" onchange="editPrice(${i},this.value)">`;
-    list.appendChild(div);
-  });
+    pendingList.innerHTML = '';
+    pendingProducts.forEach((p,i)=>{
+        const div = document.createElement('div');
+        div.className = 'product';
+        div.innerHTML = `<p>${p.name} - $${p.price} (${p.category})</p>
+        <button onclick='approveProduct(${i})'>Approve</button>
+        <button onclick='denyProduct(${i})'>Deny</button>`;
+        pendingList.appendChild(div);
+    });
 }
 
-// Render Approved products
-function renderApproved(){
-  let list = document.getElementById("approvedList");
-  list.innerHTML="";
-  if(products.length===0){ list.innerHTML="<p>No approved products</p>"; return;}
-  products.forEach((p,i)=>{
-    let div = document.createElement('div');
-    div.className="product";
-    div.innerHTML = `<strong>${p.name}</strong> - $<span class="price">${p.price}</span><br>
-    Category: ${p.category}<br>Vendor: ${p.vendor}<br>
-    <img src="${p.image}" class="preview">
-    <input type="number" value="${p.price}" min="1" onchange="editApprovedPrice(${i},this.value)">`;
-    list.appendChild(div);
-  });
-}
-
-// Approve
 function approveProduct(i){
-  let prod = pending[i];
-  prod.status="approved";
-  products.push(prod);
-  localStorage.setItem("products", JSON.stringify(products));
-  pending.splice(i,1);
-  localStorage.setItem("pending", JSON.stringify(pending));
-  renderPending();
-  renderApproved();
+    pendingProducts[i].approved = true;
+    products.push(pendingProducts[i]);
+    pendingProducts.splice(i,1);
+    localStorage.setItem('pendingProducts', JSON.stringify(pendingProducts));
+    localStorage.setItem('products', JSON.stringify(products));
+    renderPending();
 }
 
-// Deny
 function denyProduct(i){
-  pending.splice(i,1);
-  localStorage.setItem("pending", JSON.stringify(pending));
-  renderPending();
+    pendingProducts.splice(i,1);
+    localStorage.setItem('pendingProducts', JSON.stringify(pendingProducts));
+    renderPending();
 }
 
-// Edit price before approval
-function editPrice(i,val){
-  pending[i].price = Number(val);
-  localStorage.setItem("pending", JSON.stringify(pending));
+function saveTheme(){
+    const theme = {
+        bg: document.getElementById('bgColor').value,
+        text: document.getElementById('textColor').value,
+        btn: document.getElementById('btnColor').value,
+        btnText: document.getElementById('btnTextColor').value
+    };
+    localStorage.setItem('theme', JSON.stringify(theme));
+    alert('Theme saved!');
 }
 
-// Edit price of approved products
-function editApprovedPrice(i,val){
-  products[i].price = Number(val);
-  localStorage.setItem("products", JSON.stringify(products));
-  renderApproved();
-}
-
-// Initial render
-loadTheme();
 renderPending();
-renderApproved();
 </script>
-
 </body>
 </html>
