@@ -19,6 +19,7 @@ table{width:100%;border-collapse:collapse;margin-top:1em;}
 table,th,td{border:1px solid #ccc;}
 th,td{padding:0.5em;text-align:center;}
 .page{display:none;}
+img.product-img{width:50px;height:50px;border-radius:5px;}
 </style>
 </head>
 <body>
@@ -49,6 +50,7 @@ th,td{padding:0.5em;text-align:center;}
 <input type="text" id="prodCategory" placeholder="Category">
 <input type="number" id="prodPrice" placeholder="Price">
 <input type="number" id="prodStock" placeholder="Stock Quantity">
+<input type="text" id="prodImageURL" placeholder="Product Image URL">
 <select id="prodImage">
 <option value="smartphone">Smartphone</option>
 <option value="tshirt">T-Shirt</option>
@@ -128,11 +130,12 @@ function renderProducts(){
   products.forEach((p,i)=>{
     if(p.vendorId===currentVendor.id){
       let tr = document.createElement('tr');
+      let imgURL = p.imageURL || `https://via.placeholder.com/50?text=${p.image}`;
       tr.innerHTML=`<td>${p.name}</td>
                     <td>${p.category}</td>
                     <td>${p.price}</td>
                     <td>${p.stock}</td>
-                    <td>${p.image}</td>
+                    <td><img class='product-img' src='${imgURL}'></td>
                     <td>
                     <button class="update" onclick="editProduct(${i})">Edit</button>
                     <button class="delete" onclick="deleteProduct(${i})">Delete</button>
@@ -148,14 +151,16 @@ function addProduct(){
   let price = parseFloat(document.getElementById('prodPrice').value);
   let stock = parseInt(document.getElementById('prodStock').value);
   let image = document.getElementById('prodImage').value;
+  let imageURL = document.getElementById('prodImageURL').value.trim();
   if(!name||!category||isNaN(price)||isNaN(stock)){ alert("Fill all fields"); return; }
-  products.push({name,category,price,stock,image,vendorId:currentVendor.id});
+  products.push({name,category,price,stock,image,imageURL,vendorId:currentVendor.id});
   localStorage.setItem('products',JSON.stringify(products));
   renderProducts();
   document.getElementById('prodName').value='';
   document.getElementById('prodCategory').value='';
   document.getElementById('prodPrice').value='';
   document.getElementById('prodStock').value='';
+  document.getElementById('prodImageURL').value='';
 }
 
 function editProduct(i){
@@ -166,6 +171,7 @@ function editProduct(i){
   document.getElementById('prodPrice').value = p.price;
   document.getElementById('prodStock').value = p.stock;
   document.getElementById('prodImage').value = p.image;
+  document.getElementById('prodImageURL').value = p.imageURL || '';
   products.splice(i,1);
   localStorage.setItem('products',JSON.stringify(products));
 }
