@@ -5,64 +5,69 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Vendor Panel</title>
 <style>
-*{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:Arial,sans-serif;background:#f0f0f0;color:#333;}
-header{background:#007bff;color:white;padding:1em;text-align:center;}
-header h1{margin:0;}
-form{max-width:400px;margin:2em auto;background:white;padding:1em;border-radius:8px;box-shadow:0 0 10px rgba(0,0,0,0.1);}
-input, select, textarea{width:100%;padding:0.5em;margin:0.5em 0;border-radius:5px;border:1px solid #ccc;}
-button{background:#007bff;color:white;border:none;padding:0.5em 1em;border-radius:5px;cursor:pointer;}
-button:hover{background:#0056b3;}
-.product-list{max-width:600px;margin:2em auto;}
-.product{background:white;padding:1em;margin:1em 0;border-radius:8px;box-shadow:0 0 5px rgba(0,0,0,0.1);}
+body{font-family:Arial,sans-serif;background:#f0f0f0;color:#333;padding:20px;}
+h1,h2{text-align:center;}
+input,select,button{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;border:1px solid #ccc;}
+button{background:#28a745;color:white;border:none;cursor:pointer;transition:0.3s;}
+button:hover{background:#218838;}
+.product-list{margin-top:1em;}
+.product-item{border:1px solid #28a745;padding:10px;margin:5px;border-radius:8px;background:#fff;}
 </style>
 </head>
 <body>
-<header>
 <h1>Vendor Panel</h1>
-</header>
-<form id="vendorForm">
-<h3>Add Product</h3>
-<input type="text" id="name" placeholder="Product Name" required>
-<input type="number" id="price" placeholder="Price" required>
-<input type="text" id="category" placeholder="Category" required>
-<input type="text" id="image" placeholder="Image URL">
-<button type="submit">Submit for Approval</button>
-<p id="msg" style="color:red;"></p>
-</form>
-<div class="product-list" id="pendingList">
-<h3>Pending Products</h3>
+
+<h2>Login</h2>
+<input type="text" id="vendorName" placeholder="Vendor Name">
+<input type="password" id="vendorPass" placeholder="Password">
+<button onclick="vendorLogin()">Login</button>
+<p id="loginMsg" style="color:red;"></p>
+
+<div id="vendorPanel" style="display:none;">
+<h2>Add Product</h2>
+<input type="text" id="prodName" placeholder="Product Name">
+<input type="number" id="prodPrice" placeholder="Price">
+<input type="number" id="prodStock" placeholder="Stock Quantity">
+<button onclick="addProduct()">Add Product</button>
+
+<h2>Pending Products</h2>
+<div class="product-list" id="pendingList"></div>
 </div>
+
 <script>
-let pendingProducts = JSON.parse(localStorage.getItem('pendingProducts') || '[]');
-const form = document.getElementById('vendorForm');
-const pendingList = document.getElementById('pendingList');
+let pending = JSON.parse(localStorage.getItem("pending")||'[]');
 
-form.addEventListener('submit', function(e){
-    e.preventDefault();
-    const name = document.getElementById('name').value;
-    const price = document.getElementById('price').value;
-    const category = document.getElementById('category').value;
-    const image = document.getElementById('image').value;
-    const product = {name, price, category, image, approved:false};
-    pendingProducts.push(product);
-    localStorage.setItem('pendingProducts', JSON.stringify(pendingProducts));
-    document.getElementById('msg').innerText = 'Product submitted for approval!';
-    form.reset();
+function vendorLogin(){
+  let name=document.getElementById('vendorName').value;
+  let pass=document.getElementById('vendorPass').value;
+  if(name && pass){ 
+    alert("Welcome "+name);
+    document.getElementById('vendorPanel').style.display='block';
+    document.getElementById('loginMsg').innerText='';
     renderPending();
-});
-
-function renderPending(){
-    pendingList.innerHTML = '<h3>Pending Products</h3>';
-    pendingProducts.forEach((p,i)=>{
-        const div = document.createElement('div');
-        div.className = 'product';
-        div.innerHTML = `<p>${p.name} - $${p.price} (${p.category})</p>`;
-        pendingList.appendChild(div);
-    });
+  } else { document.getElementById('loginMsg').innerText="Enter credentials"; }
 }
 
-renderPending();
+function addProduct(){
+  let name=document.getElementById('prodName').value;
+  let price=document.getElementById('prodPrice').value;
+  let stock=document.getElementById('prodStock').value;
+  if(!name||!price||!stock) return alert("Fill all fields");
+  pending.push({id:Date.now(), name, price:Number(price), stock:Number(stock), approved:false});
+  localStorage.setItem("pending",JSON.stringify(pending));
+  alert("Product added, waiting for admin approval!");
+  renderPending();
+}
+
+function renderPending(){
+  const list = document.getElementById('pendingList');
+  list.innerHTML='';
+  pending.forEach((p,i)=>{
+    const div=document.createElement('div'); div.className='product-item';
+    div.innerHTML=`<strong>${p.name}</strong> - $${p.price} - Stock: ${p.stock} - Approved: ${p.approved}`;
+    list.appendChild(div);
+  });
+}
 </script>
 </body>
 </html>
