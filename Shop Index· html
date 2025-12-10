@@ -1,0 +1,53 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dhamaka Shop</title>
+<style>
+body{font-family:Arial;background:#f3f3f3;margin:0;padding:0;}
+header{background:#28a745;color:white;padding:1em;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;}
+nav a{color:white;margin:5px;text-decoration:none;font-weight:bold;}
+.container{padding:10px;}
+.product{border:1px solid #ccc;padding:10px;margin:10px;border-radius:8px;background:white;width:200px;display:inline-block;vertical-align:top;transition:0.3s;}
+.product:hover{transform:scale(1.05);box-shadow:2px 2px 10px rgba(0,0,0,0.2);}
+input,select{padding:6px;margin:6px;}
+@media(max-width:600px){.product{width:100%;}}
+</style>
+</head>
+<body>
+<header>
+<h2>Dhamaka Shop</h2>
+<nav>
+<a href="index.html">Shop</a>
+<a href="vendor.html">Vendor Join</a>
+<a href="admin.html">Admin</a>
+</nav>
+</header>
+<div class="container">
+<select id="vendorFilter" onchange="renderShop()">
+<option value="All">All Vendors</option>
+</select>
+<div id="shopArea"></div>
+</div>
+<script>
+let PRODUCTS = JSON.parse(localStorage.getItem("dhamaka_products_v2")||"[]");
+let vendorSet = new Set(PRODUCTS.map(p=>p.vendor));
+let vendorSelect = document.getElementById('vendorFilter');
+vendorSet.forEach(v=>{ let o=document.createElement('option'); o.value=v;o.innerText=v; vendorSelect.appendChild(o); });
+
+function renderShop(){
+ let html = "<h3>Available Products</h3>";
+ let filter = document.getElementById('vendorFilter').value;
+ let filtered = filter==='All'? PRODUCTS : PRODUCTS.filter(p=>p.vendor===filter);
+ if(filtered.length==0){ html += "<p>No products found.</p>" }
+ filtered.forEach(p=>{
+ html += `<div class='product'><b>${p.name}</b><br>Price: ${p.price} Tk<br>Vendor: ${p.vendor}</div>`;
+ });
+ document.getElementById("shopArea").innerHTML = html;
+}
+renderShop();
+</script>
+</body>
+</html>
