@@ -1,145 +1,94 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Vendor Dashboard</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vendor Dashboard - Dhamaka</title>
 <style>
-  :root{--bg:#f6f8fa;--card:#fff;--accent:#28a745;--danger:#b21f2d}
-  body{font-family:Inter,Arial;background:var(--bg);margin:0;padding:18px}
-  .wrap{max-width:650px;margin:20px auto}
-  .card{background:var(--card);padding:20px;border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,0.07)}
-  h2{margin:0 0 12px}
-  input,textarea{width:100%;padding:10px;margin:6px 0;border:1px solid #d0d7e0;border-radius:8px;box-sizing:border-box}
-  button{padding:10px 12px;border-radius:8px;border:0;background:var(--accent);color:#fff;cursor:pointer}
-  .logout{background:var(--danger)}
-  .msg{margin-top:10px;padding:10px;border-radius:8px;font-size:14px}
-  .err{background:#ffeef0;color:var(--danger);border:1px solid #ffd6db}
-  .ok{background:#ecfdf3;color:#064e3b;border:1px solid #bbf7d0}
-  .list-item{padding:10px;border:1px solid #ddd;border-radius:8px;margin:8px 0;background:#fafafa}
-  .small{font-size:12px;color:#444;margin-top:12px}
+body{font-family:Arial,sans-serif;background:#f8f9fa;color:#212529;padding:1em;}
+h2{text-align:center;}
+form{max-width:400px;margin:1em auto;background:white;padding:1em;border-radius:12px;box-shadow:2px2px10px rgba(0,0,0,0.2);}
+input,select{width:100%;padding:0.5em;margin:0.3em 0;border-radius:5px;border:1px solid #ccc;}
+button{width:100%;padding:0.5em;border:none;border-radius:5px;background:#28a745;color:white;cursor:pointer;margin-top:0.5em;}
+button:hover{background:#218838;}
+#msg{color:red;text-align:center;}
+#myProducts{margin-top:2em;}
+.product-item{background:white;padding:1em;margin:0.5em 0;border-radius:8px;box-shadow:1px1px5px rgba(0,0,0,0.1);}
+.product-item span{display:block;margin-top:0.3em;}
 </style>
 </head>
 <body>
 
-<div class="wrap">
-  <div class="card">
+<h2>Vendor Dashboard</h2>
+<button onclick="logout()">Logout</button>
 
-    <h2>Vendor Dashboard</h2>
-    <p id="vinfo"></p>
+<form id="addProductForm">
+<h3>Add New Product</h3>
+<input type="text" id="pName" placeholder="Product Name" required>
+<input type="number" id="pPrice" placeholder="Price" required>
+<input type="number" id="pStock" placeholder="Stock Quantity" required>
+<select id="pCategory">
+<option value="All">Select Category</option>
+<option value="Electronics">Electronics</option>
+<option value="Clothing">Clothing</option>
+<option value="Home">Home</option>
+</select>
+<button type="submit">Add Product</button>
+<p id="msg"></p>
+</form>
 
-    <button class="logout" onclick="logout()">Logout</button>
-
-    <hr><br>
-
-    <h3>Add Product</h3>
-    <input id="pname" placeholder="Product name"/>
-    <textarea id="pdesc" rows="3" placeholder="Product description"></textarea>
-    <button onclick="addProduct()">Submit Product</button>
-
-    <div id="pmsg" class="msg" style="display:none;"></div>
-
-    <h3 style="margin-top:28px">Your Pending Products</h3>
-    <div id="plist"></div>
-
-    <p class="small"><b>Note:</b> ৭ দিনের ট্রায়াল শেষে অ্যাকাউন্ট অটো লগআউট হবে।  
-      সাহায্যের জন্য WhatsApp: <b>01913821910</b></p>
-
-  </div>
+<div id="myProducts">
+<h3>My Products (Pending Admin Approval)</h3>
+<div id="productList"></div>
 </div>
 
 <script>
-// ---- helpers ----
-function getVendors(){ return JSON.parse(localStorage.getItem('vendors')||'{}'); }
-function getPending(){ return JSON.parse(localStorage.getItem('pendingProducts')||'[]'); }
-function setPending(a){ localStorage.setItem('pendingProducts', JSON.stringify(a)); }
-function msg(text, type){ const el=document.getElementById('pmsg'); el.style.display='block'; el.className='msg '+type; el.innerText=text; }
-
-// ---- session check ----
-let session = null;
-(function(){
-  try{
-    session = JSON.parse(localStorage.getItem('vendorSession')||'null');
-    if(!session || !session.id){ window.location.href='vendor-login.html'; return; }
-
-    if(Date.now() > session.expireTime){
-      localStorage.removeItem('vendorSession');
-      alert("Your 7-day trial expired! WhatsApp: 01913821910");
-      location.href='vendor-login.html';
-      return;
-    }
-
-    const vendors = getVendors();
-    if(!vendors[session.id] || !vendors[session.id].approved){
-      localStorage.removeItem('vendorSession');
-      location.href='vendor-login.html';
-      return;
-    }
-
-    document.getElementById('vinfo').innerHTML =
-      "<b>ID:</b> "+vendors[session.id].id+
-      "<br><b>Name:</b> "+vendors[session.id].name+
-      "<br><b>Trial Expires:</b> "+new Date(session.expireTime).toLocaleString();
-
-  }catch(e){
-    location.href='vendor-login.html';
-  }
-})();
-
-// ---- add product ----
-function addProduct(){
-  const name = document.getElementById('pname').value.trim();
-  const desc = document.getElementById('pdesc').value.trim();
-  if(!name || !desc){ msg("Fill both fields.", "err"); return; }
-
-  const list = getPending();
-  list.push({
-    vendor: session.id,
-    name,
-    desc,
-    time: Date.now()
-  });
-  setPending(list);
-
-  msg("Product submitted. Waiting for admin approval.", "ok");
-  document.getElementById('pname').value="";
-  document.getElementById('pdesc').value="";
-
-  loadPending();
+let currentVendor = JSON.parse(localStorage.getItem('currentVendor')||'{}');
+if(!currentVendor.id){
+alert('Please login first');
+window.location.href='vendor-login.html';
 }
 
-// ---- load vendor's pending products ----
-function loadPending(){
-  const container = document.getElementById('plist');
-  container.innerHTML = "";
+let products = JSON.parse(localStorage.getItem('products')||'[]');
 
-  const list = getPending();
-  const mine = list.filter(x => x.vendor === session.id);
-
-  if(mine.length === 0){
-    container.innerHTML = "<p>No pending products.</p>";
-    return;
-  }
-
-  mine.forEach(p=>{
-    const div = document.createElement('div');
-    div.className = "list-item";
-    div.innerHTML =
-      "<b>"+p.name+"</b><br>"+
-      p.desc+"<br>"+
-      "<small>Submitted: "+new Date(p.time).toLocaleString()+"</small>";
-    container.appendChild(div);
-  });
+function renderMyProducts(){
+let list = document.getElementById('productList');
+list.innerHTML='';
+products.filter(p=>p.vendor===currentVendor.id).forEach(p=>{
+let div = document.createElement('div');
+div.className='product-item';
+div.innerHTML=`<strong>${p.name}</strong> - $${p.price} | Stock: ${p.stock} <span>Status: ${p.status}</span>`;
+list.appendChild(div);
+});
 }
 
-loadPending();
+document.getElementById('addProductForm').addEventListener('submit',function(e){
+e.preventDefault();
+let name = document.getElementById('pName').value;
+let price = document.getElementById('pPrice').value;
+let stock = document.getElementById('pStock').value;
+let category = document.getElementById('pCategory').value;
+let newProduct = {
+name:name,
+price:Number(price),
+stock:Number(stock),
+category:category,
+vendor:currentVendor.id,
+status:'Pending' // admin approval needed
+};
+products.push(newProduct);
+localStorage.setItem('products',JSON.stringify(products));
+document.getElementById('msg').innerText='Product added! Waiting for admin approval.';
+renderMyProducts();
+});
 
-// ---- logout ----
 function logout(){
-  localStorage.removeItem('vendorSession');
-  location.href='vendor-login.html';
+localStorage.removeItem('currentVendor');
+window.location.href='vendor-login.html';
 }
-</script>
 
+// Initial render
+renderMyProducts();
+</script>
 </body>
 </html>
