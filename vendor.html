@@ -5,96 +5,92 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Vendor Panel</title>
 <style>
-body{font-family:Arial,sans-serif;background:#f0f0f0;color:#333;margin:0;padding:0;}
-header{background:#ff9800;color:white;padding:1em;text-align:center;}
+body{font-family:Arial,sans-serif;background:#f5f5f5;color:#333;margin:0;padding:0;}
+header{background:#17a2b8;color:white;padding:1em;text-align:center;}
 nav{display:flex;justify-content:center;gap:10px;margin:10px;}
 nav button{padding:0.5em 1em;cursor:pointer;border:none;border-radius:5px;background:#007bff;color:white;}
 nav button:hover{background:#0056b3;}
 .page{display:none;padding:1em;}
-.product-list{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;}
-.product-item{border:1px solid #ccc;padding:10px;border-radius:8px;background:#fff;width:200px;}
-input,select,textarea{width:90%;padding:0.5em;margin:0.3em 0;border-radius:5px;border:1px solid #ccc;}
-button.add-product{width:95%;}
+.product-list{display:flex;flex-wrap:wrap;gap:10px;}
+.product{border:1px solid #ccc;border-radius:8px;padding:10px;width:200px;text-align:center;background:white;}
+input[type=number], input[type=text]{width:90%; margin-bottom:5px;}
 </style>
 </head>
 <body>
 
 <header><h1>Vendor Panel</h1></header>
 <nav>
-<button onclick="showPage('vendorLogin')">Login/Register</button>
-<button onclick="showPage('vendorAdd')">Add Product</button>
-<button onclick="showPage('vendorList')">My Products</button>
+<button onclick="showPage('myProducts')">My Products</button>
+<button onclick="showPage('addProduct')">Add Product</button>
 </nav>
 
-<div id="vendorLogin" class="page">
-<h2>Vendor Login / Register</h2>
-<input type="text" id="vendorUsername" placeholder="Username">
-<button onclick="vendorLogin()">Login/Register</button>
-<p id="loginMsg" style="color:red;"></p>
+<div id="myProducts" class="page">
+<h2>My Products</h2>
+<div id="productList" class="product-list"></div>
 </div>
 
-<div id="vendorAdd" class="page">
+<div id="addProduct" class="page">
 <h2>Add New Product</h2>
-<input type="text" id="prodName" placeholder="Product Name">
-<input type="number" id="prodPrice" placeholder="Price">
-<input type="number" id="prodStock" placeholder="Stock Quantity">
-<input type="text" id="prodCategory" placeholder="Category">
-<button class="add-product" onclick="addProduct()">Add Product</button>
-</div>
-
-<div id="vendorList" class="page">
-<h2>My Products (Pending Approval)</h2>
-<div class="product-list" id="myProducts"></div>
+<input type="text" id="prodName" placeholder="Product Name"><br>
+<input type="number" id="prodPrice" placeholder="Price"><br>
+<input type="number" id="prodStock" placeholder="Stock Quantity"><br>
+<input type="text" id="prodCategory" placeholder="Category"><br>
+<button onclick="addProduct()">Add Product</button>
 </div>
 
 <script>
-let vendors = JSON.parse(localStorage.getItem("vendors")||'[]');
-let products = JSON.parse(localStorage.getItem("products")||'[]');
-let currentVendor = null;
+showPage('myProducts');
+function showPage(page){document.querySelectorAll('.page').forEach(p=>p.style.display='none'); document.getElementById(page).style.display='block';}
 
-function showPage(page){
-  document.querySelectorAll('.page').forEach(p=>p.style.display='none');
-  document.getElementById(page).style.display='block';
+// Data
+let products = JSON.parse(localStorage.getItem('products')||'[]');
+let vendor = prompt("Enter your vendor name:") || "Vendor";
+
+// Render vendor products
+function renderProducts(){
+  const list = document.getElementById('productList');
+  list.innerHTML='';
+  products.filter(p=>p.vendor===vendor).forEach((p,i)=>{
+    const div = document.createElement('div'); div.className='product';
+    div.innerHTML=`<strong>${p.name}</strong><br>
+    Price: $${p.price}<br>
+    Stock: ${p.stock}<br>
+    Approved: ${p.approved ? 'Yes':'No'}<br>
+    <button onclick="deleteProduct(${i})">Delete</button>`;
+    list.appendChild(div);
+  });
 }
-showPage('vendorLogin');
 
-function vendorLogin(){
-  let user = document.getElementById('vendorUsername').value;
-  if(!user){ document.getElementById('loginMsg').innerText="Enter username"; return; }
-  currentVendor = user;
-  if(!vendors.includes(user)){ vendors.push(user); localStorage.setItem("vendors",JSON.stringify(vendors)); }
-  document.getElementById('loginMsg').innerText='';
-  renderMyProducts();
-  showPage('vendorAdd');
-}
-
+// Add new product
 function addProduct(){
-  const name=document.getElementById('prodName').value;
-  const price=Number(document.getElementById('prodPrice').value);
-  const stock=Number(document.getElementById('prodStock').value);
-  const category=document.getElementById('prodCategory').value;
-  if(!name || !price || !stock){ alert("Fill all fields"); return; }
-  const prod={name:name,price:price,stock:stock,category:category,vendor:currentVendor,approved:false};
-  products.push(prod);
-  localStorage.setItem("products",JSON.stringify(products));
-  alert("Product added! Pending admin approval.");
+  const name = document.getElementById('prodName').value.trim();
+  const price = Number(document.getElementById('prodPrice').value);
+  const stock = Number(document.getElementById('prodStock').value);
+  const category = document.getElementById('prodCategory').value.trim();
+  if(!name || !price || !stock || !category){ alert('Fill all fields'); return; }
+  products.push({name, price, stock, category, vendor, approved:false});
+  localStorage.setItem('products',JSON.stringify(products));
+  alert('Product added! Waiting for admin approval.');
   document.getElementById('prodName').value='';
   document.getElementById('prodPrice').value='';
   document.getElementById('prodStock').value='';
   document.getElementById('prodCategory').value='';
-  renderMyProducts();
+  renderProducts();
 }
 
-function renderMyProducts(){
-  const list = document.getElementById('myProducts');
-  list.innerHTML='';
-  products.filter(p=>p.vendor===currentVendor).forEach(p=>{
-    const div=document.createElement('div'); div.className='product-item';
-    div.innerHTML=`<strong>${p.name}</strong><br>Price: $${p.price}<br>Stock: ${p.stock}<br>
-      Category: ${p.category}<br>Status: ${p.approved?'Approved':'Pending'}`;
-    list.appendChild(div);
-  });
+// Delete product
+function deleteProduct(i){
+  const confirmDel = confirm('Are you sure?');
+  if(confirmDel){
+    products.splice(i,1);
+    localStorage.setItem('products',JSON.stringify(products));
+    renderProducts();
+  }
 }
+
+// Initial render
+renderProducts();
 </script>
+
 </body>
 </html>
