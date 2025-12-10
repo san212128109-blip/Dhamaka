@@ -5,135 +5,141 @@
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Vendor Dashboard</title>
 <style>
-body{font-family:Arial;background:#f7f9fb;padding:16px}
-.header{display:flex;justify-content:space-between;align-items:center}
-.card{background:#fff;padding:12px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.05);margin-top:12px}
-input,select,textarea{width:100%;padding:8px;margin:6px 0;border-radius:6px;border:1px solid #ddd}
-button{padding:8px 12px;border-radius:6px;border:none;background:#007bff;color:#fff;cursor:pointer}
-.small{font-size:0.9em;color:#555}
-.warn{color:#b21f2d}
+  :root{--bg:#f6f8fa;--card:#fff;--accent:#28a745;--danger:#b21f2d}
+  body{font-family:Inter,Arial;background:var(--bg);margin:0;padding:18px}
+  .wrap{max-width:650px;margin:20px auto}
+  .card{background:var(--card);padding:20px;border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,0.07)}
+  h2{margin:0 0 12px}
+  input,textarea{width:100%;padding:10px;margin:6px 0;border:1px solid #d0d7e0;border-radius:8px;box-sizing:border-box}
+  button{padding:10px 12px;border-radius:8px;border:0;background:var(--accent);color:#fff;cursor:pointer}
+  .logout{background:var(--danger)}
+  .msg{margin-top:10px;padding:10px;border-radius:8px;font-size:14px}
+  .err{background:#ffeef0;color:var(--danger);border:1px solid #ffd6db}
+  .ok{background:#ecfdf3;color:#064e3b;border:1px solid #bbf7d0}
+  .list-item{padding:10px;border:1px solid #ddd;border-radius:8px;margin:8px 0;background:#fafafa}
+  .small{font-size:12px;color:#444;margin-top:12px}
 </style>
 </head>
 <body>
-<div class="header">
-  <h2>Vendor Dashboard</h2>
-  <div>
-    <span id="vWelcome"></span>
-    <button onclick="logout()">Logout</button>
+
+<div class="wrap">
+  <div class="card">
+
+    <h2>Vendor Dashboard</h2>
+    <p id="vinfo"></p>
+
+    <button class="logout" onclick="logout()">Logout</button>
+
+    <hr><br>
+
+    <h3>Add Product</h3>
+    <input id="pname" placeholder="Product name"/>
+    <textarea id="pdesc" rows="3" placeholder="Product description"></textarea>
+    <button onclick="addProduct()">Submit Product</button>
+
+    <div id="pmsg" class="msg" style="display:none;"></div>
+
+    <h3 style="margin-top:28px">Your Pending Products</h3>
+    <div id="plist"></div>
+
+    <p class="small"><b>Note:</b> ৭ দিনের ট্রায়াল শেষে অ্যাকাউন্ট অটো লগআউট হবে।  
+      সাহায্যের জন্য WhatsApp: <b>01913821910</b></p>
+
   </div>
-</div>
-
-<div class="card">
-  <h3>Add Product (submits to Admin for approval)</h3>
-  <input id="pname" placeholder="Product name" />
-  <input id="pcat" placeholder="Category" />
-  <input id="pprice" type="number" placeholder="Price" />
-  <input id="pstock" type="number" placeholder="Stock" />
-  <select id="pimage">
-    <option value="smartphone">Smartphone</option>
-    <option value="tshirt">T-Shirt</option>
-    <option value="sofa">Sofa</option>
-    <option value="laptop">Laptop</option>
-    <option value="jeans">Jeans</option>
-    <option value="headphones">Headphones</option>
-  </select>
-  <div style="margin-top:8px">
-    <button onclick="submitProduct()">Submit Product</button>
-    <p class="small">Submitted products will remain pending until admin approves.</p>
-  </div>
-  <p id="msg" class="warn"></p>
-</div>
-
-<div class="card">
-  <h3>Your Products</h3>
-  <div id="myProductsList"></div>
-</div>
-
-<div class="card">
-  <h3>Support</h3>
-  <p>WhatsApp: <b>01913821910</b></p>
-  <p class="small">Note: After approval, vendor will have a 7-day trial from the approval date. After 7 days the session will expire and vendor must contact support.</p>
 </div>
 
 <script>
-function loadVendors(){ return JSON.parse(localStorage.getItem('vendors')||'{}'); }
-function saveVendors(v){ localStorage.setItem('vendors', JSON.stringify(v)); }
-function loadProducts(){ return JSON.parse(localStorage.getItem('pendingProducts')||'[]'); }
-function savePending(p){ localStorage.setItem('pendingProducts', JSON.stringify(p)); }
-function loadApproved(){ return JSON.parse(localStorage.getItem('approvedProducts')||'[]'); }
-function saveApproved(a){ localStorage.setItem('approvedProducts', JSON.stringify(a)); }
+// ---- helpers ----
+function getVendors(){ return JSON.parse(localStorage.getItem('vendors')||'{}'); }
+function getPending(){ return JSON.parse(localStorage.getItem('pendingProducts')||'[]'); }
+function setPending(a){ localStorage.setItem('pendingProducts', JSON.stringify(a)); }
+function msg(text, type){ const el=document.getElementById('pmsg'); el.style.display='block'; el.className='msg '+type; el.innerText=text; }
 
-let session = JSON.parse(localStorage.getItem('vendorSession')||'null');
-if(!session){ alert('No active vendor session. Please login.'); location.href='vendor-login.html'; }
-if(Date.now() > session.expireTime){
-  // expired
-  localStorage.removeItem('vendorSession');
-  alert('Your 7-day trial expired. Contact WhatsApp 01913821910');
-  location.href = 'vendor-login.html';
+// ---- session check ----
+let session = null;
+(function(){
+  try{
+    session = JSON.parse(localStorage.getItem('vendorSession')||'null');
+    if(!session || !session.id){ window.location.href='vendor-login.html'; return; }
+
+    if(Date.now() > session.expireTime){
+      localStorage.removeItem('vendorSession');
+      alert("Your 7-day trial expired! WhatsApp: 01913821910");
+      location.href='vendor-login.html';
+      return;
+    }
+
+    const vendors = getVendors();
+    if(!vendors[session.id] || !vendors[session.id].approved){
+      localStorage.removeItem('vendorSession');
+      location.href='vendor-login.html';
+      return;
+    }
+
+    document.getElementById('vinfo').innerHTML =
+      "<b>ID:</b> "+vendors[session.id].id+
+      "<br><b>Name:</b> "+vendors[session.id].name+
+      "<br><b>Trial Expires:</b> "+new Date(session.expireTime).toLocaleString();
+
+  }catch(e){
+    location.href='vendor-login.html';
+  }
+})();
+
+// ---- add product ----
+function addProduct(){
+  const name = document.getElementById('pname').value.trim();
+  const desc = document.getElementById('pdesc').value.trim();
+  if(!name || !desc){ msg("Fill both fields.", "err"); return; }
+
+  const list = getPending();
+  list.push({
+    vendor: session.id,
+    name,
+    desc,
+    time: Date.now()
+  });
+  setPending(list);
+
+  msg("Product submitted. Waiting for admin approval.", "ok");
+  document.getElementById('pname').value="";
+  document.getElementById('pdesc').value="";
+
+  loadPending();
 }
-const vendors = loadVendors();
-const me = vendors[session.id];
-if(!me || !me.approved){
-  alert('Your account is not approved or removed. Contact WhatsApp 01913821910');
+
+// ---- load vendor's pending products ----
+function loadPending(){
+  const container = document.getElementById('plist');
+  container.innerHTML = "";
+
+  const list = getPending();
+  const mine = list.filter(x => x.vendor === session.id);
+
+  if(mine.length === 0){
+    container.innerHTML = "<p>No pending products.</p>";
+    return;
+  }
+
+  mine.forEach(p=>{
+    const div = document.createElement('div');
+    div.className = "list-item";
+    div.innerHTML =
+      "<b>"+p.name+"</b><br>"+
+      p.desc+"<br>"+
+      "<small>Submitted: "+new Date(p.time).toLocaleString()+"</small>";
+    container.appendChild(div);
+  });
+}
+
+loadPending();
+
+// ---- logout ----
+function logout(){
   localStorage.removeItem('vendorSession');
   location.href='vendor-login.html';
 }
-document.getElementById('vWelcome').innerText = me.name + ' ('+me.id+')';
-
-function submitProduct(){
-  const name = document.getElementById('pname').value.trim();
-  const cat = document.getElementById('pcat').value.trim();
-  const price = Number(document.getElementById('pprice').value);
-  const stock = Number(document.getElementById('pstock').value);
-  const image = document.getElementById('pimage').value;
-  if(!name || !cat || !price || !stock){ showMsg('Fill all fields'); return; }
-  const pending = loadProducts();
-  pending.push({ id: 'p'+Date.now(), vendorId: session.id, name, category:cat, price, stock, image, submittedAt:Date.now() });
-  savePending(pending);
-  showMsg('Product submitted for admin approval', false);
-  renderMyProducts();
-  // clear
-  document.getElementById('pname').value=''; document.getElementById('pcat').value=''; document.getElementById('pprice').value=''; document.getElementById('pstock').value='';
-}
-
-function renderMyProducts(){
-  const pending = loadProducts();
-  const approved = loadApproved();
-  const area = document.getElementById('myProductsList');
-  area.innerHTML = '<h4>Pending</h4>';
-  const myPending = pending.filter(p=>p.vendorId===session.id);
-  if(myPending.length===0) area.innerHTML += '<p class="small">No pending products</p>';
-  myPending.forEach(p=>{
-    area.innerHTML += `<div style="padding:6px;border-bottom:1px solid #eee">
-      <b>${p.name}</b> (${p.category}) — $${p.price} — stock: ${p.stock} — <span class="small">Pending</span>
-    </div>`;
-  });
-  area.innerHTML += '<h4 style="margin-top:12px">Approved</h4>';
-  const myApproved = approved.filter(p=>p.vendorId===session.id);
-  if(myApproved.length===0) area.innerHTML += '<p class="small">No approved products</p>';
-  myApproved.forEach(p=>{
-    area.innerHTML += `<div style="padding:6px;border-bottom:1px solid #eee">
-      <b>${p.name}</b> (${p.category}) — $${p.price} — stock: ${p.stock} — <span style="color:green">Approved</span>
-    </div>`;
-  });
-}
-
-function showMsg(t, isErr=true){ const el=document.getElementById('msg'); el.textContent=t; el.style.color=isErr? '#b21f2d':'#2b7a0b'; }
-
-// render initially
-renderMyProducts();
-
-// auto-check every hour if expired (also page navigations will check)
-setInterval(()=>{
-  const s = JSON.parse(localStorage.getItem('vendorSession')||'null');
-  if(!s || Date.now() > s.expireTime){
-    alert('Your 7-day trial expired. Logging out. Contact WhatsApp 01913821910');
-    localStorage.removeItem('vendorSession');
-    location.href='vendor-login.html';
-  }
-}, 3600*1000);
-
-function logout(){ localStorage.removeItem('vendorSession'); location.href = 'vendor-login.html'; }
 </script>
+
 </body>
 </html>
