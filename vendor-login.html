@@ -1,80 +1,99 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>Vendor Login</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Vendor Login / Register</title>
 <style>
-body{font-family:Arial; padding:20px;}
-.box{max-width:400px;margin:auto;border:1px solid #ddd;padding:20px;border-radius:10px;}
+body{font-family:Arial,Helvetica,sans-serif;background:#f5f7fa;padding:20px;}
+.container{max-width:480px;margin:20px auto;background:#fff;padding:18px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.06);}
+h2{margin:0 0 12px}
+input{width:100%;padding:8px;margin:6px 0;border:1px solid #ccc;border-radius:5px}
+button{padding:10px 12px;border-radius:6px;border:none;background:#28a745;color:#fff;cursor:pointer}
+.small{font-size:0.9em;color:#555;margin-top:8px}
+.warn{color:#b21f2d}
 </style>
 </head>
 <body>
+<div class="container">
+  <h2>Vendor Login / Register</h2>
 
-<div class="box">
-<h2>Vendor Login</h2>
-
-<input id="vendorUser" placeholder="Vendor ID" style="width:100%;padding:8px;"><br><br>
-<input id="vendorPass" type="password" placeholder="Password" style="width:100%;padding:8px;"><br><br>
-
-<button onclick="loginVendor()" style="width:100%;padding:10px;">Login</button>
-
-<p id="msg"></p>
+  <div id="formArea">
+    <input id="vid" placeholder="Vendor ID (unique)" />
+    <input id="vname" placeholder="Display Name (Vendor Name)" />
+    <input id="vpass" type="password" placeholder="Password" />
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button onclick="registerVendor()">Register (Request)</button>
+      <button onclick="loginVendor()">Login</button>
+    </div>
+    <p class="small">If admin hasn't approved your account yet, you'll see a pending message and WhatsApp contact <b>01913821910</b>.</p>
+    <p id="msg" class="warn"></p>
+  </div>
 </div>
 
 <script>
-// ==================== AUTO LOGIN CHECK ===================
-let vendorSession = JSON.parse(localStorage.getItem("vendorSession"));
-if(vendorSession){
-    let now = Date.now();
-    if(now < vendorSession.expireTime){
-        if(vendorSession.approved){
-            window.location.href = "vendor-dashboard.html";
-        } else {
-            document.getElementById("msg").innerHTML = "Your account is pending admin approval.";
-        }
-    } else {
-        localStorage.removeItem("vendorSession");
-    }
+/* Storage keys:
+   vendors - object map { id: {id,name,pass,approved:false,approvedAt:null,startDate:null} }
+   vendorSession - {id,expireTime}
+   pendingProducts - array
+   approvedProducts - array
+   banners - array
+*/
+function loadVendors(){ return JSON.parse(localStorage.getItem('vendors')||'{}'); }
+function saveVendors(v){ localStorage.setItem('vendors', JSON.stringify(v)); }
+
+// Register (request) vendor
+function registerVendor(){
+  const id = document.getElementById('vid').value.trim();
+  const name = document.getElementById('vname').value.trim();
+  const pass = document.getElementById('vpass').value.trim();
+  if(!id || !name || !pass){ showMsg('Fill all fields'); return; }
+  const vendors = loadVendors();
+  if(vendors[id]){ showMsg('Vendor ID already exists — choose another'); return; }
+  vendors[id] = { id, name, pass, approved:false, approvedAt:null };
+  saveVendors(vendors);
+  showMsg('Registration request submitted. Wait for admin approval. Contact WhatsApp: 01913821910', false);
+  clearInputs();
 }
 
-// ==================== LOGIN SYSTEM ===================
+// Login vendor
 function loginVendor(){
-    let u = document.getElementById("vendorUser").value;
-    let p = document.getElementById("vendorPass").value;
+  const id = document.getElementById('vid').value.trim();
+  const pass = document.getElementById('vpass').value.trim();
+  if(!id || !pass){ showMsg('Enter ID and password'); return; }
+  const vendors = loadVendors();
+  if(!vendors[id]){ showMsg('Account not found. Register first.'); return; }
+  if(vendors[id].pass !== pass){ showMsg('Wrong password'); return; }
+  if(!vendors[id].approved){ showMsg('Account pending approval. Contact WhatsApp: 01913821910', false); return; }
 
-    if(u=="" || p==""){
-        document.getElementById("msg").innerHTML = "Please fill all fields!";
-        return;
-    }
+  // approved: calculate expireTime based on approvedAt + 7 days
+  const approvedAt = vendors[id].approvedAt || Date.now();
+  const expireTime = approvedAt + 7*24*60*60*1000;
 
-    let vendors = JSON.parse(localStorage.getItem("vendors")) || {};
-
-    if(!vendors[u]){
-        document.getElementById("msg").innerHTML = "Account not found!";
-        return;
-    }
-
-    if(vendors[u].pass !== p){
-        document.getElementById("msg").innerHTML = "Wrong password!";
-        return;
-    }
-
-    // 7 days = 7*24*60*60*1000 ms
-    let expire = Date.now() + 7*24*60*60*1000;
-
-    localStorage.setItem("vendorSession", JSON.stringify({
-        user:u,
-        approved: vendors[u].approved,
-        expireTime: expire
-    }));
-
-    if(!vendors[u].approved){
-        document.getElementById("msg").innerHTML = "Your Account is Pending Approval. Contact WhatsApp: 01913821910";
-        return;
-    }
-
-    window.location.href = "vendor-dashboard.html";
+  localStorage.setItem('vendorSession', JSON.stringify({ id, expireTime }));
+  // go vendor dashboard
+  location.href = 'vendor-dashboard.html';
 }
-</script>
 
+function showMsg(t, isError=true){ const el = document.getElementById('msg'); el.textContent = t; el.style.color = isError? '#b21f2d':'#2b7a0b'; }
+function clearInputs(){ document.getElementById('vid').value=''; document.getElementById('vname').value=''; document.getElementById('vpass').value=''; }
+
+// initial: if there is valid session and not expired, redirect to dashboard
+(function autoRedirect(){
+  const s = JSON.parse(localStorage.getItem('vendorSession')||'null');
+  if(s){
+    if(Date.now() < s.expireTime){
+      // check vendor is still approved
+      const vendors = loadVendors();
+      if(vendors[s.id] && vendors[s.id].approved){
+        location.href = 'vendor-dashboard.html';
+        return;
+      }
+    }
+    // else expired or invalid -> remove session
+    localStorage.removeItem('vendorSession');
+  }
+})();
+</script>
 </body>
 </html>
