@@ -3,27 +3,25 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nafis Daily Items - Pro Level</title>
+<title>Nafis Daily Items</title>
 <style>
-/* ===== CSS ===== */
-body { font-family: Arial; margin:0; padding:0; background:#d4edda; color:#155724; transition: background 0.3s, color 0.3s;}
+body { font-family: Arial; margin:0; padding:0; background:#d4edda; color:#155724; transition: 0.3s; }
 body.dark { background:#121212; color:#ddd; }
-header { background:#28a745; color:white; padding:1em; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;}
-header h1 { margin:0; font-size:1.5em; }
-nav a { color:white; margin-left:1em; text-decoration:none; font-weight:bold; }
-nav a:hover { text-decoration:underline; }
-.page { display:none; padding:1em; }
-h1,h2,h3 { text-align:center; }
-.product-list,.cart-list { display:flex; flex-wrap:wrap; gap:1em; justify-content:center; margin-top:1em; }
-.product { border:1px solid #28a745; border-radius:8px; padding:1em; width:200px; text-align:center; background:#fff; box-shadow:2px2px5px rgba(0,0,0,0.1); }
-button { background:#28a745; color:white; border:none; padding:0.5em 1em; border-radius:5px; cursor:pointer; margin-top:0.5em; }
-button:hover { background:#218838; }
-form input, form select { padding:0.5em; margin:0.3em 0; width:90%; border-radius:5px; border:1px solid #ccc; }
-form button { width:95%; }
-input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-#cartSummary { text-align:center; margin-top:1em; font-weight:bold; }
-.carousel { display:flex; overflow:hidden; width:90%; margin:1em auto; }
-.carousel img { width:100%; border-radius:8px; transition: transform 0.5s; }
+header { background:#28a745; color:white; padding:1em; display:flex; justify-content:space-between; flex-wrap:wrap; align-items:center;}
+header h1 { margin:0; font-size:1.5em;}
+nav a { color:white; margin-left:1em; text-decoration:none; font-weight:bold;}
+nav a:hover { text-decoration:underline;}
+.page { display:none; padding:1em;}
+h1,h2,h3{text-align:center;}
+.product-list,.cart-list{display:flex; flex-wrap:wrap; gap:1em; justify-content:center; margin-top:1em;}
+.product{border:1px solid #28a745; border-radius:8px; padding:1em; width:200px; text-align:center; background:#fff; box-shadow:2px2px5px rgba(0,0,0,0.1);}
+button{background:#28a745; color:white; border:none; padding:0.5em 1em; border-radius:5px; cursor:pointer; margin-top:0.5em;}
+button:hover{background:#218838;}
+form input, form select{padding:0.5em; margin:0.3em 0; width:90%; border-radius:5px; border:1px solid #ccc;}
+form button{width:95%;}
+#cartSummary{text-align:center; margin-top:1em; font-weight:bold;}
+.carousel{display:flex; overflow:hidden; width:90%; margin:1em auto;}
+.carousel img{width:100%; border-radius:8px;}
 </style>
 </head>
 <body>
@@ -34,12 +32,11 @@ input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin
 <a href="#home" onclick="showPage('home')">Home</a>
 <a href="#categories" onclick="showPage('categories')">Categories</a>
 <a href="#cart" onclick="showPage('cart')">Cart</a>
-<a href="#admin" onclick="showPage('admin')">Admin</a>
+<a href="admin.html">Admin</a>
 <button onclick="toggleDarkMode()">🌙</button>
 </nav>
 </header>
 
-<!-- Pages -->
 <div id="home" class="page">
 <h2>Featured Products</h2>
 <div class="carousel" id="carousel"></div>
@@ -48,9 +45,7 @@ input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin
 
 <div id="categories" class="page">
 <h2>Categories</h2>
-<select id="categoryFilter" onchange="filterCategory()">
-<option value="All">All</option>
-</select>
+<select id="categoryFilter" onchange="filterCategory()"><option value="All">All</option></select>
 <input type="text" id="searchInput" placeholder="Search Products..." oninput="filterCategory()">
 <select id="sortSelect" onchange="filterCategory()">
 <option value="">Sort By</option>
@@ -69,59 +64,41 @@ input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin
 <button onclick="checkout()">Checkout</button>
 </div>
 
-<div id="admin" class="page">
-<h2>Admin Panel</h2>
-<form id="addProductForm">
-<input type="text" id="productName" placeholder="Product Name" required>
-<input type="number" id="productPrice" placeholder="Price" required>
-<input type="text" id="productImage" placeholder="Image URL" required>
-<select id="productCategory" required>
-<option value="Electronics">Electronics</option>
-<option value="Clothing">Clothing</option>
-<option value="Home">Home & Living</option>
-</select>
-<button type="submit">Add Product</button>
-</form>
-<h3>Product List</h3>
-<div class="product-list" id="adminList"></div>
-</div>
-
 <script>
-// ===== JS =====
-
-// Navigation
 function showPage(page){ document.querySelectorAll('.page').forEach(p=>p.style.display='none'); document.getElementById(page).style.display='block'; }
 showPage('home');
-
-// Dark mode toggle
 function toggleDarkMode(){ document.body.classList.toggle('dark'); }
 
 // Products
-let products=JSON.parse(localStorage.getItem("products")||"[]");
+let defaultProducts=[
+{name:"Smartphone",price:300,image:"https://via.placeholder.com/150",category:"Electronics"},
+{name:"T-Shirt",price:20,image:"https://via.placeholder.com/150",category:"Clothing"},
+{name:"Sofa",price:200,image:"https://via.placeholder.com/150",category:"Home"},
+{name:"Laptop",price:800,image:"https://via.placeholder.com/150",category:"Electronics"},
+{name:"Jeans",price:40,image:"https://via.placeholder.com/150",category:"Clothing"}
+];
+let products=JSON.parse(localStorage.getItem("products")||JSON.stringify(defaultProducts));
 let cart=JSON.parse(localStorage.getItem("cart")||"[]");
+
 const homeList=document.getElementById("homeList");
 const categoryList=document.getElementById("categoryList");
 const cartList=document.getElementById("cartList");
 const cartSummary=document.getElementById("cartSummary");
-const adminList=document.getElementById("adminList");
 const carousel=document.getElementById("carousel");
 
-// Render functions
 function renderProducts(list, arr){
-  list.innerHTML='';
-  if(arr.length===0){ list.innerHTML="<p>No products.</p>"; return; }
-  arr.forEach((p,i)=>{
-    const div=document.createElement('div'); div.className='product';
-    div.innerHTML=`<img src="${p.image}" width="150"><h3>${p.name}</h3><p>Category: ${p.category}</p><p>$${p.price}</p>
-    <button onclick="addToCart(${i})">Add to Cart</button>`;
-    list.appendChild(div);
-  });
+list.innerHTML='';
+if(arr.length===0){ list.innerHTML="<p>No products.</p>"; return; }
+arr.forEach((p,i)=>{
+const div=document.createElement('div'); div.className='product';
+div.innerHTML=`<img src="${p.image}" width="150"><h3>${p.name}</h3><p>Category: ${p.category}</p><p>$${p.price}</p>
+<button onclick="addToCart(${i})">Add to Cart</button>`;
+list.appendChild(div);
+});
 }
 
-// Carousel
 function renderCarousel(){ carousel.innerHTML=''; products.slice(0,3).forEach(p=>{ const img=document.createElement('img'); img.src=p.image; carousel.appendChild(img); }); }
 
-// Cart functions
 function renderCart(){ cartList.innerHTML=''; let total=0;
 if(cart.length===0){ cartList.innerHTML="<p>Cart is empty.</p>"; cartSummary.innerText=''; return; }
 cart.forEach((p,i)=>{ total+=Number(p.price); const div=document.createElement('div'); div.className='product';
@@ -133,23 +110,6 @@ function removeFromCart(i){ cart.splice(i,1); localStorage.setItem("cart",JSON.s
 function updateQuantity(i,val){ cart[i].price*=val; localStorage.setItem("cart",JSON.stringify(cart)); renderCart(); }
 function checkout(){ if(cart.length===0){ alert("Cart empty!"); return; } alert("Checkout successful!"); cart=[]; localStorage.setItem("cart",JSON.stringify(cart)); renderCart(); }
 
-// Admin Panel
-function renderAdmin(){ adminList.innerHTML=''; products.forEach((p,i)=>{ const div=document.createElement('div'); div.className='product';
-div.innerHTML=`<img src="${p.image}" width="100"><strong>${p.name}</strong><br>Category: ${p.category}<br>Price: $${p.price}<br>
-<button onclick="editProduct(${i})">Edit</button><button onclick="deleteProduct(${i})">Delete</button>`; adminList.appendChild(div); }); renderCategoryFilter(); renderProducts(homeList,products); renderProducts(categoryList,products); renderCart(); renderCarousel(); }
-document.getElementById("addProductForm").addEventListener("submit",function(e){ e.preventDefault();
-const name=document.getElementById("productName").value;
-const price=document.getElementById("productPrice").value;
-const image=document.getElementById("productImage").value;
-const category=document.getElementById("productCategory").value;
-products.push({name,price,image,category}); localStorage.setItem("products",JSON.stringify(products)); this.reset(); renderAdmin();
-});
-function deleteProduct(i){ if(confirm("Delete product?")){ products.splice(i,1); localStorage.setItem("products",JSON.stringify(products)); renderAdmin(); }}
-function editProduct(i){ const p=products[i]; const newName=prompt("Edit Name:",p.name); const newPrice=prompt("Edit Price:",p.price);
-const newImage=prompt("Edit Image URL:",p.image); const newCategory=prompt("Edit Category:",p.category);
-if(newName&&newPrice&&newImage&&newCategory){ products[i]={name:newName,price:newPrice,image:newImage,category:newCategory}; localStorage.setItem("products",JSON.stringify(products)); renderAdmin(); } }
-
-// Category Filter/Search/Sort
 function renderCategoryFilter(){ const catSet=new Set(products.map(p=>p.category)); const select=document.getElementById("categoryFilter");
 select.innerHTML='<option value="All">All</option>'; catSet.forEach(c=>{ const o=document.createElement('option'); o.value=c;o.innerText=c; select.appendChild(o); }); }
 function filterCategory(){ let filtered=[...products]; const cat=document.getElementById("categoryFilter").value; if(cat!=='All'){ filtered=filtered.filter(p=>p.category===cat); }
@@ -161,8 +121,11 @@ else if(sort==='name-asc'){ filtered.sort((a,b)=>a.name.localeCompare(b.name)); 
 else if(sort==='name-desc'){ filtered.sort((a,b)=>b.name.localeCompare(a.name)); }
 renderProducts(categoryList,filtered); }
 
-// Initial render
-renderAdmin();
+renderProducts(homeList,products);
+renderProducts(categoryList,products);
+renderCart();
+renderCarousel();
+renderCategoryFilter();
 </script>
 
 </body>
