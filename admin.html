@@ -1,3 +1,4 @@
+<!-- admin.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,191 +6,58 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin Panel - Dhamaka</title>
 <style>
-body{font-family:Arial,sans-serif;background:#d4edda;color:#155724;transition:0.3s;}
-h1,h2{text-align:center;margin-bottom:0.5em;}
-form, .admin-products,.admin-orders{max-width:500px;margin:0 auto;}
-input,select{padding:0.5em;margin:0.3em 0;width:100%;border-radius:5px;border:1px solid #ccc;}
-button{background:#28a745;color:white;border:none;padding:0.5em 1em;border-radius:5px;cursor:pointer;margin-top:0.5em;}
-button:hover{background:#218838;}
-.product{border:1px solid #28a745;padding:0.5em;margin:0.5em 0;border-radius:8px;display:flex;align-items:center;}
-.product img{width:80px;height:80px;object-fit:cover;margin-right:10px;}
-#previewImg{display:block;margin:0.5em auto;width:150px;height:150px;object-fit:cover;border:1px solid #28a745;border-radius:8px;}
-.order{border:1px solid #28a745;padding:0.5em;margin:0.5em 0;border-radius:8px;}
-.order.completed{background:#c3e6cb;}
-.color-control{display:flex;justify-content:space-between;margin:1em 0;}
-.color-control input{width:48%;}
+body{font-family:Arial;background:#f9f9f9;padding:20px;}
+.product{border:1px solid #aaa;padding:10px;margin:5px;border-radius:5px;background:white;transition:0.3s;}
+.product:hover{box-shadow:2px2px10px rgba(0,0,0,0.2);}
+button{padding:5px 10px;margin:4px;border:none;border-radius:4px;cursor:pointer;transition:0.3s;}
+button:hover{opacity:0.9;}
+button.delete{background:red;color:white;}
+@media(max-width:600px){.product{width:100%;}}
 </style>
 </head>
 <body>
-
-<h1>Admin Panel</h1>
-
-<div id="loginDiv">
-<h2>Enter Password</h2>
-<input type="password" id="adminPass" placeholder="Admin Password">
-<button onclick="checkPass()">Login</button>
-<p id="loginMsg" style="color:red;"></p>
-</div>
-
-<div id="panelDiv" style="display:none;">
-
-<h2>Theme Control</h2>
-<div class="color-control">
-<input type="color" id="bgColor" onchange="updateColor('bg')"> Background
-<input type="color" id="textColor" onchange="updateColor('text')"> Text
-</div>
-<div class="color-control">
-<input type="color" id="btnColor" onchange="updateColor('btn')"> Button
-<input type="color" id="btnTextColor" onchange="updateColor('btnText')"> Button Text
-</div>
-
-<h2>Add Product</h2>
-<form id="addForm">
-<input type="text" id="pName" placeholder="Product Name" required>
-<input type="number" id="pPrice" placeholder="Price" required>
-<select id="pImage" required onchange="showPreview()">
-<option value="smartphone">Smartphone</option>
-<option value="tshirt">T-Shirt</option>
-<option value="sofa">Sofa</option>
-<option value="laptop">Laptop</option>
-<option value="jeans">Jeans</option>
-<option value="headphones">Headphones</option>
-</select>
-<img id="previewImg" src="https://via.placeholder.com/150?text=Smartphone" alt="Preview">
-<select id="pCategory" required>
-<option value="Electronics">Electronics</option>
-<option value="Clothing">Clothing</option>
-<option value="Home">Home</option>
-</select>
-<select id="pBadge">
-<option value="">None</option>
-<option value="New">New</option>
-<option value="Sale">Sale</option>
-<option value="Hot">Hot</option>
-</select>
-<button type="submit">Add Product</button>
-</form>
-
-<h2>Products</h2>
-<div class="admin-products" id="adminProducts"></div>
-
-<h2>Orders</h2>
-<div class="admin-orders" id="adminOrders"></div>
-
-</div>
-
+<h2>Dhamaka Admin Panel</h2>
+<div id="pendingArea"></div>
+<hr>
+<div id="approvedArea"></div>
 <script>
-let imageMap={
-"smartphone":"https://via.placeholder.com/150?text=Smartphone",
-"tshirt":"https://via.placeholder.com/150?text=T-Shirt",
-"sofa":"https://via.placeholder.com/150?text=Sofa",
-"laptop":"https://via.placeholder.com/150?text=Laptop",
-"jeans":"https://via.placeholder.com/150?text=Jeans",
-"headphones":"https://via.placeholder.com/150?text=Headphones"
-};
+let PENDING = JSON.parse(localStorage.getItem("dhamaka_pending_v2")||"[]");
+let PRODUCTS = JSON.parse(localStorage.getItem("dhamaka_products_v2")||"[]");
+let pass = prompt("Enter Admin Password:");
+if(pass !== "NAFIS128"){ alert("Wrong password!"); throw new Error("Unauthorized"); }
 
-// LocalStorage
-let products=JSON.parse(localStorage.getItem("products")||'[]');
-let orders=JSON.parse(localStorage.getItem("orders")||'[]');
-let theme=JSON.parse(localStorage.getItem("theme")||'{}');
-
-function checkPass(){
-let pass=document.getElementById("adminPass").value;
-if(pass==="NAFIS128"){ 
-    document.getElementById("loginDiv").style.display='none'; 
-    document.getElementById("panelDiv").style.display='block'; 
-    renderProducts(); 
-    renderOrders(); 
-    showPreview(); 
-    applyTheme(); 
-}else{ document.getElementById("loginMsg").innerText="Wrong password!"; }
+function saveData(){
+ localStorage.setItem("dhamaka_pending_v2",JSON.stringify(PENDING));
+ localStorage.setItem("dhamaka_products_v2",JSON.stringify(PRODUCTS));
+ renderAdmin();
 }
 
-function updateColor(type){
-if(type==='bg'){ document.body.style.background=document.getElementById("bgColor").value; theme.bg=document.getElementById("bgColor").value; }
-else if(type==='text'){ document.body.style.color=document.getElementById("textColor").value; theme.text=document.getElementById("textColor").value; }
-else if(type==='btn'){ document.querySelectorAll('button').forEach(b=>b.style.background=document.getElementById("btnColor").value); theme.btn=document.getElementById("btnColor").value; }
-else if(type==='btnText'){ document.querySelectorAll('button').forEach(b=>b.style.color=document.getElementById("btnTextColor").value); theme.btnText=document.getElementById("btnTextColor").value; }
-localStorage.setItem("theme",JSON.stringify(theme));
+function renderAdmin(){
+ let html = "<h3>Pending Products</h3>";
+ if(PENDING.length===0){ html+="<p>No pending items</p>"; }
+ PENDING.forEach((p,i)=>{
+ html+=`<div class='product'><b>${p.name}</b> - ${p.price} Tk<br>Vendor: ${p.vendor}<br>
+<button onclick='approve(${i})'>Approve</button>
+<button class='delete' onclick='delPending(${i})'>Delete</button></div>`;
+ });
+ document.getElementById("pendingArea").innerHTML = html;
+
+ html = "<h3>Approved Products</h3>";
+ if(PRODUCTS.length===0){ html+="<p>No approved products</p>"; }
+ PRODUCTS.forEach((p,i)=>{
+ html+=`<div class='product'><b>${p.name}</b> - ${p.price} Tk<br>Vendor: ${p.vendor}<br>
+<button onclick='editApproved(${i})'>Edit Price</button>
+<button class='delete' onclick='delApproved(${i})'>Delete</button></div>`;
+ });
+ document.getElementById("approvedArea").innerHTML = html;
 }
 
-function applyTheme(){
-if(theme.bg) document.body.style.background=theme.bg;
-if(theme.text) document.body.style.color=theme.text;
-if(theme.btn) document.querySelectorAll('button').forEach(b=>b.style.background=theme.btn);
-if(theme.btnText) document.querySelectorAll('button').forEach(b=>b.style.color=theme.btnText);
-}
+function approve(i){ PRODUCTS.push(PENDING[i]); PENDING.splice(i,1); saveData(); }
+function delPending(i){ PENDING.splice(i,1); saveData(); }
+function editApproved(i){ let np = prompt("Enter new price", PRODUCTS[i].price); if(np){ PRODUCTS[i].price=np; saveData(); } }
+function delApproved(i){ PRODUCTS.splice(i,1); saveData(); }
 
-function showPreview(){
-let sel=document.getElementById("pImage").value;
-document.getElementById("previewImg").src=imageMap[sel];
-}
-
-document.getElementById("addForm").addEventListener("submit",function(e){
-e.preventDefault();
-let p={name:document.getElementById("pName").value,
-price:document.getElementById("pPrice").value,
-image:document.getElementById("pImage").value,
-category:document.getElementById("pCategory").value,
-badge:document.getElementById("pBadge").value,
-rating:5};
-products.push(p);
-localStorage.setItem("products",JSON.stringify(products));
-this.reset();
-showPreview();
-renderProducts();
-});
-
-function renderProducts(){
-let div=document.getElementById("adminProducts");
-div.innerHTML='';
-products.forEach((p,i)=>{
-let pd=document.createElement('div'); pd.className='product';
-pd.innerHTML=`<img src="${imageMap[p.image]}" alt="${p.name}"><strong>${p.name}</strong> | $${p.price}<br>Category: ${p.category} | Badge: ${p.badge} 
-<button onclick="editProduct(${i})">Edit</button> <button onclick="deleteProduct(${i})">Delete</button>`;
-div.appendChild(pd);
-});
-}
-
-function deleteProduct(i){
-if(confirm("Delete product?")){ products.splice(i,1); localStorage.setItem("products",JSON.stringify(products)); renderProducts(); }
-}
-
-function editProduct(i){
-let p=products[i];
-let newName=prompt("Name:",p.name);
-let newPrice=prompt("Price:",p.price);
-let newImage=prompt("Image key: smartphone, tshirt,...",p.image);
-let newCategory=prompt("Category:",p.category);
-let newBadge=prompt("Badge:",p.badge);
-if(newName && newPrice && newImage && newCategory){
-products[i]={name:newName,price:newPrice,image:newImage,category:newCategory,badge:newBadge,rating:p.rating};
-localStorage.setItem("products",JSON.stringify(products)); renderProducts();
-}
-}
-
-// ===== Orders =====
-function renderOrders(){
-let div=document.getElementById("adminOrders");
-div.innerHTML='';
-if(orders.length===0){ div.innerHTML="<p>No orders yet.</p>"; return; }
-orders.forEach((o,i)=>{
-let od=document.createElement('div'); od.className='order';
-od.classList.toggle('completed', o.completed);
-od.innerHTML=`<strong>Customer:</strong> ${o.customer}<br>
-<strong>Products:</strong> ${o.items.map(it=>it.name+"($"+it.price+")").join(", ")}<br>
-<strong>Total:</strong> $${o.total}<br>
-<strong>Payment:</strong> ${o.payment}<br>
-<button onclick="markCompleted(${i})">${o.completed?'Undo':'Mark Completed'}</button>`;
-div.appendChild(od);
-});
-}
-
-function markCompleted(i){
-orders[i].completed = !orders[i].completed;
-localStorage.setItem("orders",JSON.stringify(orders));
-renderOrders();
-}
+renderAdmin();
 </script>
 </body>
 </html>
