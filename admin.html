@@ -5,147 +5,97 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin Panel</title>
 <style>
-body{font-family:Arial,sans-serif;background:#f9f9f9;color:#333;padding:20px;}
-h1,h2{text-align:center;}
-input,select,button{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;border:1px solid #ccc;}
-button{background:#007bff;color:white;border:none;cursor:pointer;transition:0.3s;}
-button:hover{background:#0056b3;}
-.section{border:1px solid #ccc;padding:15px;margin:10px;border-radius:8px;background:#fff;}
-.product-item{border:1px solid #28a745;padding:10px;margin:5px;border-radius:8px;background:#e9ffe9;}
-.review-item{border:1px solid #ff9800;padding:10px;margin:5px;border-radius:8px;background:#fff3e0;}
+body{font-family:Arial,sans-serif;background:#f5f5f5;color:#333;margin:0;padding:0;}
+header{background:#28a745;color:white;padding:1em;text-align:center;}
+nav{display:flex;justify-content:center;gap:10px;margin:10px;}
+nav button{padding:0.5em 1em;cursor:pointer;border:none;border-radius:5px;background:#007bff;color:white;}
+nav button:hover{background:#0056b3;}
+.page{display:none;padding:1em;}
+section{margin:10px 0;}
+table{width:100%;border-collapse:collapse;}
+table,th,td{border:1px solid #ccc;}
+th,td{padding:10px;text-align:left;}
+input[type=color], input[type=text], input[type=number]{padding:5px;margin:5px 0;border-radius:5px;border:1px solid #ccc;}
+button.approve, button.delete, button.save{padding:5px 10px;margin:2px;border:none;border-radius:5px;cursor:pointer;}
+button.approve{background:green;color:white;}
+button.delete{background:red;color:white;}
+button.save{background:#007bff;color:white;}
 </style>
 </head>
 <body>
 
-<h1>Admin Panel</h1>
+<header><h1>Admin Panel</h1></header>
+<nav>
+<button onclick="showPage('pendingProducts')">Pending Products</button>
+<button onclick="showPage('manageProducts')">Manage Products</button>
+<button onclick="showPage('reviews')">Customer Reviews</button>
+<button onclick="showPage('theme')">Theme</button>
+</nav>
 
-<h2>Login</h2>
-<input type="password" id="adminPass" placeholder="Enter Admin Password">
-<button onclick="adminLogin()">Login</button>
-<p id="loginMsg" style="color:red;"></p>
-
-<div id="adminPanel" style="display:none;">
-
-<h2>Pending Products</h2>
-<div class="section" id="pendingProducts"></div>
-
-<h2>Manage Products</h2>
-<div class="section" id="allProducts"></div>
-
-<h2>Customer Reviews</h2>
-<div class="section" id="reviewsList"></div>
-
-<h2>Theme / Color Settings</h2>
-<div class="section">
-<label>Background Color:</label>
-<input type="color" id="bgColor">
-<label>Text Color:</label>
-<input type="color" id="textColor">
-<label>Button Color:</label>
-<input type="color" id="btnColor">
-<label>Button Text Color:</label>
-<input type="color" id="btnTextColor">
-<button onclick="applyTheme()">Apply Theme</button>
+<!-- Pages -->
+<div id="pendingProducts" class="page">
+<h2>Vendor Pending Products</h2>
+<div id="pendingList"></div>
 </div>
 
+<div id="manageProducts" class="page">
+<h2>All Products</h2>
+<div id="allProducts"></div>
+</div>
+
+<div id="reviews" class="page">
+<h2>Customer Reviews</h2>
+<div id="reviewList"></div>
+</div>
+
+<div id="theme" class="page">
+<h2>Theme Settings</h2>
+<label>Background Color:</label><input type="color" id="bgColor"><br>
+<label>Text Color:</label><input type="color" id="textColor"><br>
+<label>Button Color:</label><input type="color" id="btnColor"><br>
+<label>Button Text Color:</label><input type="color" id="btnTextColor"><br>
+<button onclick="saveTheme()">Save Theme</button>
 </div>
 
 <script>
-const ADMIN_PASS = "NAFIS128";
-let pending = JSON.parse(localStorage.getItem("pending")||'[]');
-let products = JSON.parse(localStorage.getItem("products")||'[]');
-let reviews = JSON.parse(localStorage.getItem("reviews")||[]);
+showPage('pendingProducts');
+function showPage(page){document.querySelectorAll('.page').forEach(p=>p.style.display='none'); document.getElementById(page).style.display='block';}
 
-function adminLogin(){
-  let pass=document.getElementById('adminPass').value;
-  if(pass===ADMIN_PASS){
-    document.getElementById('adminPanel').style.display='block';
-    document.getElementById('loginMsg').innerText='';
-    renderPending();
-    renderProducts();
-    renderReviews();
-  } else { document.getElementById('loginMsg').innerText="Wrong password"; }
+// Data
+let products = JSON.parse(localStorage.getItem('products')||'[]');
+let reviews = JSON.parse(localStorage.getItem('reviews')||'[]');
+let theme = JSON.parse(localStorage.getItem('theme')||'{}');
+
+// Apply saved theme
+applyTheme();
+function applyTheme(){
+  if(theme.bg) document.body.style.background=theme.bg;
+  if(theme.text) document.body.style.color=theme.text;
+  if(theme.btn){
+    document.querySelectorAll('button').forEach(b=>b.style.background=theme.btn);
+  }
+  if(theme.btnText){
+    document.querySelectorAll('button').forEach(b=>b.style.color=theme.btnText);
+  }
 }
 
 // Pending products
 function renderPending(){
-  const list = document.getElementById('pendingProducts');
+  const list = document.getElementById('pendingList');
   list.innerHTML='';
-  pending.forEach((p,i)=>{
-    const div=document.createElement('div'); div.className='product-item';
-    div.innerHTML=`<strong>${p.name}</strong> - $${p.price} - Stock: ${p.stock} 
-      <button onclick="approveProduct(${i})">Approve</button>
-      <button onclick="rejectProduct(${i})">Reject</button>`;
+  products.filter(p=>!p.approved).forEach((p,i)=>{
+    const div = document.createElement('div');
+    div.innerHTML=`<strong>${p.name}</strong> by ${p.vendor}<br>Price: $${p.price}<br>Stock: ${p.stock}<br>
+    <button class="approve" onclick="approveProduct(${i})">Approve</button>`;
     list.appendChild(div);
   });
 }
-
-function approveProduct(i){
-  pending[i].approved=true;
-  products.push(pending[i]);
-  pending.splice(i,1);
-  saveData();
+function approveProduct(idx){
+  products[idx].approved=true;
+  localStorage.setItem('products',JSON.stringify(products));
   renderPending();
-  renderProducts();
+  renderAllProducts();
 }
 
-function rejectProduct(i){
-  pending.splice(i,1);
-  saveData();
-  renderPending();
-}
-
-// All products
-function renderProducts(){
-  const list = document.getElementById('allProducts');
-  list.innerHTML='';
-  products.forEach((p,i)=>{
-    const div=document.createElement('div'); div.className='product-item';
-    div.innerHTML=`<strong>${p.name}</strong> - $<input type="number" value="${p.price}" onchange="updatePrice(${i},this.value)"> 
-      - Stock: <input type="number" value="${p.stock}" onchange="updateStock(${i},this.value)">
-      <button onclick="deleteProduct(${i})">Delete</button>`;
-    list.appendChild(div);
-  });
-}
-
-function updatePrice(i,val){ products[i].price=Number(val); saveData(); }
-function updateStock(i,val){ products[i].stock=Number(val); saveData(); }
-function deleteProduct(i){ products.splice(i,1); saveData(); renderProducts(); }
-
-// Reviews
-function renderReviews(){
-  const list = document.getElementById('reviewsList');
-  list.innerHTML='';
-  reviews.forEach((r,i)=>{
-    const div=document.createElement('div'); div.className='review-item';
-    div.innerHTML=`<strong>${r.product}</strong> - ${r.user}: ${r.comment} 
-      <button onclick="deleteReview(${i})">Delete</button>`;
-    list.appendChild(div);
-  });
-}
-
-function deleteReview(i){ reviews.splice(i,1); saveData(); renderReviews(); }
-
-// Theme
-function applyTheme(){
-  const bg=document.getElementById('bgColor').value;
-  const text=document.getElementById('textColor').value;
-  const btn=document.getElementById('btnColor').value;
-  const btnText=document.getElementById('btnTextColor').value;
-  document.body.style.background=bg;
-  document.body.style.color=text;
-  document.querySelectorAll('button').forEach(b=>{
-    b.style.background=btn;
-    b.style.color=btnText;
-  });
-}
-
-// Save to localStorage
-function saveData(){
-  localStorage.setItem("pending",JSON.stringify(pending));
-  localStorage.setItem("products",JSON.stringify(products));
-  localStorage.setItem("reviews",JSON.stringify(reviews));
-}
-</script>
-</body>
-</html>
+// Manage all products
+function renderAllProducts(){
