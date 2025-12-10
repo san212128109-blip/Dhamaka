@@ -3,164 +3,146 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Customer Panel</title>
+<title>Customer Shop</title>
 <style>
-body{font-family:Arial,sans-serif;background:#f9f9f9;color:#333;margin:0;padding:0;}
+body{font-family:Arial,sans-serif;background:#f5f5f5;color:#333;margin:0;padding:0;}
 header{background:#28a745;color:white;padding:1em;text-align:center;}
 nav{display:flex;justify-content:center;gap:10px;margin:10px;}
 nav button{padding:0.5em 1em;cursor:pointer;border:none;border-radius:5px;background:#007bff;color:white;}
 nav button:hover{background:#0056b3;}
 .page{display:none;padding:1em;}
-.product-list,.cart-list,.review-list{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;}
-.product-item,.review-item{border:1px solid #ccc;padding:10px;border-radius:8px;background:#fff;width:200px;}
-input,select,textarea{width:90%;padding:0.5em;margin:0.3em 0;border-radius:5px;border:1px solid #ccc;}
-button.add-cart,button.submit-review{width:95%;}
+.product-list, .cart-list{display:flex;flex-wrap:wrap;gap:10px;}
+.product{border:1px solid #ccc;border-radius:8px;padding:10px;width:200px;text-align:center;background:white;}
+input[type=number]{width:50px;}
+.review-box{border:1px solid #ccc;border-radius:5px;padding:5px;margin:5px 0;}
 </style>
 </head>
 <body>
 
-<header><h1>Customer Panel</h1></header>
+<header><h1>Customer Shop</h1></header>
 <nav>
-<button onclick="showPage('loginPage')">Login/Register</button>
-<button onclick="showPage('shopPage')">Shop</button>
-<button onclick="showPage('cartPage')">Cart</button>
-<button onclick="showPage('reviewPage')">My Reviews</button>
+<button onclick="showPage('shop')">Shop</button>
+<button onclick="showPage('cart')">Cart</button>
+<button onclick="showPage('reviews')">My Reviews</button>
 </nav>
 
-<!-- Pages -->
-<div id="loginPage" class="page">
-<h2>Login / Register</h2>
-<input type="text" id="custUsername" placeholder="Username">
-<input type="password" id="custPassword" placeholder="Password">
-<button onclick="customerLogin()">Login/Register</button>
-<p id="loginMsg" style="color:red;"></p>
-</div>
-
-<div id="shopPage" class="page">
+<div id="shop" class="page">
 <h2>Products</h2>
-<div class="product-list" id="productsList"></div>
+<div id="productList" class="product-list"></div>
 </div>
 
-<div id="cartPage" class="page">
+<div id="cart" class="page">
 <h2>Your Cart</h2>
-<div class="cart-list" id="cartList"></div>
-<div id="cartTotal"></div>
+<div id="cartList" class="cart-list"></div>
+<p id="cartTotal"></p>
 <button onclick="checkout()">Checkout</button>
 </div>
 
-<div id="reviewPage" class="page">
-<h2>Write Review</h2>
-<select id="reviewProduct"></select>
-<textarea id="reviewComment" placeholder="Write your review..."></textarea>
-<button class="submit-review" onclick="addReview()">Submit Review</button>
-
+<div id="reviews" class="page">
 <h2>My Reviews</h2>
-<div class="review-list" id="myReviews"></div>
+<div id="myReviews"></div>
+<h3>Add Review</h3>
+<select id="productSelect"></select><br>
+<textarea id="reviewText" placeholder="Write your review"></textarea><br>
+<button onclick="addReview()">Submit Review</button>
 </div>
 
 <script>
-let customers = JSON.parse(localStorage.getItem("customers")||'[]');
-let products = JSON.parse(localStorage.getItem("products")||'[]');
-let reviews = JSON.parse(localStorage.getItem("reviews")||'[]');
-let cart = JSON.parse(localStorage.getItem("cart")||'[]');
-let currentUser = null;
+showPage('shop');
+function showPage(page){document.querySelectorAll('.page').forEach(p=>p.style.display='none'); document.getElementById(page).style.display='block';}
 
-function showPage(page){
-  document.querySelectorAll('.page').forEach(p=>p.style.display='none');
-  document.getElementById(page).style.display='block';
-}
-showPage('loginPage');
+// Data
+let products = JSON.parse(localStorage.getItem('products')||'[]');
+let reviews = JSON.parse(localStorage.getItem('reviews')||'[]');
+let cart = JSON.parse(localStorage.getItem('cart')||'[]');
+let username = prompt("Enter your name:") || "Customer";
 
-function customerLogin(){
-  let user = document.getElementById('custUsername').value;
-  if(!user){ document.getElementById('loginMsg').innerText="Enter username"; return; }
-  currentUser=user;
-  if(!customers.includes(user)){ customers.push(user); localStorage.setItem("customers",JSON.stringify(customers)); }
-  document.getElementById('loginMsg').innerText='';
-  showPage('shopPage');
-  renderProducts();
-  renderReviewProduct();
-  renderMyReviews();
-}
+// Filter only approved products
+function getApprovedProducts(){ return products.filter(p=>p.approved); }
 
 // Render products
 function renderProducts(){
-  const list = document.getElementById('productsList');
+  const list = document.getElementById('productList');
   list.innerHTML='';
-  products.forEach((p,i)=>{
-    if(p.approved){
-      const div=document.createElement('div'); div.className='product-item';
-      div.innerHTML=`<strong>${p.name}</strong><br>Price: $${p.price}<br>Stock: ${p.stock}<br>
-        <button class="add-cart" onclick="addToCart(${i})">Add to Cart</button>`;
-      list.appendChild(div);
-    }
+  getApprovedProducts().forEach((p,i)=>{
+    const div = document.createElement('div'); div.className='product';
+    div.innerHTML=`<strong>${p.name}</strong><br>Price: $${p.price}<br>Stock: ${p.stock}<br>
+    <input type="number" min="1" max="${p.stock}" value="1" id="qty${i}"><br>
+    <button onclick="addToCart(${i})">Add to Cart</button>`;
+    list.appendChild(div);
   });
 }
 
-// Cart functions
+// Cart
+function renderCart(){
+  const list = document.getElementById('cartList');
+  list.innerHTML='';
+  let total=0;
+  cart.forEach((item,i)=>{
+    total+=item.price*item.qty;
+    const div = document.createElement('div');
+    div.innerHTML=`${item.name} - $${item.price} x ${item.qty} <button onclick="removeCart(${i})">Remove</button>`;
+    list.appendChild(div);
+  });
+  document.getElementById('cartTotal').innerText='Total: $'+total;
+}
 function addToCart(i){
-  if(products[i].stock<1){ alert("Out of stock"); return; }
-  cart.push({...products[i]});
-  localStorage.setItem("cart",JSON.stringify(cart));
-  alert("Added to cart!");
+  const p = getApprovedProducts()[i];
+  const qty = Number(document.getElementById('qty'+i).value);
+  if(qty>p.stock){ alert('Not enough stock'); return; }
+  cart.push({name:p.name, price:p.price, qty:qty});
+  localStorage.setItem('cart',JSON.stringify(cart));
+  alert('Added to cart!');
+  renderCart();
+}
+function removeCart(i){ cart.splice(i,1); localStorage.setItem('cart',JSON.stringify(cart)); renderCart(); }
+function checkout(){
+  if(cart.length===0){ alert('Cart empty'); return; }
+  let total = cart.reduce((sum,item)=>sum+item.price*item.qty,0);
+  alert(`Order placed! Total: $${total}`);
+  cart=[];
+  localStorage.setItem('cart',JSON.stringify(cart));
   renderCart();
 }
 
-function renderCart(){
-  const list=document.getElementById('cartList');
-  const totalDiv=document.getElementById('cartTotal');
-  list.innerHTML=''; let total=0;
-  cart.forEach((p,i)=>{
-    total+=Number(p.price);
-    const div=document.createElement('div'); div.className='product-item';
-    div.innerHTML=`${p.name} - $${p.price} <button onclick="removeCart(${i})">Remove</button>`;
-    list.appendChild(div);
-  });
-  totalDiv.innerText=`Total: $${total}`;
-}
-
-function removeCart(i){ cart.splice(i,1); localStorage.setItem("cart",JSON.stringify(cart)); renderCart(); }
-
-function checkout(){
-  if(cart.length===0){ alert("Cart empty"); return; }
-  cart.forEach(c=>{ let p=products.find(pr=>pr.name===c.name); if(p) p.stock-=1; });
-  localStorage.setItem("products",JSON.stringify(products));
-  cart=[]; localStorage.setItem("cart",JSON.stringify(cart));
-  alert("Order placed!");
-  renderProducts(); renderCart();
-}
-
 // Reviews
-function renderReviewProduct(){
-  const sel=document.getElementById('reviewProduct'); sel.innerHTML='';
-  products.filter(p=>p.approved).forEach(p=>{ let o=document.createElement('option'); o.value=p.name; o.innerText=p.name; sel.appendChild(o); });
+function renderMyReviews(){
+  const div = document.getElementById('myReviews');
+  div.innerHTML='';
+  reviews.filter(r=>r.customer===username && r.approved).forEach(r=>{
+    const rev = document.createElement('div'); rev.className='review-box';
+    rev.innerText=`${r.product}: ${r.text}`;
+    div.appendChild(rev);
+  });
 }
-
 function addReview(){
-  const prod=document.getElementById('reviewProduct').value;
-  const comment=document.getElementById('reviewComment').value;
-  if(!comment){ alert("Write a comment"); return; }
-  reviews.push({product:prod,user:currentUser,comment:comment});
-  localStorage.setItem("reviews",JSON.stringify(reviews));
-  document.getElementById('reviewComment').value='';
+  const product = document.getElementById('productSelect').value;
+  const text = document.getElementById('reviewText').value.trim();
+  if(!text){ alert('Write something'); return; }
+  reviews.push({customer:username, product:product, text:text, approved:false});
+  localStorage.setItem('reviews',JSON.stringify(reviews));
+  alert('Review submitted for admin approval!');
+  document.getElementById('reviewText').value='';
   renderMyReviews();
 }
 
-function renderMyReviews(){
-  const list=document.getElementById('myReviews');
-  list.innerHTML='';
-  reviews.filter(r=>r.user===currentUser).forEach((r,i)=>{
-    const div=document.createElement('div'); div.className='review-item';
-    div.innerHTML=`${r.product}: ${r.comment} <button onclick="deleteReview(${i})">Delete</button>`;
-    list.appendChild(div);
+// Fill product select
+function populateSelect(){
+  const select = document.getElementById('productSelect');
+  select.innerHTML='';
+  getApprovedProducts().forEach(p=>{
+    const opt = document.createElement('option');
+    opt.value=p.name; opt.innerText=p.name;
+    select.appendChild(opt);
   });
 }
 
-function deleteReview(i){
-  let userReviews = reviews.filter(r=>r.user===currentUser);
-  let reviewIndex = reviews.indexOf(userReviews[i]);
-  if(reviewIndex>-1){ reviews.splice(reviewIndex,1); localStorage.setItem("reviews",JSON.stringify(reviews)); renderMyReviews(); }
-}
+// Initial render
+renderProducts();
+renderCart();
+renderMyReviews();
+populateSelect();
 </script>
+
 </body>
 </html>
