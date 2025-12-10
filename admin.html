@@ -1,199 +1,92 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin Panel</title>
 <style>
-body{font-family:Arial,sans-serif;margin:0;padding:0;background:#f0f2f5;}
-header{background:#343a40;color:white;padding:1em;text-align:center;}
-h2{margin-top:1em;}
-.container{padding:1em;}
-section{background:white;margin:1em 0;padding:1em;border-radius:10px;box-shadow:0 0 5px rgba(0,0,0,0.2);}
-table{width:100%;border-collapse:collapse;}
-th,td{border:1px solid #ccc;padding:0.5em;text-align:center;}
-button{padding:0.3em 0.6em;margin:0.2em;cursor:pointer;}
-input,select{padding:0.3em;margin:0.2em;}
+body{font-family:Arial;padding:20px;}
+.box{border:1px solid #ddd;padding:15px;margin-bottom:15px;border-radius:10px;}
 </style>
 </head>
 <body>
 
-<header>
-<h1>Admin Panel</h1>
-<input type="password" id="adminPass" placeholder="Enter Admin Password">
-<button onclick="loginAdmin()">Login</button>
-<div id="adminSection" style="display:none;">
-Logged in as Admin
-<button onclick="logoutAdmin()">Logout</button>
-</div>
-</header>
+<h2>Admin Panel</h2>
 
-<div class="container" id="panel" style="display:none;">
+<h3>Vendor Accounts</h3>
+<div id="vendorList"></div>
 
-<!-- Vendor Management -->
-<section>
-<h2>Vendor Management</h2>
-<table>
-<tr><th>Vendor Name</th><th>Status</th><th>Actions</th></tr>
-<tbody id="vendorTable"></tbody>
-</table>
-</section>
-
-<!-- Product Management -->
-<section>
-<h2>Product Management</h2>
-<table>
-<tr><th>Name</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th><th>Actions</th></tr>
-<tbody id="productTable"></tbody>
-</table>
-</section>
-
-<!-- Review Management -->
-<section>
-<h2>Customer Reviews</h2>
-<table>
-<tr><th>Product</th><th>Customer</th><th>Review</th><th>Actions</th></tr>
-<tbody id="reviewTable"></tbody>
-</table>
-</section>
-
-</div>
+<hr>
+<h3>Upload Homepage Banners</h3>
+<input type="text" id="bannerURL" placeholder="Enter Banner Image URL" style="width:70%;padding:8px;">
+<button onclick="addBanner()">Add Banner</button>
+<div id="bannerShow"></div>
 
 <script>
-// Admin login
-let adminPass="NAFIS128";
-let loggedIn = false;
+// ==================== VENDOR LIST LOADING ===================
+function loadVendors(){
+    let vendors = JSON.parse(localStorage.getItem("vendors")) || {};
+    let html = "";
 
-function loginAdmin(){
-  let pass = document.getElementById("adminPass").value;
-  if(pass===adminPass){
-    loggedIn=true;
-    document.getElementById("adminSection").style.display="block";
-    document.getElementById("panel").style.display="block";
-    document.getElementById("adminPass").style.display="none";
-    renderVendors();
-    renderProducts();
-    renderReviews();
-  }else alert("Wrong password");
+    for(let id in vendors){
+        html += `
+        <div class="box">
+            <b>ID:</b> ${id}<br>
+            <b>Status:</b> ${vendors[id].approved ? "Approved" : "Pending"}<br><br>
+            <button onclick="approveVendor('${id}')">Approve</button>
+            <button onclick="denyVendor('${id}')">Deny</button>
+        </div>
+        `;
+    }
+
+    document.getElementById("vendorList").innerHTML = html;
+}
+loadVendors();
+
+// ==================== APPROVE / DENY ===================
+function approveVendor(id){
+    let vendors = JSON.parse(localStorage.getItem("vendors"));
+    vendors[id].approved = true;
+    localStorage.setItem("vendors", JSON.stringify(vendors));
+    loadVendors();
 }
 
-function logoutAdmin(){
-  loggedIn=false;
-  document.getElementById("adminSection").style.display="none";
-  document.getElementById("panel").style.display="none";
-  document.getElementById("adminPass").style.display="inline";
+function denyVendor(id){
+    let vendors = JSON.parse(localStorage.getItem("vendors"));
+    delete vendors[id];
+    localStorage.setItem("vendors", JSON.stringify(vendors));
+    loadVendors();
 }
 
-// Vendor Management
-function renderVendors(){
-  let vendors=JSON.parse(localStorage.getItem("vendors")||'[]');
-  let table=document.getElementById("vendorTable");
-  table.innerHTML='';
-  vendors.forEach((v,i)=>{
-    let tr=document.createElement("tr");
-    tr.innerHTML=`<td>${v.name}</td>
-    <td>${v.status}</td>
-    <td>
-      <button onclick="approveVendor(${i})">Approve</button>
-      <button onclick="denyVendor(${i})">Deny</button>
-    </td>`;
-    table.appendChild(tr);
-  });
+// ==================== BANNER SYSTEM ===================
+function loadBanners(){
+    let banners = JSON.parse(localStorage.getItem("banners")) || [];
+    let html = "";
+
+    banners.forEach((b,i)=>{
+        html += `<div class="box"><img src="${b}" style="width:100%;border-radius:8px;"><br><button onclick="removeBanner(${i})">Delete</button></div>`;
+    });
+
+    document.getElementById("bannerShow").innerHTML = html;
+}
+loadBanners();
+
+function addBanner(){
+    let url = document.getElementById("bannerURL").value;
+    if(url=="") return;
+
+    let banners = JSON.parse(localStorage.getItem("banners")) || [];
+    banners.push(url);
+    localStorage.setItem("banners", JSON.stringify(banners));
+    document.getElementById("bannerURL").value = "";
+    loadBanners();
 }
 
-function approveVendor(i){
-  let vendors=JSON.parse(localStorage.getItem("vendors")||'[]');
-  vendors[i].status="Approved";
-  localStorage.setItem("vendors",JSON.stringify(vendors));
-  renderVendors();
-}
-function denyVendor(i){
-  let vendors=JSON.parse(localStorage.getItem("vendors")||'[]');
-  vendors[i].status="Denied";
-  localStorage.setItem("vendors",JSON.stringify(vendors));
-  renderVendors();
-}
-
-// Product Management
-function renderProducts(){
-  let products=JSON.parse(localStorage.getItem("products")||'[]');
-  let table=document.getElementById("productTable");
-  table.innerHTML='';
-  products.forEach((p,i)=>{
-    let tr=document.createElement("tr");
-    tr.innerHTML=`<td>${p.name}</td><td>${p.category}</td>
-    <td><input type="number" value="${p.price}" onchange="updatePrice(${i},this.value)"></td>
-    <td><input type="number" value="${p.stock}" onchange="updateStock(${i},this.value)"></td>
-    <td>${p.status}</td>
-    <td>
-      <button onclick="approveProduct(${i})">Approve</button>
-      <button onclick="denyProduct(${i})">Deny</button>
-    </td>`;
-    table.appendChild(tr);
-  });
-}
-
-function updatePrice(i,val){
-  let products=JSON.parse(localStorage.getItem("products")||'[]');
-  products[i].price=Number(val);
-  localStorage.setItem("products",JSON.stringify(products));
-  renderProducts();
-}
-
-function updateStock(i,val){
-  let products=JSON.parse(localStorage.getItem("products")||'[]');
-  products[i].stock=Number(val);
-  localStorage.setItem("products",JSON.stringify(products));
-  renderProducts();
-}
-
-function approveProduct(i){
-  let products=JSON.parse(localStorage.getItem("products")||'[]');
-  products[i].status="Approved";
-  localStorage.setItem("products",JSON.stringify(products));
-  // add to customer visible products
-  let approved=JSON.parse(localStorage.getItem("approvedProducts")||'[]');
-  approved.push(products[i]);
-  localStorage.setItem("approvedProducts",JSON.stringify(approved));
-  renderProducts();
-}
-
-function denyProduct(i){
-  let products=JSON.parse(localStorage.getItem("products")||'[]');
-  products[i].status="Denied";
-  localStorage.setItem("products",JSON.stringify(products));
-  renderProducts();
-}
-
-// Review Management
-function renderReviews(){
-  let reviews=JSON.parse(localStorage.getItem("reviews")||'[]');
-  let table=document.getElementById("reviewTable");
-  table.innerHTML='';
-  reviews.forEach((r,i)=>{
-    let tr=document.createElement("tr");
-    tr.innerHTML=`<td>${r.product}</td><td>${r.customer}</td><td>${r.text}</td>
-    <td>
-      <button onclick="approveReview(${i})">Approve</button>
-      <button onclick="deleteReview(${i})">Delete</button>
-    </td>`;
-    table.appendChild(tr);
-  });
-}
-
-function approveReview(i){
-  let reviews=JSON.parse(localStorage.getItem("reviews")||'[]');
-  reviews[i].approved=true;
-  localStorage.setItem("reviews",JSON.stringify(reviews));
-  renderReviews();
-}
-
-function deleteReview(i){
-  let reviews=JSON.parse(localStorage.getItem("reviews")||'[]');
-  reviews.splice(i,1);
-  localStorage.setItem("reviews",JSON.stringify(reviews));
-  renderReviews();
+function removeBanner(i){
+    let banners = JSON.parse(localStorage.getItem("banners"));
+    banners.splice(i,1);
+    localStorage.setItem("banners", JSON.stringify(banners));
+    loadBanners();
 }
 </script>
+
 </body>
 </html>
