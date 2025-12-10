@@ -1,99 +1,143 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Vendor Login / Register</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Vendor - Login / Register</title>
 <style>
-body{font-family:Arial,Helvetica,sans-serif;background:#f5f7fa;padding:20px;}
-.container{max-width:480px;margin:20px auto;background:#fff;padding:18px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.06);}
-h2{margin:0 0 12px}
-input{width:100%;padding:8px;margin:6px 0;border:1px solid #ccc;border-radius:5px}
-button{padding:10px 12px;border-radius:6px;border:none;background:#28a745;color:#fff;cursor:pointer}
-.small{font-size:0.9em;color:#555;margin-top:8px}
-.warn{color:#b21f2d}
+  :root{--bg:#f6f8fa;--card:#fff;--accent:#28a745;--danger:#b21f2d}
+  body{font-family:Inter,Arial,Helvetica,sans-serif;background:var(--bg);margin:0;padding:18px}
+  .wrap{max-width:520px;margin:28px auto}
+  .card{background:var(--card);padding:18px;border-radius:10px;box-shadow:0 6px 20px rgba(16,24,40,0.06)}
+  h2{margin:0 0 12px;font-size:20px}
+  input{width:100%;padding:10px;border:1px solid #d6dbe6;border-radius:8px;margin:8px 0;box-sizing:border-box}
+  button{padding:10px 12px;border-radius:8px;border:0;background:var(--accent);color:#fff;cursor:pointer}
+  .row{display:flex;gap:8px}
+  .row button{flex:1}
+  .hint{font-size:13px;color:#555;margin-top:8px}
+  .msg{margin-top:10px;padding:8px;border-radius:8px;font-size:14px}
+  .err{background:#ffeef0;color:var(--danger);border:1px solid #ffd6db}
+  .ok{background:#ecfdf3;color:#064e3b;border:1px solid #bbf7d0}
+  .foot{margin-top:12px;font-size:13px;color:#444}
+  .small{font-size:12px;color:#666}
+  .link{color:#0366d6;cursor:pointer;text-decoration:underline}
 </style>
 </head>
 <body>
-<div class="container">
-  <h2>Vendor Login / Register</h2>
+<div class="wrap">
+  <div class="card">
+    <h2>Vendor — Login / Register</h2>
 
-  <div id="formArea">
-    <input id="vid" placeholder="Vendor ID (unique)" />
-    <input id="vname" placeholder="Display Name (Vendor Name)" />
-    <input id="vpass" type="password" placeholder="Password" />
-    <div style="display:flex;gap:8px;margin-top:8px">
+    <label class="small">Vendor ID (unique)</label>
+    <input id="vid" placeholder="e.g. vendor123" autocomplete="off" />
+
+    <label class="small">Display name</label>
+    <input id="vname" placeholder="Your shop / display name" autocomplete="off" />
+
+    <label class="small">Password</label>
+    <input id="vpass" type="password" placeholder="Choose a password" />
+
+    <div style="margin-top:8px" class="row">
       <button onclick="registerVendor()">Register (Request)</button>
       <button onclick="loginVendor()">Login</button>
     </div>
-    <p class="small">If admin hasn't approved your account yet, you'll see a pending message and WhatsApp contact <b>01913821910</b>.</p>
-    <p id="msg" class="warn"></p>
+
+    <p class="hint">Admin will review vendor requests. If not approved yet you'll see a pending message. For urgent support contact: <b>01913821910</b></p>
+
+    <div id="message" class="msg" style="display:none"></div>
+
+    <div class="foot">
+      <span class="small">Already registered? Fill ID + password and click <b>Login</b>.</span>
+      <div style="margin-top:8px"><span class="link" onclick="openVendorDashboard()">Open Dashboard (if session active)</span></div>
+    </div>
   </div>
 </div>
 
 <script>
-/* Storage keys:
-   vendors - object map { id: {id,name,pass,approved:false,approvedAt:null,startDate:null} }
-   vendorSession - {id,expireTime}
-   pendingProducts - array
-   approvedProducts - array
-   banners - array
+/* vendor-login.html
+   - vendors stored as object map under key 'vendors'
+     vendors = {
+       "vendor1": { id:"vendor1", name:"Vendor One", pass:"1234", approved:false, approvedAt:null }
+     }
+   - vendorSession stored under 'vendorSession' : { id:"vendor1", expireTime:timestamp }
+   - pendingProducts stored under 'pendingProducts' (array)
+   - approvedProducts stored under 'approvedProducts' (array)
 */
-function loadVendors(){ return JSON.parse(localStorage.getItem('vendors')||'{}'); }
-function saveVendors(v){ localStorage.setItem('vendors', JSON.stringify(v)); }
 
-// Register (request) vendor
+// helpers
+function getVendors(){ try { return JSON.parse(localStorage.getItem('vendors')||'{}'); } catch(e){ return {}; } }
+function setVendors(v){ localStorage.setItem('vendors', JSON.stringify(v)); }
+function setMsg(text, type){ const el = document.getElementById('message'); el.style.display='block'; el.className = 'msg ' + (type==='ok'?'ok':'err'); el.innerText = text; }
+function clearMsg(){ const el = document.getElementById('message'); el.style.display='none'; el.innerText=''; }
+
+// Register vendor -> creates vendor with approved=false
 function registerVendor(){
+  clearMsg();
   const id = document.getElementById('vid').value.trim();
   const name = document.getElementById('vname').value.trim();
-  const pass = document.getElementById('vpass').value.trim();
-  if(!id || !name || !pass){ showMsg('Fill all fields'); return; }
-  const vendors = loadVendors();
-  if(vendors[id]){ showMsg('Vendor ID already exists — choose another'); return; }
+  const pass = document.getElementById('vpass').value;
+  if(!id || !name || !pass){ setMsg('Fill all fields to register.', 'err'); return; }
+
+  const vendors = getVendors();
+  if(vendors[id]){ setMsg('Vendor ID already exists. Choose another.', 'err'); return; }
+
   vendors[id] = { id, name, pass, approved:false, approvedAt:null };
-  saveVendors(vendors);
-  showMsg('Registration request submitted. Wait for admin approval. Contact WhatsApp: 01913821910', false);
-  clearInputs();
+  setVendors(vendors);
+  setMsg('Registration request submitted. Wait for admin approval. Contact WhatsApp: 01913821910', 'ok');
+  // clear inputs
+  document.getElementById('vid').value=''; document.getElementById('vname').value=''; document.getElementById('vpass').value='';
 }
 
 // Login vendor
 function loginVendor(){
+  clearMsg();
   const id = document.getElementById('vid').value.trim();
-  const pass = document.getElementById('vpass').value.trim();
-  if(!id || !pass){ showMsg('Enter ID and password'); return; }
-  const vendors = loadVendors();
-  if(!vendors[id]){ showMsg('Account not found. Register first.'); return; }
-  if(vendors[id].pass !== pass){ showMsg('Wrong password'); return; }
-  if(!vendors[id].approved){ showMsg('Account pending approval. Contact WhatsApp: 01913821910', false); return; }
+  const pass = document.getElementById('vpass').value;
+  if(!id || !pass){ setMsg('Enter vendor ID and password to login.', 'err'); return; }
 
-  // approved: calculate expireTime based on approvedAt + 7 days
+  const vendors = getVendors();
+  if(!vendors[id]){ setMsg('Account not found. Register first.', 'err'); return; }
+  if(vendors[id].pass !== pass){ setMsg('Wrong password.', 'err'); return; }
+  if(!vendors[id].approved){ setMsg('Account pending admin approval. Contact WhatsApp: 01913821910', 'err'); return; }
+
+  // compute expireTime from approvedAt (if present)
   const approvedAt = vendors[id].approvedAt || Date.now();
-  const expireTime = approvedAt + 7*24*60*60*1000;
+  const expireTime = approvedAt + 7*24*60*60*1000; // 7 days after approval
+  const session = { id, expireTime };
+  localStorage.setItem('vendorSession', JSON.stringify(session));
+  setMsg('Login success — redirecting to vendor dashboard...', 'ok');
 
-  localStorage.setItem('vendorSession', JSON.stringify({ id, expireTime }));
-  // go vendor dashboard
-  location.href = 'vendor-dashboard.html';
+  // short delay then redirect
+  setTimeout(()=>{ window.location.href = 'vendor-dashboard.html'; }, 700);
 }
 
-function showMsg(t, isError=true){ const el = document.getElementById('msg'); el.textContent = t; el.style.color = isError? '#b21f2d':'#2b7a0b'; }
-function clearInputs(){ document.getElementById('vid').value=''; document.getElementById('vname').value=''; document.getElementById('vpass').value=''; }
-
-// initial: if there is valid session and not expired, redirect to dashboard
-(function autoRedirect(){
-  const s = JSON.parse(localStorage.getItem('vendorSession')||'null');
-  if(s){
-    if(Date.now() < s.expireTime){
-      // check vendor is still approved
-      const vendors = loadVendors();
+// auto-redirect when valid session exists
+(function autoRedirectIfSession(){
+  try{
+    const s = JSON.parse(localStorage.getItem('vendorSession')||'null');
+    if(s && s.id && s.expireTime){
+      const vendors = getVendors();
       if(vendors[s.id] && vendors[s.id].approved){
-        location.href = 'vendor-dashboard.html';
-        return;
+        if(Date.now() < s.expireTime){
+          // still valid
+          setMsg('Active session found. Redirecting to dashboard...', 'ok');
+          setTimeout(()=>{ window.location.href='vendor-dashboard.html'; }, 600);
+          return;
+        } else {
+          // expired -> remove
+          localStorage.removeItem('vendorSession');
+          setMsg('Your 7-day trial has expired. Contact WhatsApp: 01913821910', 'err');
+        }
+      } else {
+        // vendor removed or not approved
+        localStorage.removeItem('vendorSession');
       }
     }
-    // else expired or invalid -> remove session
-    localStorage.removeItem('vendorSession');
-  }
+  }catch(e){}
 })();
+
+// helper to open dashboard manually
+function openVendorDashboard(){ const s = JSON.parse(localStorage.getItem('vendorSession')||'null'); if(s && Date.now() < s.expireTime){ location.href='vendor-dashboard.html'; } else setMsg('No active session. Login first.', 'err'); }
 </script>
 </body>
 </html>
