@@ -1,26 +1,130 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>Shop Home</title>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Shop - Dhamaka</title>
 <style>
-body{font-family:Arial;padding:20px;}
-.banner{margin-bottom:15px;}
+body{font-family:Arial;background:#f7fbf7;padding:12px}
+.header{display:flex;justify-content:space-between;align-items:center}
+.banner{margin:12px 0}
+.product-grid{display:flex;flex-wrap:wrap;gap:12px}
+.card{background:#fff;padding:10px;border-radius:8px;width:200px;box-shadow:0 2px 6px rgba(0,0,0,0.04)}
+input,select{padding:8px;margin:6px 0;border-radius:6px;border:1px solid #ddd}
+button{padding:8px;border-radius:6px;border:none;background:#28a745;color:#fff;cursor:pointer}
+.small{font-size:0.9em;color:#555}
 </style>
 </head>
 <body>
-
-<h2>Our Shop</h2>
+<div class="header">
+  <h2>Dhamaka Shop</h2>
+  <div>
+    <input id="search" placeholder="Search..." oninput="renderProducts()"/>
+  </div>
+</div>
 
 <div id="bannerArea"></div>
 
-<script>
-let banners = JSON.parse(localStorage.getItem("banners")) || [];
-let html = "";
-banners.forEach(b => {
-    html += `<div class="banner"><img src="${b}" style="width:100%;border-radius:8px;"></div>`;
-});
-document.getElementById("bannerArea").innerHTML = html;
-</script>
+<h3>Products</h3>
+<div class="small">Only admin-approved products are shown.</div>
+<div id="productGrid" class="product-grid"></div>
 
+<h3 style="margin-top:18px">Cart</h3>
+<div id="cartArea"></div>
+<div id="cartTotal" class="small"></div>
+
+<h3 style="margin-top:18px">Write Review</h3>
+<select id="reviewProduct"></select><br>
+<input id="reviewName" placeholder="Your name"><br>
+<textarea id="reviewText" rows="3" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd"></textarea><br>
+<button onclick="submitReview()">Submit Review (admin will approve)</button>
+<p class="small">Reviews will be visible to customers only after admin approval.</p>
+
+<script>
+function loadApproved(){ return JSON.parse(localStorage.getItem('approvedProducts')||'[]'); }
+function saveApproved(a){ localStorage.setItem('approvedProducts', JSON.stringify(a)); }
+function loadBanners(){ return JSON.parse(localStorage.getItem('banners')||'[]'); }
+function loadReviews(){ return JSON.parse(localStorage.getItem('reviews')||'[]'); }
+function saveReviews(a){ localStorage.setItem('reviews', JSON.stringify(a)); }
+
+let cart = JSON.parse(localStorage.getItem('cart')||'[]');
+
+function renderBanners(){
+  const b = loadBanners();
+  const area = document.getElementById('bannerArea'); area.innerHTML = '';
+  b.forEach(u=>{
+    const d = document.createElement('div'); d.className='banner';
+    d.innerHTML = `<img src="${u}" style="max-width:100%;border-radius:8px">`;
+    area.appendChild(d);
+  });
+}
+function renderProducts(){
+  const all = loadApproved();
+  const q = document.getElementById('search').value.trim().toLowerCase();
+  const grid = document.getElementById('productGrid'); grid.innerHTML='';
+  const filtered = all.filter(p => !q || (p.name && p.name.toLowerCase().includes(q)));
+  filtered.forEach((p,i)=>{
+    const card = document.createElement('div'); card.className='card';
+    card.innerHTML = `<b>${p.name}</b><div class="small">${p.category || ''}</div>
+      <div style="margin-top:6px">$${p.price}</div>
+      <div class="small">Stock: ${p.stock}</div>
+      <div style="margin-top:8px"><button onclick="addToCart(${i})">Add to Cart</button></div>
+      <div style="margin-top:8px" id="reviews-${i}"></div>`;
+    grid.appendChild(card);
+    renderProductReviews(p.name, 'reviews-'+i);
+  });
+  populateReviewSelect();
+}
+
+function addToCart(i){
+  const products = loadApproved();
+  const p = products[i];
+  if(p.stock <= 0){ alert('Out of stock'); return; }
+  cart.push({ id: p.id || ('id'+Date.now()), name:p.name, price:p.price, qty:1 });
+  localStorage.setItem('cart', JSON.stringify(cart));
+  renderCart();
+}
+
+function renderCart(){
+  const area = document.getElementById('cartArea'); area.innerHTML='';
+  let total=0;
+  cart.forEach((c,i)=>{
+    total += c.price * (c.qty||1);
+    const div = document.createElement('div'); div.className='small';
+    div.innerHTML = `${c.name} - $${c.price} x ${c.qty||1} <button onclick="removeCart(${i})">Remove</button>`;
+    area.appendChild(div);
+  });
+  document.getElementById('cartTotal').innerText = 'Total: $' + total;
+}
+function removeCart(i){ cart.splice(i,1); localStorage.setItem('cart', JSON.stringify(cart)); renderCart(); }
+
+function populateReviewSelect(){
+  const sel = document.getElementById('reviewProduct'); sel.innerHTML='';
+  loadApproved().forEach(p=>{ const o=document.createElement('option'); o.value=p.name; o.textContent=p.name; sel.appendChild(o); });
+}
+
+function submitReview(){
+  const product = document.getElementById('reviewProduct').value;
+  const name = document.getElementById('reviewName').value.trim() || 'Anonymous';
+  const text = document.getElementById('reviewText').value.trim();
+  if(!product || !text){ alert('Select product and write a review'); return; }
+  const reviews = loadReviews();
+  reviews.push({ product, customer:name, text, approved:false, submittedAt:Date.now() });
+  saveReviews(reviews);
+  alert('Thank you — review submitted for admin approval');
+  document.getElementById('reviewText').value=''; document.getElementById('reviewName').value='';
+}
+
+function renderProductReviews(productName, targetId){
+  const all = loadReviews().filter(r=>r.product===productName && r.approved);
+  const area = document.getElementById(targetId);
+  if(!area) return;
+  area.innerHTML = all.map(r=>`<div class="small">${r.customer}: ${r.text}</div>`).join('');
+}
+
+/* initial load */
+renderBanners();
+renderProducts();
+renderCart();
+</script>
 </body>
 </html>
