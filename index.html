@@ -89,6 +89,7 @@ input,select{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;border:1px
 <h2>Customer Login/Register</h2>
 <input type="text" id="username" placeholder="Username">
 <input type="text" id="userWhatsapp" placeholder="WhatsApp Number">
+<input type="text" id="userAddress" placeholder="Address"> <!-- নতুন ফিল্ড -->
 <input type="password" id="password" placeholder="Password">
 <button onclick="customerRegister()">Register</button>
 <button onclick="customerLogin()">Login</button>
@@ -134,13 +135,17 @@ function toggleDarkMode(){ document.body.classList.toggle('dark'); }
 function customerRegister(){
     let username=document.getElementById("username").value;
     let whatsapp=document.getElementById("userWhatsapp").value;
+    let address=document.getElementById("userAddress").value;
     let password=document.getElementById("password").value;
-    if(!username || !whatsapp || !password){ alert("Fill all fields"); return; }
-    // Check if user exists
+    if(!username || !whatsapp || !address || !password){ alert("Fill all fields"); return; }
     if(customers.some(c=>c.username===username)){ alert("Username exists"); return; }
-    customers.push({username,whatsapp,password});
+    customers.push({username, whatsapp, address, password});
     localStorage.setItem("customers",JSON.stringify(customers));
     alert("Registered successfully! Now login.");
+    document.getElementById("username").value='';
+    document.getElementById("userWhatsapp").value='';
+    document.getElementById("userAddress").value='';
+    document.getElementById("password").value='';
 }
 
 function customerLogin(){
@@ -153,6 +158,8 @@ function customerLogin(){
         alert("Welcome, "+user.username);
         showPage('home');
         document.getElementById('logoutBtn').style.display='inline-block';
+        document.getElementById("username").value='';
+        document.getElementById("password").value='';
     } else {
         document.getElementById("loginMsg").innerText="Invalid credentials";
     }
