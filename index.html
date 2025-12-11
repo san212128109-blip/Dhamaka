@@ -3,125 +3,161 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dhamaka Shop</title>
+<title>Dhamaka Shop - Customer</title>
 <style>
-*{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:Arial,sans-serif;background:#f8f9fa;color:#333;transition:0.3s;}
-body.dark{background:#121212;color:#ddd;}
+body{font-family:Arial,sans-serif;background:#f8f9fa;color:#212529;margin:0;padding:0;}
 header{background:#28a745;color:white;padding:1em;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;}
-header h1{margin:0;font-size:1.5em;}
-header div{font-size:0.9em;}
-nav a{color:white;margin-left:1em;text-decoration:none;font-weight:bold;transition:0.3s;}
-nav a:hover{text-decoration:underline;color:#ffc107;}
-nav button{margin-left:1em;cursor:pointer;}
-.page{display:none;padding:1em;}
-h2,h3{text-align:center;margin-bottom:0.5em;}
-.product-list,.vendor-list,.review-list,.order-list{display:flex;flex-wrap:wrap;gap:1em;justify-content:center;margin-top:1em;}
-.product,.vendor,.review,.order{border:1px solid #28a745;border-radius:12px;padding:1em;width:280px;text-align:center;background:#fff;box-shadow:2px2px10px rgba(0,0,0,0.1);transition:0.3s;position:relative;overflow:hidden;}
-.product:hover,.vendor:hover,.review:hover,.order:hover{transform:scale(1.05);box-shadow:4px4px15px rgba(0,0,0,0.2);}
+header h1{margin:0;}
+header nav a{color:white;margin-left:1em;text-decoration:none;font-weight:bold;}
+header nav a:hover{color:#ffc107;}
+.container{padding:1em;}
+.product-list{display:flex;flex-wrap:wrap;gap:1em;justify-content:center;}
+.product{border:1px solid #28a745;border-radius:12px;padding:1em;width:220px;text-align:center;background:#fff;box-shadow:2px2px10px rgba(0,0,0,0.1);transition:0.3s;position:relative;}
+.product:hover{transform:scale(1.05);box-shadow:4px4px15px rgba(0,0,0,0.2);}
 .product img{width:100px;height:100px;object-fit:cover;margin-bottom:10px;border-radius:8px;}
-button{background:#28a745;color:white;border:none;padding:0.5em 1em;border-radius:5px;cursor:pointer;margin-top:0.5em;transition:0.3s;}
+button{background:#28a745;color:white;border:none;padding:0.5em 1em;border-radius:5px;cursor:pointer;transition:0.3s;}
 button:hover{background:#218838;}
-input,select{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;border:1px solid #ccc;}
-.order-status-pending {color: orange; font-weight: bold;}
-.order-status-shipped {color: blue; font-weight: bold;}
-.order-status-delivered {color: green; font-weight: bold;}
-.edit-input {width: 45%; margin: 0.2em 2%; padding: 0.3em;}
+.cart{position:fixed;top:70px;right:20px;background:#fff;padding:1em;border:1px solid #28a745;border-radius:8px;box-shadow:2px2px10px rgba(0,0,0,0.2);width:300px;max-height:80vh;overflow:auto;}
+.cart h3{text-align:center;margin-bottom:0.5em;}
+.cart-item{display:flex;justify-content:space-between;margin-bottom:0.5em;}
+.cart-item span{margin:0 2px;}
+input[type="number"]{width:50px;}
+.checkout-form{display:flex;flex-direction:column;margin-top:1em;}
+.checkout-form input, .checkout-form textarea{margin-bottom:0.5em;padding:0.5em;border-radius:5px;border:1px solid #ccc;}
 </style>
 </head>
 <body>
 
 <header>
 <h1>Dhamaka Shop</h1>
-<div>
-📞 Support WhatsApp: <a href="https://wa.me/01913821910" target="_blank" style="color:white;">01913821910</a>
-</div>
 <nav>
-<a href="#products" onclick="showPage('products')">Products</a>
-<a href="#reviews" onclick="showPage('reviews')">Reviews</a>
-<a href="#orders" onclick="showPage('orders')">Orders</a>
-<button onclick="toggleDarkMode()">🌙</button>
+<a href="#products" onclick="scrollToProducts()">Products</a>
+<a href="#cart" onclick="toggleCart()">Cart (<span id="cartCount">0</span>)</a>
 </nav>
 </header>
 
-<div id="products" class="page">
-<h2>Products</h2>
+<div class="container">
+<h2 style="text-align:center;">Our Products</h2>
 <div class="product-list" id="productList"></div>
 </div>
 
-<div id="reviews" class="page">
-<h2>Customer Reviews</h2>
-<div class="review-list" id="reviewList"></div>
+<div class="cart" id="cart" style="display:none;">
+<h3>Your Cart</h3>
+<div id="cartItems"></div>
+<p><b>Total: $<span id="cartTotal">0</span></b></p>
+<div class="checkout-form">
+<input type="text" id="customerName" placeholder="Your Name">
+<input type="text" id="customerPhone" placeholder="WhatsApp Number">
+<textarea id="customerAddress" placeholder="Address"></textarea>
+<button onclick="checkout()">Place Order</button>
 </div>
-
-<div id="orders" class="page">
-<h2>My Orders</h2>
-<div class="order-list" id="orderList"></div>
 </div>
 
 <script>
-// ===== DATA =====
-let products = JSON.parse(localStorage.getItem('products')||'[]');
-let reviews = JSON.parse(localStorage.getItem('reviews')||'[]');
-let orders = JSON.parse(localStorage.getItem('orders')||'[]');
+// ===== Data =====
+let products=JSON.parse(localStorage.getItem('products')||'[]');
+let orders=JSON.parse(localStorage.getItem('orders')||'[]');
+let cart=JSON.parse(localStorage.getItem('cart')||'[]');
 
-// ===== PAGE CONTROL =====
-function showPage(page){
-    document.querySelectorAll('.page').forEach(p=>p.style.display='none');
-    document.getElementById(page).style.display='block';
-    renderAll();
-}
-showPage('products');
-
-function toggleDarkMode(){ document.body.classList.toggle('dark'); }
-
-function renderAll(){ renderProducts(); renderReviews(); renderOrders(); }
-
-// ===== PRODUCTS =====
+// ===== Product Listing =====
 function renderProducts(){
     products=JSON.parse(localStorage.getItem('products')||'[]');
-    let list=document.getElementById('productList'); list.innerHTML='';
-    if(products.length===0){list.innerHTML='<p>No products yet.</p>'; return;}
+    let list=document.getElementById('productList');
+    list.innerHTML='';
+    if(products.length===0){ list.innerHTML='<p>No products available</p>'; return;}
     products.forEach(p=>{
-        let div=document.createElement('div'); div.className='product';
-        const imageUrl = p.imageURL || "https://via.placeholder.com/100?text=No+Image";
-        div.innerHTML=`<img src="${imageUrl}" alt="${p.name}">
-        <h3>${p.name}</h3>
-        <p>Category: ${p.category}</p>
-        <p>Price: $${p.price}</p>
-        <p>Stock: ${p.stock}</p>`;
+        let div=document.createElement('div');
+        div.className='product';
+        const imgURL = p.imageURL || "https://via.placeholder.com/100?text=No+Image";
+        div.innerHTML=`
+            <img src="${imgURL}" alt="${p.name}">
+            <h3>${p.name}</h3>
+            <p>Category: ${p.category}</p>
+            <p>Price: $${p.price.toFixed(2)}</p>
+            <p>Stock: ${p.stock}</p>
+            <button onclick="addToCart(${p.id})">Add to Cart</button>
+        `;
         list.appendChild(div);
     });
 }
 
-// ===== REVIEWS =====
-function renderReviews(){
-    reviews=JSON.parse(localStorage.getItem('reviews')||'[]');
-    let list=document.getElementById('reviewList'); list.innerHTML='';
-    if(reviews.length===0){list.innerHTML='<p>No reviews yet.</p>'; return;}
-    reviews.forEach(r=>{
-        let div=document.createElement('div'); div.className='review';
-        div.innerHTML=`<p><b>${r.name||r.customer}</b>: ${r.text}</p>`;
-        list.appendChild(div);
+// ===== Cart Management =====
+function saveCart(){ localStorage.setItem('cart',JSON.stringify(cart)); }
+function renderCart(){
+    let container=document.getElementById('cartItems');
+    container.innerHTML='';
+    if(cart.length===0){ container.innerHTML='<p>Your cart is empty</p>'; document.getElementById('cartTotal').innerText='0'; return;}
+    let total=0;
+    cart.forEach((item,index)=>{
+        let product=products.find(p=>p.id===item.id);
+        if(!product) return;
+        let div=document.createElement('div'); div.className='cart-item';
+        let itemTotal = product.price * item.quantity;
+        total+=itemTotal;
+        div.innerHTML=`
+            <span>${product.name} ($${product.price.toFixed(2)})</span>
+            <span>
+                Qty: <input type="number" min="1" value="${item.quantity}" onchange="updateCart(${product.id}, this.value)">
+                <button onclick="removeFromCart(${product.id})">x</button>
+            </span>
+        `;
+        container.appendChild(div);
     });
+    document.getElementById('cartTotal').innerText=total.toFixed(2);
+    document.getElementById('cartCount').innerText=cart.length;
 }
 
-// ===== ORDERS =====
-function renderOrders(){
-    orders=JSON.parse(localStorage.getItem('orders')||'[]');
-    let list=document.getElementById('orderList'); list.innerHTML='';
-    if(orders.length===0){list.innerHTML='<p>No orders yet.</p>'; return;}
-    orders.forEach(o=>{
-        let productsStr=o.products.map(p=>`${p.name} (x${p.quantity})`).join(', ');
-        let div=document.createElement('div'); div.className='order';
-        div.innerHTML=`<p><b>Order ID:</b> ${o.id}</p>
-        <p><b>Customer:</b> ${o.customerName}</p>
-        <p><b>Products:</b> ${productsStr}</p>
-        <p><b>Total:</b> $${o.total}</p>
-        <p><b>Status:</b> ${o.status}</p>`;
-        list.appendChild(div);
-    });
+function addToCart(id){
+    let item=cart.find(c=>c.id===id);
+    if(item){ item.quantity+=1; } 
+    else { cart.push({id:id,quantity:1}); }
+    saveCart(); renderCart(); alert('Product added to cart');
 }
+function updateCart(id, qty){ 
+    qty=parseInt(qty); 
+    if(qty<1) qty=1; 
+    let item=cart.find(c=>c.id===id); 
+    if(item){ item.quantity=qty; saveCart(); renderCart(); }
+}
+function removeFromCart(id){ cart=cart.filter(c=>c.id!==id); saveCart(); renderCart(); }
+function toggleCart(){ let c=document.getElementById('cart'); c.style.display=(c.style.display==='none')?'block':'none'; }
+
+function checkout(){
+    let name=document.getElementById('customerName').value.trim();
+    let phone=document.getElementById('customerPhone').value.trim();
+    let address=document.getElementById('customerAddress').value.trim();
+    if(!name || !phone || !address){ alert('Fill all checkout fields'); return;}
+    if(cart.length===0){ alert('Cart is empty'); return;}
+    let total=0;
+    let orderProducts=[];
+    cart.forEach(item=>{
+        let p=products.find(pr=>pr.id===item.id);
+        if(p){
+            orderProducts.push({id:p.id,name:p.name,price:p.price,quantity:item.quantity});
+            total+=p.price*item.quantity;
+        }
+    });
+    let newOrder={
+        id:orders.length>0?Math.max(...orders.map(o=>o.id))+1:1,
+        customerName:name,
+        customerWhatsapp:phone,
+        customerAddress:address,
+        products:orderProducts,
+        total:total,
+        date:new Date().toLocaleString(),
+        status:'Pending'
+    };
+    orders.push(newOrder);
+    localStorage.setItem('orders',JSON.stringify(orders));
+    cart=[]; saveCart(); renderCart();
+    alert('Order placed successfully! WhatsApp support: 01913821910');
+    document.getElementById('customerName').value='';
+    document.getElementById('customerPhone').value='';
+    document.getElementById('customerAddress').value='';
+}
+
+renderProducts(); renderCart();
+function scrollToProducts(){ window.scrollTo({top:150,behavior:'smooth'});}
 </script>
 
 </body>
