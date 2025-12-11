@@ -11,15 +11,25 @@ header h1{margin:0;}
 header button{padding:0.5em 1em;border:none;border-radius:5px;background:#ffc107;color:#212529;cursor:pointer;}
 .container{padding:1em;}
 input,select,textarea{width:100%;padding:0.5em;margin:0.3em 0;border-radius:5px;border:1px solid #ccc;}
-button.add,button.update,button.delete{padding:0.5em 1em;margin:0.3em;border:none;border-radius:5px;cursor:pointer;}
+button.action-btn{padding:0.5em 1em;margin:0.3em;border:none;border-radius:5px;cursor:pointer; width: 48%;}
 button.add{background:#28a745;color:white;}
 button.update{background:#007bff;color:white;}
-button.delete{background:#dc3545;color:white;}
+button.delete{background:#dc3545;color:white; width: auto;}
+button.cancel{background:#6c757d;color:white;}
 table{width:100%;border-collapse:collapse;margin-top:1em;}
 table,th,td{border:1px solid #ccc;}
 th,td{padding:0.5em;text-align:center;}
 .page{display:none;}
-img.product-img{width:50px;height:50px;border-radius:5px;}
+img.product-img{width:50px;height:50px;border-radius:5px; object-fit: cover;}
+/* Add Product form styling */
+#addProductContainer {
+    max-width: 600px;
+    margin: 1em auto;
+    padding: 1em;
+    border: 1px solid #28a745;
+    border-radius: 8px;
+    background: #e2f0e6;
+}
 </style>
 </head>
 <body>
@@ -31,35 +41,41 @@ img.product-img{width:50px;height:50px;border-radius:5px;}
 
 <div class="container">
 
-<!-- Vendor Login -->
 <div id="loginPage" class="page">
 <h2>Vendor Login</h2>
 <input type="text" id="vendorId" placeholder="Vendor ID">
 <input type="password" id="vendorPass" placeholder="Password">
-<button onclick="vendorLogin()">Login</button>
+<button class="add action-btn" onclick="vendorLogin()">Login</button>
 <p id="msg" style="color:red;"></p>
 </div>
 
-<!-- Vendor Dashboard -->
 <div id="dashboardPage" class="page">
 <h2>Welcome, <span id="vendorName"></span></h2>
 <button onclick="logout()">Logout</button>
 
-<h3>Add Product</h3>
-<input type="text" id="prodName" placeholder="Product Name">
-<input type="text" id="prodCategory" placeholder="Category">
-<input type="number" id="prodPrice" placeholder="Price">
-<input type="number" id="prodStock" placeholder="Stock Quantity">
-<input type="text" id="prodImageURL" placeholder="Product Image URL">
-<select id="prodImage">
-<option value="smartphone">Smartphone</option>
-<option value="tshirt">T-Shirt</option>
-<option value="sofa">Sofa</option>
-<option value="laptop">Laptop</option>
-<option value="jeans">Jeans</option>
-<option value="headphones">Headphones</option>
-</select>
-<button class="add" onclick="addProduct()">Add Product</button>
+<div id="addProductContainer">
+    <h3 id="formTitle">Add Product</h3>
+    <input type="hidden" id="editProductId">
+    <input type="text" id="prodName" placeholder="Product Name">
+    <input type="text" id="prodCategory" placeholder="Category">
+    <input type="number" id="prodPrice" placeholder="Price">
+    <input type="number" id="prodStock" placeholder="Stock Quantity">
+    <input type="url" id="prodImageURL" placeholder="Product Image URL (Optional)">
+    <select id="prodImage" style="display: none;">
+        <option value="smartphone">Smartphone</option>
+        <option value="tshirt">T-Shirt</option>
+        <option value="sofa">Sofa</option>
+        <option value="laptop">Laptop</option>
+        <option value="jeans">Jeans</option>
+        <option value="headphones">Headphones</option>
+    </select>
+    
+    <div id="actionButtons">
+        <button class="add action-btn" id="addProductBtn" onclick="addProduct()">Add Product</button>
+        <button class="update action-btn" id="updateProductBtn" style="display:none;" onclick="updateProduct()">Update Product</button>
+        <button class="cancel action-btn" id="cancelEditBtn" style="display:none;" onclick="resetForm()">Cancel</button>
+    </div>
+</div>
 
 <h3>My Products</h3>
 <table id="productTable">
@@ -80,107 +96,213 @@ img.product-img{width:50px;height:50px;border-radius:5px;}
 </div>
 
 <script>
+// Global state for product editing
+let editingIndex = null; 
+
+// --- Initial Data Load ---
 // Vendors Data
 let vendors = JSON.parse(localStorage.getItem("vendors")||'[]');
 if(vendors.length===0){
-  vendors.push({id:'vendor1',password:'1234',name:'Vendor One',status:'Approved'});
-  vendors.push({id:'vendor2',password:'1234',name:'Vendor Two',status:'Pending'});
-  localStorage.setItem("vendors",JSON.stringify(vendors));
+  vendors.push({id:'vendor1',password:'1234',name:'Vendor One',status:'Approved'});
+  vendors.push({id:'vendor2',password:'1234',name:'Vendor Two',status:'Pending'});
+  localStorage.setItem("vendors",JSON.stringify(vendors));
 }
 
 // Products Data
 let products = JSON.parse(localStorage.getItem('products')||'[]');
+// Note: It's crucial that products from index.html (like id:1, 2, 3...) remain here. 
+// We will assign unique IDs to vendor products.
 
-// Pages
+// --- Elements ---
 const loginPage = document.getElementById('loginPage');
 const dashboardPage = document.getElementById('dashboardPage');
+const addProductBtn = document.getElementById('addProductBtn');
+const updateProductBtn = document.getElementById('updateProductBtn');
+const cancelEditBtn = document.getElementById('cancelEditBtn');
+const formTitle = document.getElementById('formTitle');
+
 
 // Current Vendor
 let currentVendor = JSON.parse(localStorage.getItem('currentVendor')||'null');
-if(currentVendor){ showPage('dashboard'); } else { showPage('login'); }
+if(currentVendor){ 
+    showPage('dashboard'); 
+} else { 
+    showPage('login'); 
+}
 
+// --- Page Control ---
 function showPage(page){
-  loginPage.style.display = (page==='login')?'block':'none';
-  dashboardPage.style.display = (page==='dashboard')?'block':'none';
-  if(page==='dashboard'){ renderProducts(); document.getElementById('vendorName').innerText=currentVendor.name; }
+  loginPage.style.display = (page==='login')?'block':'none';
+  dashboardPage.style.display = (page==='dashboard')?'block':'none';
+  if(page==='dashboard'){ 
+    renderProducts(); 
+    document.getElementById('vendorName').innerText=currentVendor.name; 
+    resetForm(); // Reset form when dashboard loads
+  }
 }
 
+// --- Auth ---
 function vendorLogin(){
-  let id = document.getElementById('vendorId').value.trim();
-  let pass = document.getElementById('vendorPass').value.trim();
-  let v = vendors.find(v=>v.id===id && v.password===pass);
-  if(v){
-    if(v.status==='Approved'){
-      currentVendor = v;
-      localStorage.setItem('currentVendor',JSON.stringify(v));
-      showPage('dashboard');
-    } else {
-      document.getElementById('msg').innerText='Account not approved yet. Contact WhatsApp: 01913821910';
-    }
-  } else { document.getElementById('msg').innerText='Invalid ID or Password'; }
+  let id = document.getElementById('vendorId').value.trim();
+  let pass = document.getElementById('vendorPass').value.trim();
+  let v = vendors.find(v=>v.id===id && v.password===pass);
+  if(v){
+    if(v.status==='Approved'){
+      currentVendor = v;
+      localStorage.setItem('currentVendor',JSON.stringify(v));
+      showPage('dashboard');
+    } else {
+      document.getElementById('msg').innerText='Account not approved yet. Contact WhatsApp: 01913821910';
+    }
+  } else { document.getElementById('msg').innerText='Invalid ID or Password'; }
 }
 
-// Logout
-function logout(){ localStorage.removeItem('currentVendor'); currentVendor=null; showPage('login'); }
+function logout(){ 
+    localStorage.removeItem('currentVendor'); 
+    currentVendor=null; 
+    showPage('login'); 
+}
 
-// Products
+// --- Product Management Helpers ---
+
+function generateProductId() {
+    // Generate a unique ID higher than any existing product ID (including those from index.html)
+    return products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1;
+}
+
+function resetForm() {
+    document.getElementById('prodName').value = '';
+    document.getElementById('prodCategory').value = '';
+    document.getElementById('prodPrice').value = '';
+    document.getElementById('prodStock').value = '';
+    document.getElementById('prodImageURL').value = '';
+    
+    // Switch to Add Mode
+    editingIndex = null;
+    formTitle.innerText = 'Add Product';
+    addProductBtn.style.display = 'block';
+    updateProductBtn.style.display = 'none';
+    cancelEditBtn.style.display = 'none';
+}
+
+// --- Product CRUD ---
+
 function renderProducts(){
-  let tbody = document.querySelector('#productTable tbody');
-  tbody.innerHTML='';
-  products.forEach((p,i)=>{
-    if(p.vendorId===currentVendor.id){
-      let tr = document.createElement('tr');
-      let imgURL = p.imageURL || `https://via.placeholder.com/50?text=${p.image}`;
-      tr.innerHTML=`<td>${p.name}</td>
-                    <td>${p.category}</td>
-                    <td>${p.price}</td>
-                    <td>${p.stock}</td>
-                    <td><img class='product-img' src='${imgURL}'></td>
-                    <td>
-                    <button class="update" onclick="editProduct(${i})">Edit</button>
-                    <button class="delete" onclick="deleteProduct(${i})">Delete</button>
-                    </td>`;
-      tbody.appendChild(tr);
-    }
-  });
+  let tbody = document.querySelector('#productTable tbody');
+  tbody.innerHTML='';
+  
+  // Only display products owned by the current vendor
+  products.forEach((p,i)=>{
+    if(p.vendorId===currentVendor.id){
+      let tr = document.createElement('tr');
+      // Use imageURL if available, otherwise use a placeholder
+      let imgURL = p.imageURL || `https://via.placeholder.com/50?text=${p.name[0]}`; 
+      tr.innerHTML=`<td>${p.name}</td>
+                    <td>${p.category}</td>
+                    <td>$${p.price.toFixed(2)}</td>
+                    <td>${p.stock}</td>
+                    <td><img class='product-img' src='${imgURL}' alt='${p.name}'></td>
+                    <td>
+                    <button class="update" onclick="editProduct(${i})">Edit</button>
+                    <button class="delete" onclick="deleteProduct(${i})">Delete</button>
+                    </td>`;
+      tbody.appendChild(tr);
+    }
+  });
 }
 
 function addProduct(){
-  let name = document.getElementById('prodName').value.trim();
-  let category = document.getElementById('prodCategory').value.trim();
-  let price = parseFloat(document.getElementById('prodPrice').value);
-  let stock = parseInt(document.getElementById('prodStock').value);
-  let image = document.getElementById('prodImage').value;
-  let imageURL = document.getElementById('prodImageURL').value.trim();
-  if(!name||!category||isNaN(price)||isNaN(stock)){ alert("Fill all fields"); return; }
-  products.push({name,category,price,stock,image,imageURL,vendorId:currentVendor.id});
-  localStorage.setItem('products',JSON.stringify(products));
-  renderProducts();
-  document.getElementById('prodName').value='';
-  document.getElementById('prodCategory').value='';
-  document.getElementById('prodPrice').value='';
-  document.getElementById('prodStock').value='';
-  document.getElementById('prodImageURL').value='';
+  let name = document.getElementById('prodName').value.trim();
+  let category = document.getElementById('prodCategory').value.trim();
+  let price = parseFloat(document.getElementById('prodPrice').value);
+  let stock = parseInt(document.getElementById('prodStock').value);
+  let imageURL = document.getElementById('prodImageURL').value.trim();
+  
+  if(!name || !category || isNaN(price) || price <= 0 || isNaN(stock) || stock < 0){ 
+    alert("Please fill all fields correctly. Price must be > 0 and Stock >= 0."); 
+    return; 
+  }
+  
+  const newProduct = {
+    id: generateProductId(), // Assign a new unique ID
+    name,
+    category,
+    price,
+    stock,
+    image: imageURL ? name[0].toUpperCase() : 'N/A', // Simple placeholder or N/A
+    imageURL: imageURL,
+    vendorId: currentVendor.id
+  };
+  
+  products.push(newProduct);
+  localStorage.setItem('products',JSON.stringify(products));
+  renderProducts();
+  resetForm(); // Clear fields after successful addition
 }
 
 function editProduct(i){
-  let p = products[i];
-  if(p.vendorId!==currentVendor.id){ alert("Not your product"); return; }
-  document.getElementById('prodName').value = p.name;
-  document.getElementById('prodCategory').value = p.category;
-  document.getElementById('prodPrice').value = p.price;
-  document.getElementById('prodStock').value = p.stock;
-  document.getElementById('prodImage').value = p.image;
-  document.getElementById('prodImageURL').value = p.imageURL || '';
-  products.splice(i,1);
-  localStorage.setItem('products',JSON.stringify(products));
+  // Set global index for updateProduct to use
+  editingIndex = i; 
+  let p = products[i];
+  
+  if(p.vendorId!==currentVendor.id){ alert("Not your product"); return; }
+  
+  // Load data into form
+  document.getElementById('prodName').value = p.name;
+  document.getElementById('prodCategory').value = p.category;
+  document.getElementById('prodPrice').value = p.price;
+  document.getElementById('prodStock').value = p.stock;
+  document.getElementById('prodImageURL').value = p.imageURL || '';
+  
+  // Switch to Edit Mode UI
+  formTitle.innerText = `Edit Product: ${p.name}`;
+  addProductBtn.style.display = 'none';
+  updateProductBtn.style.display = 'block';
+  cancelEditBtn.style.display = 'inline-block';
 }
 
+function updateProduct(){
+    if (editingIndex === null) {
+        alert("Error: No product selected for editing.");
+        return;
+    }
+    
+    // Retrieve new values
+    let name = document.getElementById('prodName').value.trim();
+    let category = document.getElementById('prodCategory').value.trim();
+    let price = parseFloat(document.getElementById('prodPrice').value);
+    let stock = parseInt(document.getElementById('prodStock').value);
+    let imageURL = document.getElementById('prodImageURL').value.trim();
+    
+    if(!name || !category || isNaN(price) || price <= 0 || isNaN(stock) || stock < 0){ 
+        alert("Please fill all fields correctly. Price must be > 0 and Stock >= 0."); 
+        return; 
+    }
+
+    // Update the product object at editingIndex
+    let p = products[editingIndex];
+    p.name = name;
+    p.category = category;
+    p.price = price;
+    p.stock = stock;
+    p.imageURL = imageURL;
+    
+    // Update local storage
+    localStorage.setItem('products', JSON.stringify(products));
+    alert(`Product ID ${p.id} updated successfully!`);
+    renderProducts();
+    resetForm(); // Clear form and switch back to Add Mode
+}
+
+
 function deleteProduct(i){
-  if(products[i].vendorId!==currentVendor.id){ alert("Not your product"); return; }
-  products.splice(i,1);
-  localStorage.setItem('products',JSON.stringify(products));
-  renderProducts();
+  if(products[i].vendorId!==currentVendor.id){ alert("Not your product"); return; }
+  if(confirm(`Are you sure you want to delete ${products[i].name}?`)){
+    products.splice(i,1);
+    localStorage.setItem('products',JSON.stringify(products));
+    renderProducts();
+    resetForm(); // Ensure form resets if a deleted item was being edited
+  }
 }
 </script>
 
