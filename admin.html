@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dhamaka Admin Panel</title>
 <style>
+/* CSS: আপনার দেওয়া পুরোনো স্টাইল অপরিবর্তিত আছে */
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:Arial,sans-serif;background:#f8f9fa;color:#333;transition:0.3s;}
 body.dark{background:#121212;color:#ddd;}
@@ -29,14 +30,13 @@ input,select{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;border:1px
 <nav>
 <a href="#dashboard" onclick="showPage('dashboard')">Dashboard</a>
 <a href="#products" onclick="showPage('products')">Products</a>
-<a href="#vendors" onclick="showPage('vendors')">Vendors</a>
 <a href="#reviews" onclick="showPage('reviews')">Reviews</a>
 <a href="#orders" onclick="showPage('orders')">Orders</a>
+<a href="index.html" target="_blank">View Shop</a>
 <button onclick="toggleDarkMode()">🌙</button>
 </nav>
 </header>
 
-<!-- Pages -->
 <div id="loginPage" class="page">
 <h2>Admin Login</h2>
 <input type="password" id="adminPassword" placeholder="Enter Password">
@@ -54,13 +54,24 @@ input,select{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;border:1px
 </div>
 
 <div id="products" class="page">
-<h2>Products</h2>
-<div class="product-list" id="productList"></div>
+<h2>Products Management</h2>
+<div id="addProductContainer" style="max-width:600px; margin:1em auto; border:1px solid #28a745; padding:1em; border-radius:12px; background:#e2f0e6;">
+    <h3>নতুন পণ্য যোগ করুন (Add New Product)</h3>
+    <input type="text" id="pName" placeholder="Product Name (পণ্যের নাম)">
+    <select id="pCategory">
+        <option value="Electronics">Electronics</option>
+        <option value="Apparel">Apparel</option>
+        <option value="Furniture">Furniture</option>
+        <option value="Groceries">Groceries</option>
+        <option value="Other">Other</option>
+    </select>
+    <input type="number" id="pPrice" placeholder="Price (দাম)">
+    <input type="number" id="pStock" placeholder="Stock (স্টক)">
+    <input type="text" id="pBadge" placeholder="Badge (যেমন: New, Sale) (Optional)">
+    <input type="url" id="pImageURL" placeholder="Image URL (ছবির লিঙ্ক)"> 
+    <button onclick="addProduct()">পণ্যটি যোগ করুন (Add Product)</button>
 </div>
-
-<div id="vendors" class="page">
-<h2>Vendors</h2>
-<div class="vendor-list" id="vendorList"></div>
+<div class="product-list" id="productList"></div>
 </div>
 
 <div id="reviews" class="page">
@@ -77,32 +88,28 @@ input,select{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;border:1px
 // ===== DATA =====
 let adminLoggedIn=false;
 let products=JSON.parse(localStorage.getItem('products')||'[]');
-let vendors=JSON.parse(localStorage.getItem('vendors')||'[]');
 let reviews=JSON.parse(localStorage.getItem('reviews')||'[]');
 let orders=JSON.parse(localStorage.getItem('orders')||'[]');
 
-// ===== PAGE CONTROL =====
+// ===== PAGE CONTROL & LOGIN =====
 function showPage(page){
     if(!adminLoggedIn && page!=='loginPage'){alert('Login required'); return;}
     document.querySelectorAll('.page').forEach(p=>p.style.display='none');
     document.getElementById(page).style.display='block';
     renderAll();
 }
-
 showPage('loginPage');
 
 function adminLogin(){
     let pass=document.getElementById('adminPassword').value;
-    if(pass==='NAFIS128'){
+    if(pass==='NAFIS128'){ // আপনার দেওয়া পাসওয়ার্ড
         adminLoggedIn=true;
         showPage('dashboard');
     }else{
         document.getElementById('loginMsg').innerText='Wrong Password';
     }
 }
-
 function toggleDarkMode(){ document.body.classList.toggle('dark'); }
-
 function applyTheme(){
     document.body.style.background=document.getElementById('bgColor').value;
     document.body.style.color=document.getElementById('textColor').value;
@@ -111,78 +118,115 @@ function applyTheme(){
         b.style.color=document.getElementById('btnTextColor').value;
     });
 }
+function renderAll(){ renderProducts(); renderReviews(); renderOrders(); }
 
-function renderAll(){ renderProducts(); renderVendors(); renderReviews(); renderOrders(); }
+// ===== PRODUCTS MANAGEMENT (যোগ এবং মুছে ফেলার জন্য আপডেট করা হয়েছে) =====
 
-// ===== PRODUCTS =====
+function generateProductId() {
+    return products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1;
+}
+
+function addProduct() {
+    const name = document.getElementById('pName').value;
+    const category = document.getElementById('pCategory').value;
+    const price = Number(document.getElementById('pPrice').value);
+    const stock = Number(document.getElementById('pStock').value);
+    const badge = document.getElementById('pBadge').value || null;
+    const image = document.getElementById('pImageURL').value; 
+
+    if (!name || !price || !stock || !image){ 
+        alert("দয়া করে পণ্যের নাম, দাম, স্টক এবং ছবির লিঙ্ক দিন।"); 
+        return; 
+    }
+    
+    const newProduct = {
+        id: generateProductId(),
+        name: name,
+        category: category,
+        price: price,
+        stock: stock,
+        rating: 5, // Default rating
+        badge: badge,
+        image: image 
+    };
+
+    products.push(newProduct);
+    localStorage.setItem('products', JSON.stringify(products));
+    
+    // ফর্ম খালি করা
+    document.getElementById('pName').value = '';
+    document.getElementById('pPrice').value = '';
+    document.getElementById('pStock').value = '';
+    document.getElementById('pBadge').value = '';
+    document.getElementById('pImageURL').value = '';
+    
+    alert(`পণ্য "${name}" সফলভাবে যোগ করা হয়েছে!`);
+    renderProducts();
+}
+
 function renderProducts(){
+    // নিশ্চিত করুন যে ডেটা store থেকে লোড হয়েছে
+    products=JSON.parse(localStorage.getItem('products')||'[]');
+    
     let list=document.getElementById('productList'); list.innerHTML='';
-    if(products.length===0){list.innerHTML='<p>No products</p>'; return;}
+    if(products.length===0){list.innerHTML='<p>কোনো পণ্য নেই</p>'; return;}
+    
     products.forEach((p,i)=>{
         let div=document.createElement('div'); div.className='product';
-        div.innerHTML=`<h3>${p.name}</h3>
+        div.innerHTML=`
+        <img src="${p.image}" alt="${p.name}" style="width:100px; height:100px; object-fit:cover; margin-bottom:10px; border-radius:8px;">
+        <h3>${p.name}</h3>
         <p>Category: ${p.category}</p>
         <p>Price: $${p.price}</p>
         <p>Stock: ${p.stock}</p>
-        <p>Image URL: ${p.image}</p>
-        <button onclick="deleteProduct(${i})">Delete</button>`;
+        <button onclick="deleteProduct(${i})">মুছে ফেলুন (Delete)</button>`;
         list.appendChild(div);
     });
 }
 
-function deleteProduct(i){products.splice(i,1); localStorage.setItem('products',JSON.stringify(products)); renderProducts();}
-
-// ===== VENDORS =====
-function renderVendors(){
-    let list=document.getElementById('vendorList'); list.innerHTML='';
-    if(vendors.length===0){list.innerHTML='<p>No vendors</p>'; return;}
-    vendors.forEach((v,i)=>{
-        let div=document.createElement('div'); div.className='vendor';
-        div.innerHTML=`<h3>${v.username||v.id}</h3>
-        <p>Status: ${v.status}</p>
-        <p>WhatsApp: ${v.whatsapp||'-'}</p>
-        <button onclick="approveVendor(${i})">Approve</button>
-        <button onclick="denyVendor(${i})">Deny</button>`;
-        list.appendChild(div);
-    });
+function deleteProduct(i){
+    if(confirm(`আপনি কি নিশ্চিত যে পণ্যটি মুছে ফেলবেন: ${products[i].name}?`)){
+        products.splice(i,1); 
+        localStorage.setItem('products',JSON.stringify(products)); 
+        renderProducts();
+    }
 }
 
-function approveVendor(i){vendors[i].status='Approved'; localStorage.setItem('vendors',JSON.stringify(vendors)); renderVendors();}
-function denyVendor(i){vendors[i].status='Denied'; localStorage.setItem('vendors',JSON.stringify(vendors)); renderVendors();}
-
-// ===== REVIEWS =====
+// ===== REVIEWS (অপরিবর্তিত) =====
 function renderReviews(){
+    reviews=JSON.parse(localStorage.getItem('reviews')||'[]');
     let list=document.getElementById('reviewList'); list.innerHTML='';
     if(reviews.length===0){list.innerHTML='<p>No reviews</p>'; return;}
     reviews.forEach((r,i)=>{
         let div=document.createElement('div'); div.className='review';
-        div.innerHTML=`<p><b>${r.customer}</b>: ${r.text}</p>
+        div.innerHTML=`<p><b>${r.name||r.customer}</b>: ${r.text}</p>
         <button onclick="deleteReview(${i})">Delete</button>`;
         list.appendChild(div);
     });
 }
-
 function deleteReview(i){reviews.splice(i,1); localStorage.setItem('reviews',JSON.stringify(reviews)); renderReviews();}
 
-// ===== ORDERS =====
+// ===== ORDERS (অর্ডার ম্যানেজমেন্টের জন্য আপডেট করা হয়েছে) =====
 function renderOrders(){
+    orders=JSON.parse(localStorage.getItem('orders')||'[]');
     let list=document.getElementById('orderList'); list.innerHTML='';
     if(orders.length===0){ list.innerHTML='<p>No orders yet</p>'; return;}
     orders.forEach((o,i)=>{
         let div=document.createElement('div'); div.className='order';
-        let productsStr=o.products.map(p=>`${p.name} ($${p.price})`).join(', ');
+        let productsStr=o.products.map(p=>`${p.name} (x${p.quantity})`).join(', ');
         div.innerHTML=`<p><b>Customer:</b> ${o.customerName}</p>
         <p><b>WhatsApp:</b> ${o.customerWhatsapp}</p>
         <p><b>Address:</b> ${o.customerAddress}</p>
         <p><b>Products:</b> ${productsStr}</p>
         <p><b>Total:</b> $${o.total}</p>
         <p><b>Date:</b> ${o.date}</p>
+        <p><b>Status:</b> ${o.status}</p>
         <button onclick="deleteOrder(${i})">Delete</button>`;
         list.appendChild(div);
     });
 }
-
 function deleteOrder(i){orders.splice(i,1); localStorage.setItem('orders',JSON.stringify(orders)); renderOrders();}
+
 </script>
 </body>
 </html>
