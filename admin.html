@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dhamaka Admin Panel</title>
 <style>
-/* CSS: আপনার দেওয়া পুরোনো স্টাইল অপরিবর্তিত আছে */
+/* CSS: আপনার দেওয়া পুরোনো স্টাইল অপরিবর্তিত আছে */
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:Arial,sans-serif;background:#f8f9fa;color:#333;transition:0.3s;}
 body.dark{background:#121212;color:#ddd;}
@@ -15,12 +15,18 @@ nav a{color:white;margin-left:1em;text-decoration:none;font-weight:bold;transiti
 nav a:hover{text-decoration:underline;color:#ffc107;}
 nav button{margin-left:1em;cursor:pointer;}
 .page{display:none;padding:1em;}
+h2, h3 {text-align: center; margin-bottom: 0.5em;}
 .product-list,.vendor-list,.review-list,.order-list{display:flex;flex-wrap:wrap;gap:1em;justify-content:center;margin-top:1em;}
-.product,.vendor,.review,.order{border:1px solid #28a745;border-radius:12px;padding:1em;width:250px;text-align:center;background:#fff;box-shadow:2px2px10px rgba(0,0,0,0.1);transition:0.3s;position:relative;overflow:hidden;}
+.product,.vendor,.review,.order{border:1px solid #28a745;border-radius:12px;padding:1em;width:280px;text-align:center;background:#fff;box-shadow:2px2px10px rgba(0,0,0,0.1);transition:0.3s;position:relative;overflow:hidden;}
 .product:hover,.vendor:hover,.review:hover,.order:hover{transform:scale(1.05);box-shadow:4px4px15px rgba(0,0,0,0.2);}
+.product img{width:100px; height:100px; object-fit:cover; margin-bottom:10px; border-radius:8px;} /* Added for product list image */
 button{background:#28a745;color:white;border:none;padding:0.5em 1em;border-radius:5px;cursor:pointer;margin-top:0.5em;transition:0.3s;}
 button:hover{background:#218838;}
 input,select{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;border:1px solid #ccc;}
+.order-status-pending {color: orange; font-weight: bold;}
+.order-status-shipped {color: blue; font-weight: bold;}
+.order-status-delivered {color: green; font-weight: bold;}
+.edit-input {width: 45%; margin: 0.2em 2%; padding: 0.3em;}
 </style>
 </head>
 <body>
@@ -47,46 +53,60 @@ input,select{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;border:1px
 <div id="dashboard" class="page">
 <h2>Dashboard</h2>
 <p>Welcome, Admin!</p>
-<label>Background Color: <input type="color" id="bgColor" onchange="applyTheme()"></label>
-<label>Text Color: <input type="color" id="textColor" onchange="applyTheme()"></label>
-<label>Button Color: <input type="color" id="btnColor" onchange="applyTheme()"></label>
-<label>Button Text Color: <input type="color" id="btnTextColor" onchange="applyTheme()"></label>
+<h3>Theme Customization</h3>
+<div style="max-width: 400px; margin: 0 auto; padding: 1em; border: 1px solid #ccc; border-radius: 8px;">
+    <label style="display: block;">Background Color: <input type="color" id="bgColor" onchange="applyTheme()"></label>
+    <label style="display: block;">Text Color: <input type="color" id="textColor" onchange="applyTheme()"></label>
+    <label style="display: block;">Button Color: <input type="color" id="btnColor" onchange="applyTheme()"></label>
+    <label style="display: block;">Button Text Color: <input type="color" id="btnTextColor" onchange="applyTheme()"></label>
+</div>
 </div>
 
 <div id="products" class="page">
-<h2>Products Management</h2>
-<div id="addProductContainer" style="max-width:600px; margin:1em auto; border:1px solid #28a745; padding:1em; border-radius:12px; background:#e2f0e6;">
-    <h3>নতুন পণ্য যোগ করুন (Add New Product)</h3>
-    <input type="text" id="pName" placeholder="Product Name (পণ্যের নাম)">
-    <select id="pCategory">
-        <option value="Electronics">Electronics</option>
-        <option value="Apparel">Apparel</option>
-        <option value="Furniture">Furniture</option>
-        <option value="Groceries">Groceries</option>
-        <option value="Other">Other</option>
-    </select>
-    <input type="number" id="pPrice" placeholder="Price (দাম)">
-    <input type="number" id="pStock" placeholder="Stock (স্টক)">
-    <input type="text" id="pBadge" placeholder="Badge (যেমন: New, Sale) (Optional)">
-    <input type="url" id="pImageURL" placeholder="Image URL (ছবির লিঙ্ক)"> 
-    <button onclick="addProduct()">পণ্যটি যোগ করুন (Add Product)</button>
-</div>
-<div class="product-list" id="productList"></div>
+    <h2>Products Management</h2>
+    
+    <div id="addProductContainer" style="max-width:600px; margin:1em auto; border:1px solid #28a745; padding:1em; border-radius:12px; background:#e2f0e6;">
+        <h3>নতুন পণ্য যোগ করুন (Add New Product)</h3>
+        <input type="text" id="pName" placeholder="Product Name (পণ্যের নাম)">
+        <select id="pCategory">
+            <option value="Electronics">Electronics</option>
+            <option value="Apparel">Apparel</option>
+            <option value="Furniture">Furniture</option>
+            <option value="Groceries">Groceries</option>
+            <option value="Other">Other</option>
+        </select>
+        <input type="number" id="pPrice" placeholder="Price (দাম)">
+        <input type="number" id="pStock" placeholder="Stock (স্টক)">
+        <input type="text" id="pBadge" placeholder="Badge (যেমন: New, Sale) (Optional)">
+        <input type="url" id="pImageURL" placeholder="Image URL (ছবির লিঙ্ক)"> 
+        <button onclick="addProduct()">পণ্যটি যোগ করুন (Add Product)</button>
+    </div>
+    
+    <div class="product-list" id="productList"></div>
 </div>
 
 <div id="reviews" class="page">
-<h2>Customer Reviews</h2>
-<div class="review-list" id="reviewList"></div>
+    <h2>Customer Reviews</h2>
+    <div class="review-list" id="reviewList"></div>
 </div>
 
 <div id="orders" class="page">
-<h2>Orders</h2>
-<div class="order-list" id="orderList"></div>
+    <h2>Orders</h2>
+    <div style="text-align: center; margin-bottom: 1em;">
+        <select id="orderStatusFilter" onchange="renderOrders()">
+            <option value="All">Filter by Status (All)</option>
+            <option value="Pending">Pending</option>
+            <option value="Shipped">Shipped</option>
+            <option value="Delivered">Delivered</option>
+        </select>
+    </div>
+    <div class="order-list" id="orderList"></div>
 </div>
 
 <script>
 // ===== DATA =====
 let adminLoggedIn=false;
+// লোকাল স্টোরেজ থেকে ডেটা লোড করা
 let products=JSON.parse(localStorage.getItem('products')||'[]');
 let reviews=JSON.parse(localStorage.getItem('reviews')||'[]');
 let orders=JSON.parse(localStorage.getItem('orders')||'[]');
@@ -102,7 +122,7 @@ showPage('loginPage');
 
 function adminLogin(){
     let pass=document.getElementById('adminPassword').value;
-    if(pass==='NAFIS128'){ // আপনার দেওয়া পাসওয়ার্ড
+    if(pass==='NAFIS128'){ // আপনার দেওয়া পাসওয়ার্ড
         adminLoggedIn=true;
         showPage('dashboard');
     }else{
@@ -120,9 +140,10 @@ function applyTheme(){
 }
 function renderAll(){ renderProducts(); renderReviews(); renderOrders(); }
 
-// ===== PRODUCTS MANAGEMENT (যোগ এবং মুছে ফেলার জন্য আপডেট করা হয়েছে) =====
+// ===== PRODUCTS MANAGEMENT (যোগ, মুছে ফেলা এবং সম্পাদনা) =====
 
 function generateProductId() {
+    // উচ্চতম ID খুঁজে বের করে তার সাথে 1 যোগ করা
     return products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1;
 }
 
@@ -132,11 +153,11 @@ function addProduct() {
     const price = Number(document.getElementById('pPrice').value);
     const stock = Number(document.getElementById('pStock').value);
     const badge = document.getElementById('pBadge').value || null;
-    const image = document.getElementById('pImageURL').value; 
+    const image = document.getElementById('pImageURL').value; 
 
-    if (!name || !price || !stock || !image){ 
-        alert("দয়া করে পণ্যের নাম, দাম, স্টক এবং ছবির লিঙ্ক দিন।"); 
-        return; 
+    if (!name || !price || !stock || !image || price <= 0 || stock < 0){ 
+        alert("দয়া করে সঠিক তথ্য দিন (নাম, দাম > 0, স্টক ≥ 0, এবং ছবির লিঙ্ক)।"); 
+        return; 
     }
     
     const newProduct = {
@@ -145,9 +166,9 @@ function addProduct() {
         category: category,
         price: price,
         stock: stock,
-        rating: 5, // Default rating
+        rating: 5, 
         badge: badge,
-        image: image 
+        image: image 
     };
 
     products.push(newProduct);
@@ -160,12 +181,12 @@ function addProduct() {
     document.getElementById('pBadge').value = '';
     document.getElementById('pImageURL').value = '';
     
-    alert(`পণ্য "${name}" সফলভাবে যোগ করা হয়েছে!`);
+    alert(`পণ্য "${name}" সফলভাবে যোগ করা হয়েছে!`);
     renderProducts();
 }
 
 function renderProducts(){
-    // নিশ্চিত করুন যে ডেটা store থেকে লোড হয়েছে
+    // নিশ্চিত করুন যে ডেটা store থেকে লোড হয়েছে
     products=JSON.parse(localStorage.getItem('products')||'[]');
     
     let list=document.getElementById('productList'); list.innerHTML='';
@@ -174,20 +195,44 @@ function renderProducts(){
     products.forEach((p,i)=>{
         let div=document.createElement('div'); div.className='product';
         div.innerHTML=`
-        <img src="${p.image}" alt="${p.name}" style="width:100px; height:100px; object-fit:cover; margin-bottom:10px; border-radius:8px;">
-        <h3>${p.name}</h3>
+        <img src="${p.image}" alt="${p.name}">
+        <h3>${p.name} (ID: ${p.id})</h3>
         <p>Category: ${p.category}</p>
-        <p>Price: $${p.price}</p>
-        <p>Stock: ${p.stock}</p>
-        <button onclick="deleteProduct(${i})">মুছে ফেলুন (Delete)</button>`;
+        <p>Current Price: $${p.price}</p>
+        <p>Current Stock: ${p.stock}</p>
+        
+        <input type="number" id="priceEdit${p.id}" value="${p.price}" class="edit-input" placeholder="New Price">
+        <input type="number" id="stockEdit${p.id}" value="${p.stock}" class="edit-input" placeholder="New Stock">
+        
+        <button onclick="editProduct(${p.id})">Update Price/Stock</button>
+        <button onclick="deleteProduct(${i})" style="background: red;">মুছে ফেলুন (Delete)</button>`;
         list.appendChild(div);
     });
 }
 
+function editProduct(productId) {
+    const newPrice = Number(document.getElementById(`priceEdit${productId}`).value);
+    const newStock = Number(document.getElementById(`stockEdit${productId}`).value);
+
+    if (isNaN(newPrice) || newPrice <= 0 || isNaN(newStock) || newStock < 0) {
+        alert("দয়া করে সঠিক দাম (> 0) এবং স্টক (≥ 0) লিখুন।");
+        return;
+    }
+
+    const index = products.findIndex(p => p.id === productId);
+    if (index !== -1) {
+        products[index].price = newPrice;
+        products[index].stock = newStock;
+        localStorage.setItem('products', JSON.stringify(products));
+        alert(`পণ্য ID ${productId} সফলভাবে আপডেট হয়েছে।`);
+        renderProducts();
+    }
+}
+
 function deleteProduct(i){
     if(confirm(`আপনি কি নিশ্চিত যে পণ্যটি মুছে ফেলবেন: ${products[i].name}?`)){
-        products.splice(i,1); 
-        localStorage.setItem('products',JSON.stringify(products)); 
+        products.splice(i,1); 
+        localStorage.setItem('products',JSON.stringify(products)); 
         renderProducts();
     }
 }
@@ -200,33 +245,79 @@ function renderReviews(){
     reviews.forEach((r,i)=>{
         let div=document.createElement('div'); div.className='review';
         div.innerHTML=`<p><b>${r.name||r.customer}</b>: ${r.text}</p>
-        <button onclick="deleteReview(${i})">Delete</button>`;
+        <button onclick="deleteReview(${i})" style="background: red;">Delete</button>`;
         list.appendChild(div);
     });
 }
 function deleteReview(i){reviews.splice(i,1); localStorage.setItem('reviews',JSON.stringify(reviews)); renderReviews();}
 
-// ===== ORDERS (অর্ডার ম্যানেজমেন্টের জন্য আপডেট করা হয়েছে) =====
+// ===== ORDERS (অর্ডার ম্যানেজমেন্টের জন্য আপডেট করা হয়েছে) =====
 function renderOrders(){
     orders=JSON.parse(localStorage.getItem('orders')||'[]');
     let list=document.getElementById('orderList'); list.innerHTML='';
-    if(orders.length===0){ list.innerHTML='<p>No orders yet</p>'; return;}
-    orders.forEach((o,i)=>{
-        let div=document.createElement('div'); div.className='order';
+    
+    const filterStatus = document.getElementById('orderStatusFilter').value;
+    let filteredOrders = orders;
+
+    if (filterStatus !== 'All') {
+        filteredOrders = orders.filter(o => o.status === filterStatus);
+    }
+    
+    // Sort by Pending first, then Shipped, then Delivered (or by date if all same status)
+    filteredOrders.sort((a, b) => {
+        const statusOrder = { "Pending": 1, "Shipped": 2, "Delivered": 3 };
+        return statusOrder[a.status] - statusOrder[b.status];
+    });
+
+    if(filteredOrders.length===0){ list.innerHTML='<p>No orders yet for this status.</p>'; return;}
+    
+    filteredOrders.forEach((o,i)=>{
+        // Original index needed to update/delete
+        const originalIndex = orders.findIndex(item => item.id === o.id);
+
         let productsStr=o.products.map(p=>`${p.name} (x${p.quantity})`).join(', ');
-        div.innerHTML=`<p><b>Customer:</b> ${o.customerName}</p>
-        <p><b>WhatsApp:</b> ${o.customerWhatsapp}</p>
-        <p><b>Address:</b> ${o.customerAddress}</p>
-        <p><b>Products:</b> ${productsStr}</p>
-        <p><b>Total:</b> $${o.total}</p>
-        <p><b>Date:</b> ${o.date}</p>
-        <p><b>Status:</b> ${o.status}</p>
-        <button onclick="deleteOrder(${i})">Delete</button>`;
+        
+        let statusClass = `order-status-${o.status.toLowerCase()}`;
+        
+        let div=document.createElement('div'); div.className='order';
+        div.innerHTML=`
+            <p><b>Order ID:</b> ${o.id}</p>
+            <p><b>Customer:</b> ${o.customerName}</p>
+            <p><b>WhatsApp:</b> ${o.customerWhatsapp}</p>
+            <p><b>Address:</b> ${o.customerAddress}</p>
+            <p><b>Products:</b> ${productsStr}</p>
+            <p><b>Total:</b> $${o.total}</p>
+            <p><b>Date:</b> ${o.date}</p>
+            <p><b>Current Status:</b> <span class="${statusClass}">${o.status}</span></p>
+            
+            <select onchange="updateOrderStatus(${originalIndex}, this.value)">
+                <option value="${o.status}">${o.status} (Select New)</option>
+                <option value="Pending">Pending</option>
+                <option value="Shipped">Shipped</option>
+                <option value="Delivered">Delivered</option>
+            </select>
+            
+            <button onclick="deleteOrder(${originalIndex})" style="background: red;">Delete Order</button>`;
         list.appendChild(div);
     });
 }
-function deleteOrder(i){orders.splice(i,1); localStorage.setItem('orders',JSON.stringify(orders)); renderOrders();}
 
+function updateOrderStatus(i, newStatus) {
+    if (orders[i].status === newStatus) return; // No change
+
+    orders[i].status = newStatus;
+    localStorage.setItem('orders', JSON.stringify(orders));
+    alert(`Order ID ${orders[i].id} status updated to ${newStatus}`);
+    renderOrders(); // Re-render to show updated status
+}
+
+function deleteOrder(i){
+    if(confirm(`আপনি কি নিশ্চিত যে অর্ডার ID ${orders[i].id} মুছে ফেলবেন?`)){
+        orders.splice(i,1); 
+        localStorage.setItem('orders',JSON.stringify(orders)); 
+        renderOrders();
+    }
+}
 </script>
 </body>
 </html>
