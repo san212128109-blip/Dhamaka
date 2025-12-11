@@ -5,72 +5,123 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dhamaka Shop</title>
 <style>
-body{font-family:Arial,sans-serif;background:#f8f9fa;color:#212529;margin:0;padding:0;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:Arial,sans-serif;background:#f8f9fa;color:#333;transition:0.3s;}
+body.dark{background:#121212;color:#ddd;}
 header{background:#28a745;color:white;padding:1em;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;}
-header h1{margin:0;}
-nav a{color:white;margin-left:1em;text-decoration:none;font-weight:bold;}
-nav a:hover{color:#ffc107;}
-.container{padding:1em;}
-.product-list{display:flex;flex-wrap:wrap;gap:1em;justify-content:center;margin-top:1em;}
-.product{border:1px solid #28a745;border-radius:12px;padding:1em;width:200px;text-align:center;background:#fff;box-shadow:2px2px10px rgba(0,0,0,0.1);}
+header h1{margin:0;font-size:1.5em;}
+header div{font-size:0.9em;}
+nav a{color:white;margin-left:1em;text-decoration:none;font-weight:bold;transition:0.3s;}
+nav a:hover{text-decoration:underline;color:#ffc107;}
+nav button{margin-left:1em;cursor:pointer;}
+.page{display:none;padding:1em;}
+h2,h3{text-align:center;margin-bottom:0.5em;}
+.product-list,.vendor-list,.review-list,.order-list{display:flex;flex-wrap:wrap;gap:1em;justify-content:center;margin-top:1em;}
+.product,.vendor,.review,.order{border:1px solid #28a745;border-radius:12px;padding:1em;width:280px;text-align:center;background:#fff;box-shadow:2px2px10px rgba(0,0,0,0.1);transition:0.3s;position:relative;overflow:hidden;}
+.product:hover,.vendor:hover,.review:hover,.order:hover{transform:scale(1.05);box-shadow:4px4px15px rgba(0,0,0,0.2);}
 .product img{width:100px;height:100px;object-fit:cover;margin-bottom:10px;border-radius:8px;}
-button{background:#28a745;color:white;border:none;padding:0.5em 1em;border-radius:5px;cursor:pointer;margin-top:0.5em;}
+button{background:#28a745;color:white;border:none;padding:0.5em 1em;border-radius:5px;cursor:pointer;margin-top:0.5em;transition:0.3s;}
 button:hover{background:#218838;}
+input,select{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;border:1px solid #ccc;}
+.order-status-pending {color: orange; font-weight: bold;}
+.order-status-shipped {color: blue; font-weight: bold;}
+.order-status-delivered {color: green; font-weight: bold;}
+.edit-input {width: 45%; margin: 0.2em 2%; padding: 0.3em;}
 </style>
 </head>
 <body>
 
 <header>
 <h1>Dhamaka Shop</h1>
+<div>
+📞 Support WhatsApp: <a href="https://wa.me/01913821910" target="_blank" style="color:white;">01913821910</a>
+</div>
 <nav>
-<a href="index.html">Home</a>
-<a href="vendor.html">Vendor Panel</a>
-<a href="admin.html">Admin Panel</a>
+<a href="#products" onclick="showPage('products')">Products</a>
+<a href="#reviews" onclick="showPage('reviews')">Reviews</a>
+<a href="#orders" onclick="showPage('orders')">Orders</a>
+<button onclick="toggleDarkMode()">🌙</button>
 </nav>
 </header>
 
-<div class="container">
+<div id="products" class="page">
 <h2>Products</h2>
 <div class="product-list" id="productList"></div>
 </div>
 
-<script>
-let products=JSON.parse(localStorage.getItem('products')||'[]');
+<div id="reviews" class="page">
+<h2>Customer Reviews</h2>
+<div class="review-list" id="reviewList"></div>
+</div>
 
+<div id="orders" class="page">
+<h2>My Orders</h2>
+<div class="order-list" id="orderList"></div>
+</div>
+
+<script>
+// ===== DATA =====
+let products = JSON.parse(localStorage.getItem('products')||'[]');
+let reviews = JSON.parse(localStorage.getItem('reviews')||'[]');
+let orders = JSON.parse(localStorage.getItem('orders')||'[]');
+
+// ===== PAGE CONTROL =====
+function showPage(page){
+    document.querySelectorAll('.page').forEach(p=>p.style.display='none');
+    document.getElementById(page).style.display='block';
+    renderAll();
+}
+showPage('products');
+
+function toggleDarkMode(){ document.body.classList.toggle('dark'); }
+
+function renderAll(){ renderProducts(); renderReviews(); renderOrders(); }
+
+// ===== PRODUCTS =====
 function renderProducts(){
-    let list=document.getElementById('productList');list.innerHTML='';
-    if(products.length===0){list.innerHTML='<p>No products available.</p>';return;}
+    products=JSON.parse(localStorage.getItem('products')||'[]');
+    let list=document.getElementById('productList'); list.innerHTML='';
+    if(products.length===0){list.innerHTML='<p>No products yet.</p>'; return;}
     products.forEach(p=>{
-        const imageUrl=p.imageURL||(p.image && p.image.startsWith('http') ? p.image : "https://via.placeholder.com/100?text=No+Image");
-        let div=document.createElement('div');div.className='product';
+        let div=document.createElement('div'); div.className='product';
+        const imageUrl = p.imageURL || "https://via.placeholder.com/100?text=No+Image";
         div.innerHTML=`<img src="${imageUrl}" alt="${p.name}">
         <h3>${p.name}</h3>
         <p>Category: ${p.category}</p>
-        <p>Price: $${p.price.toFixed(2)}</p>
-        <p>Stock: ${p.stock}</p>
-        <button onclick="buyProduct(${p.id})" ${p.stock<=0?'disabled':''}>Buy</button>`;
+        <p>Price: $${p.price}</p>
+        <p>Stock: ${p.stock}</p>`;
         list.appendChild(div);
     });
 }
 
-function buyProduct(id){
-    let p=products.find(pr=>pr.id===id);
-    if(!p||p.stock<=0){alert("Product out of stock");return;}
-    let name=prompt("Enter your name:");if(!name)return;
-    let whatsapp=prompt("Enter WhatsApp number:");if(!whatsapp)return;
-    let address=prompt("Enter delivery address:");if(!address)return;
-    let quantity=parseInt(prompt(`Enter quantity (Available: ${p.stock})`));if(isNaN(quantity)||quantity<=0||quantity>p.stock){alert("Invalid quantity");return;}
-    let orders=JSON.parse(localStorage.getItem('orders')||'[]');
-    let orderId=orders.length>0?Math.max(...orders.map(o=>o.id))+1:1;
-    orders.push({id:orderId,customerName:name,customerWhatsapp:whatsapp,customerAddress:address,products:[{id:p.id,name:p.name,quantity:quantity,price:p.price}],total:p.price*quantity,date:new Date().toLocaleString(),status:'Pending'});
-    localStorage.setItem('orders',JSON.stringify(orders));
-    p.stock-=quantity;
-    localStorage.setItem('products',JSON.stringify(products));
-    alert("Order placed successfully!");
-    renderProducts();
+// ===== REVIEWS =====
+function renderReviews(){
+    reviews=JSON.parse(localStorage.getItem('reviews')||'[]');
+    let list=document.getElementById('reviewList'); list.innerHTML='';
+    if(reviews.length===0){list.innerHTML='<p>No reviews yet.</p>'; return;}
+    reviews.forEach(r=>{
+        let div=document.createElement('div'); div.className='review';
+        div.innerHTML=`<p><b>${r.name||r.customer}</b>: ${r.text}</p>`;
+        list.appendChild(div);
+    });
 }
 
-renderProducts();
+// ===== ORDERS =====
+function renderOrders(){
+    orders=JSON.parse(localStorage.getItem('orders')||'[]');
+    let list=document.getElementById('orderList'); list.innerHTML='';
+    if(orders.length===0){list.innerHTML='<p>No orders yet.</p>'; return;}
+    orders.forEach(o=>{
+        let productsStr=o.products.map(p=>`${p.name} (x${p.quantity})`).join(', ');
+        let div=document.createElement('div'); div.className='order';
+        div.innerHTML=`<p><b>Order ID:</b> ${o.id}</p>
+        <p><b>Customer:</b> ${o.customerName}</p>
+        <p><b>Products:</b> ${productsStr}</p>
+        <p><b>Total:</b> $${o.total}</p>
+        <p><b>Status:</b> ${o.status}</p>`;
+        list.appendChild(div);
+    });
+}
 </script>
 
 </body>
