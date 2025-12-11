@@ -38,6 +38,7 @@ input,select{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;border:1px
 <a href="#products" onclick="showPage('products')">Products</a>
 <a href="#reviews" onclick="showPage('reviews')">Reviews</a>
 <a href="#orders" onclick="showPage('orders')">Orders</a>
+<a href="vendor.html" target="_blank">Vendor Panel</a> 
 <a href="index.html" target="_blank">View Shop</a>
 <button onclick="toggleDarkMode()">🌙</button>
 </nav>
@@ -78,7 +79,7 @@ input,select{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;border:1px
         <input type="number" id="pPrice" placeholder="Price (দাম)">
         <input type="number" id="pStock" placeholder="Stock (স্টক)">
         <input type="text" id="pBadge" placeholder="Badge (যেমন: New, Sale) (Optional)">
-        <input type="url" id="pImageURL" placeholder="Image URL (ছবির লিঙ্ক)"> 
+        <input type="url" id="pImageURL" placeholder="Image URL (ছবির লিঙ্ক)"> 
         <button onclick="addProduct()">পণ্যটি যোগ করুন (Add Product)</button>
     </div>
     
@@ -104,18 +105,24 @@ input,select{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;border:1px
 </div>
 
 <script>
-// ===== DATA =====
+// ===== DATA (Reloading from Local Storage is crucial for synchronization) =====
 let adminLoggedIn=false;
-// লোকাল স্টোরেজ থেকে ডেটা লোড করা
 let products=JSON.parse(localStorage.getItem('products')||'[]');
 let reviews=JSON.parse(localStorage.getItem('reviews')||'[]');
 let orders=JSON.parse(localStorage.getItem('orders')||'[]');
 
 // ===== PAGE CONTROL & LOGIN =====
+function reloadData() {
+    products = JSON.parse(localStorage.getItem('products')||'[]');
+    reviews = JSON.parse(localStorage.getItem('reviews')||'[]');
+    orders = JSON.parse(localStorage.getItem('orders')||'[]');
+}
+
 function showPage(page){
     if(!adminLoggedIn && page!=='loginPage'){alert('Login required'); return;}
     document.querySelectorAll('.page').forEach(p=>p.style.display='none');
     document.getElementById(page).style.display='block';
+    reloadData(); // Always reload data before rendering
     renderAll();
 }
 showPage('loginPage');
@@ -144,6 +151,7 @@ function renderAll(){ renderProducts(); renderReviews(); renderOrders(); }
 
 function generateProductId() {
     // উচ্চতম ID খুঁজে বের করে তার সাথে 1 যোগ করা
+    products = JSON.parse(localStorage.getItem('products')||'[]'); // Ensure latest product list
     return products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1;
 }
 
@@ -153,11 +161,11 @@ function addProduct() {
     const price = Number(document.getElementById('pPrice').value);
     const stock = Number(document.getElementById('pStock').value);
     const badge = document.getElementById('pBadge').value || null;
-    const image = document.getElementById('pImageURL').value; 
+    const imageURL = document.getElementById('pImageURL').value; 
 
-    if (!name || !price || !stock || !image || price <= 0 || stock < 0){ 
-        alert("দয়া করে সঠিক তথ্য দিন (নাম, দাম > 0, স্টক ≥ 0, এবং ছবির লিঙ্ক)।"); 
-        return; 
+    if (!name || !price || !stock || !imageURL || price <= 0 || stock < 0){ 
+        alert("দয়া করে সঠিক তথ্য দিন (নাম, দাম > 0, স্টক ≥ 0, এবং ছবির লিঙ্ক)।"); 
+        return; 
     }
     
     const newProduct = {
@@ -168,9 +176,11 @@ function addProduct() {
         stock: stock,
         rating: 5, 
         badge: badge,
-        image: image 
+        imageURL: imageURL, // Use imageURL for consistency with vendor.html
+        vendorId: 'admin' // Identify products added by admin
     };
 
+    products = JSON.parse(localStorage.getItem('products')||'[]'); // Reload before push
     products.push(newProduct);
     localStorage.setItem('products', JSON.stringify(products));
     
@@ -194,11 +204,15 @@ function renderProducts(){
     
     products.forEach((p,i)=>{
         let div=document.createElement('div'); div.className='product';
+        // Use p.imageURL if available, otherwise use a placeholder
+        const imageUrl = p.imageURL || (p.image && p.image.startsWith('http') ? p.image : "https://via.placeholder.com/100?text=No+Image");
+
         div.innerHTML=`
-        <img src="${p.image}" alt="${p.name}">
+        <img src="${imageUrl}" alt="${p.name}">
         <h3>${p.name} (ID: ${p.id})</h3>
         <p>Category: ${p.category}</p>
-        <p>Current Price: $${p.price}</p>
+        <p>Vendor: ${p.vendorId || 'Admin/Initial'}</p>
+        <p>Current Price: $${p.price.toFixed(2)}</p>
         <p>Current Stock: ${p.stock}</p>
         
         <input type="number" id="priceEdit${p.id}" value="${p.price}" class="edit-input" placeholder="New Price">
@@ -218,7 +232,8 @@ function editProduct(productId) {
         alert("দয়া করে সঠিক দাম (> 0) এবং স্টক (≥ 0) লিখুন।");
         return;
     }
-
+    
+    products = JSON.parse(localStorage.getItem('products')||'[]'); // Reload before updating
     const index = products.findIndex(p => p.id === productId);
     if (index !== -1) {
         products[index].price = newPrice;
@@ -230,9 +245,10 @@ function editProduct(productId) {
 }
 
 function deleteProduct(i){
+    products = JSON.parse(localStorage.getItem('products')||'[]'); // Reload before deleting
     if(confirm(`আপনি কি নিশ্চিত যে পণ্যটি মুছে ফেলবেন: ${products[i].name}?`)){
-        products.splice(i,1); 
-        localStorage.setItem('products',JSON.stringify(products)); 
+        products.splice(i,1); 
+        localStorage.setItem('products',JSON.stringify(products)); 
         renderProducts();
     }
 }
@@ -249,7 +265,7 @@ function renderReviews(){
         list.appendChild(div);
     });
 }
-function deleteReview(i){reviews.splice(i,1); localStorage.setItem('reviews',JSON.stringify(reviews)); renderReviews();}
+function deleteReview(i){reviews=JSON.parse(localStorage.getItem('reviews')||'[]'); reviews.splice(i,1); localStorage.setItem('reviews',JSON.stringify(reviews)); renderReviews();}
 
 // ===== ORDERS (অর্ডার ম্যানেজমেন্টের জন্য আপডেট করা হয়েছে) =====
 function renderOrders(){
@@ -303,6 +319,7 @@ function renderOrders(){
 }
 
 function updateOrderStatus(i, newStatus) {
+    orders=JSON.parse(localStorage.getItem('orders')||'[]'); // Reload before updating
     if (orders[i].status === newStatus) return; // No change
 
     orders[i].status = newStatus;
@@ -312,6 +329,7 @@ function updateOrderStatus(i, newStatus) {
 }
 
 function deleteOrder(i){
+    orders=JSON.parse(localStorage.getItem('orders')||'[]'); // Reload before deleting
     if(confirm(`আপনি কি নিশ্চিত যে অর্ডার ID ${orders[i].id} মুছে ফেলবেন?`)){
         orders.splice(i,1); 
         localStorage.setItem('orders',JSON.stringify(orders)); 
