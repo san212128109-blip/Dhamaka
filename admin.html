@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dhamaka Admin Panel</title>
 <style>
-/* Basic Styles */
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:Arial,sans-serif;background:#f8f9fa;color:#333;transition:0.3s;}
 body.dark{background:#121212;color:#ddd;}
@@ -38,7 +37,7 @@ input,select{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;border:1px
 <a href="#products" onclick="showPage('products')">Products</a>
 <a href="#reviews" onclick="showPage('reviews')">Reviews</a>
 <a href="#orders" onclick="showPage('orders')">Orders</a>
-<a href="vendor.html" target="_blank">Vendor Panel</a>
+<a href="vendor.html" target="_blank">Vendor Panel</a> 
 <a href="index.html" target="_blank">View Shop</a>
 <button onclick="toggleDarkMode()">🌙</button>
 </nav>
@@ -49,31 +48,32 @@ input,select{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;border:1px
 <input type="password" id="adminPassword" placeholder="Enter Password">
 <button onclick="adminLogin()">Login</button>
 <p id="loginMsg" style="color:red"></p>
+<p style="margin-top:1em;">Need support? WhatsApp: 01913821910</p>
 </div>
 
 <div id="dashboard" class="page">
 <h2>Dashboard</h2>
 <p>Welcome, Admin!</p>
 <h3>Theme Customization</h3>
-<div style="max-width:400px;margin:0 auto;padding:1em;border:1px solid #ccc;border-radius:8px;">
-<label>Background Color: <input type="color" id="bgColor" onchange="applyTheme()"></label>
-<label>Text Color: <input type="color" id="textColor" onchange="applyTheme()"></label>
-<label>Button Color: <input type="color" id="btnColor" onchange="applyTheme()"></label>
-<label>Button Text Color: <input type="color" id="btnTextColor" onchange="applyTheme()"></label>
+<div style="max-width: 400px; margin: 0 auto; padding: 1em; border: 1px solid #ccc; border-radius: 8px;">
+    <label style="display: block;">Background Color: <input type="color" id="bgColor" onchange="applyTheme()"></label>
+    <label style="display: block;">Text Color: <input type="color" id="textColor" onchange="applyTheme()"></label>
+    <label style="display: block;">Button Color: <input type="color" id="btnColor" onchange="applyTheme()"></label>
+    <label style="display: block;">Button Text Color: <input type="color" id="btnTextColor" onchange="applyTheme()"></label>
 </div>
 </div>
 
 <div id="products" class="page">
 <h2>Products Management</h2>
-<div id="addProductContainer" style="max-width:600px;margin:1em auto;border:1px solid #28a745;padding:1em;border-radius:12px;background:#e2f0e6;">
+<div id="addProductContainer" style="max-width:600px; margin:1em auto; border:1px solid #28a745; padding:1em; border-radius:12px; background:#e2f0e6;">
 <h3>Add New Product</h3>
 <input type="text" id="pName" placeholder="Product Name">
 <select id="pCategory">
-<option value="Electronics">Electronics</option>
-<option value="Apparel">Apparel</option>
-<option value="Furniture">Furniture</option>
-<option value="Groceries">Groceries</option>
-<option value="Other">Other</option>
+    <option value="Electronics">Electronics</option>
+    <option value="Apparel">Apparel</option>
+    <option value="Furniture">Furniture</option>
+    <option value="Groceries">Groceries</option>
+    <option value="Other">Other</option>
 </select>
 <input type="number" id="pPrice" placeholder="Price">
 <input type="number" id="pStock" placeholder="Stock">
@@ -91,7 +91,7 @@ input,select{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;border:1px
 
 <div id="orders" class="page">
 <h2>Orders</h2>
-<div style="text-align:center;margin-bottom:1em;">
+<div style="text-align: center; margin-bottom: 1em;">
 <select id="orderStatusFilter" onchange="renderOrders()">
 <option value="All">Filter by Status (All)</option>
 <option value="Pending">Pending</option>
@@ -103,30 +103,124 @@ input,select{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;border:1px
 </div>
 
 <script>
-// Admin Panel Script
+// ===== Data =====
 let adminLoggedIn=false;
 let products=JSON.parse(localStorage.getItem('products')||'[]');
 let reviews=JSON.parse(localStorage.getItem('reviews')||'[]');
 let orders=JSON.parse(localStorage.getItem('orders')||'[]');
 
-function reloadData(){products=JSON.parse(localStorage.getItem('products')||'[]');reviews=JSON.parse(localStorage.getItem('reviews')||'[]');orders=JSON.parse(localStorage.getItem('orders')||'[]');}
-function showPage(page){if(!adminLoggedIn&&page!=='loginPage'){alert('Login required');return;}document.querySelectorAll('.page').forEach(p=>p.style.display='none');document.getElementById(page).style.display='block';reloadData();renderAll();}
-showPage('loginPage');
-function adminLogin(){let pass=document.getElementById('adminPassword').value;if(pass==='NAFIS128'){adminLoggedIn=true;showPage('dashboard');}else{document.getElementById('loginMsg').innerText='Wrong Password';}}
-function toggleDarkMode(){document.body.classList.toggle('dark');}
-function applyTheme(){document.body.style.background=document.getElementById('bgColor').value;document.body.style.color=document.getElementById('textColor').value;document.querySelectorAll('button').forEach(b=>{b.style.background=document.getElementById('btnColor').value;b.style.color=document.getElementById('btnTextColor').value;});}
-function renderAll(){renderProducts();renderReviews();renderOrders();}
+function reloadData() {
+    products = JSON.parse(localStorage.getItem('products')||'[]');
+    reviews = JSON.parse(localStorage.getItem('reviews')||'[]');
+    orders = JSON.parse(localStorage.getItem('orders')||'[]');
+}
 
-function generateProductId(){products=JSON.parse(localStorage.getItem('products')||'[]');return products.length>0?Math.max(...products.map(p=>p.id))+1:1;}
-function addProduct(){const name=document.getElementById('pName').value;const category=document.getElementById('pCategory').value;const price=Number(document.getElementById('pPrice').value);const stock=Number(document.getElementById('pStock').value);const badge=document.getElementById('pBadge').value||null;const imageURL=document.getElementById('pImageURL').value;if(!name||!price||!stock||!imageURL||price<=0||stock<0){alert("Please enter valid info");return;}const newProduct={id:generateProductId(),name,category,price,stock,rating:5,badge,imageURL,vendorId:'admin'};products=JSON.parse(localStorage.getItem('products')||'[]');products.push(newProduct);localStorage.setItem('products',JSON.stringify(products));document.getElementById('pName').value='';document.getElementById('pPrice').value='';document.getElementById('pStock').value='';document.getElementById('pBadge').value='';document.getElementById('pImageURL').value='';alert(`Product "${name}" added!`);renderProducts();}
-function renderProducts(){products=JSON.parse(localStorage.getItem('products')||'[]');let list=document.getElementById('productList');list.innerHTML='';if(products.length===0){list.innerHTML='<p>No products</p>';return;}products.forEach((p,i)=>{let div=document.createElement('div');div.className='product';const imageUrl=p.imageURL||(p.image&&p.image.startsWith('http')?"https://via.placeholder.com/100?text=No+Image":"https://via.placeholder.com/100");div.innerHTML=`<img src="${imageUrl}" alt="${p.name}"><h3>${p.name} (ID: ${p.id})</h3><p>Category: ${p.category}</p><p>Vendor: ${p.vendorId||'Admin/Initial'}</p><p>Price: $${p.price.toFixed(2)}</p><p>Stock: ${p.stock}</p><input type="number" id="priceEdit${p.id}" value="${p.price}" class="edit-input" placeholder="New Price"><input type="number" id="stockEdit${p.id}" value="${p.stock}" class="edit-input" placeholder="New Stock"><button onclick="editProduct(${p.id})">Update Price/Stock</button><button onclick="deleteProduct(${i})" style="background:red;">Delete</button>`;list.appendChild(div);});}
-function editProduct(productId){const newPrice=Number(document.getElementById(`priceEdit${productId}`).value);const newStock=Number(document.getElementById(`stockEdit${productId}`).value);if(isNaN(newPrice)||newPrice<=0||isNaN(newStock)||newStock<0){alert("Enter valid price/stock");return;}products=JSON.parse(localStorage.getItem('products')||'[]');const index=products.findIndex(p=>p.id===productId);if(index!==-1){products[index].price=newPrice;products[index].stock=newStock;localStorage.setItem('products',JSON.stringify(products));alert(`Product ID ${productId} updated`);renderProducts();}}
-function deleteProduct(i){products=JSON.parse(localStorage.getItem('products')||'[]');if(confirm(`Delete product: ${products[i].name}?`)){products.splice(i,1);localStorage.setItem('products',JSON.stringify(products));renderProducts();}}
-function renderReviews(){reviews=JSON.parse(localStorage.getItem('reviews')||'[]');let list=document.getElementById('reviewList');list.innerHTML='';if(reviews.length===0){list.innerHTML='<p>No reviews</p>';return;}reviews.forEach((r,i)=>{let div=document.createElement('div');div.className='review';div.innerHTML=`<p><b>${r.name||r.customer}</b>: ${r.text}</p><button onclick="deleteReview(${i})" style="background:red;">Delete</button>`;list.appendChild(div);});}
-function deleteReview(i){reviews=JSON.parse(localStorage.getItem('reviews')||'[]');reviews.splice(i,1);localStorage.setItem('reviews',JSON.stringify(reviews));renderReviews();}
-function renderOrders(){orders=JSON.parse(localStorage.getItem('orders')||'[]');let list=document.getElementById('orderList');list.innerHTML='';const filterStatus=document.getElementById('orderStatusFilter').value;let filteredOrders=orders;if(filterStatus!=='All'){filteredOrders=orders.filter(o=>o.status===filterStatus);}filteredOrders.sort((a,b)=>{const statusOrder={"Pending":1,"Shipped":2,"Delivered":3};return statusOrder[a.status]-statusOrder[b.status];});if(filteredOrders.length===0){list.innerHTML='<p>No orders</p>';return;}filteredOrders.forEach((o,i)=>{const originalIndex=orders.findIndex(item=>item.id===o.id);let productsStr=o.products.map(p=>`${p.name} (x${p.quantity})`).join(', ');let statusClass=`order-status-${o.status.toLowerCase()}`;let div=document.createElement('div');div.className='order';div.innerHTML=`<p><b>Order ID:</b> ${o.id}</p><p><b>Customer:</b> ${o.customerName}</p><p><b>WhatsApp:</b> ${o.customerWhatsapp}</p><p><b>Address:</b> ${o.customerAddress}</p><p><b>Products:</b> ${productsStr}</p><p><b>Total:</b> $${o.total}</p><p><b>Date:</b> ${o.date}</p><p><b>Status:</b> <span class="${statusClass}">${o.status}</span></p><select onchange="updateOrderStatus(${originalIndex},this.value)"><option value="${o.status}">${o.status} (Select New)</option><option value="Pending">Pending</option><option value="Shipped">Shipped</option><option value="Delivered">Delivered</option></select><button onclick="deleteOrder(${originalIndex})" style="background:red;">Delete Order</button>`;list.appendChild(div);});}
-function updateOrderStatus(i,newStatus){orders=JSON.parse(localStorage.getItem('orders')||'[]');if(orders[i].status===newStatus)return;orders[i].status=newStatus;localStorage.setItem('orders',JSON.stringify(orders));alert(`Order ID ${orders[i].id} status updated to ${newStatus}`);renderOrders();}
-function deleteOrder(i){orders=JSON.parse(localStorage.getItem('orders')||'[]');if(confirm(`Delete Order ID ${orders[i].id}?`)){orders.splice(i,1);localStorage.setItem('orders',JSON.stringify(orders));renderOrders();}}
+function showPage(page){
+    if(!adminLoggedIn && page!=='loginPage'){alert('Login required'); return;}
+    document.querySelectorAll('.page').forEach(p=>p.style.display='none');
+    document.getElementById(page).style.display='block';
+    reloadData();
+    renderAll();
+}
+showPage('loginPage');
+
+function adminLogin(){
+    let pass=document.getElementById('adminPassword').value;
+    if(pass==='NAFIS128'){
+        adminLoggedIn=true;
+        showPage('dashboard');
+    }else{
+        document.getElementById('loginMsg').innerText='Wrong Password';
+    }
+}
+
+function toggleDarkMode(){ document.body.classList.toggle('dark'); }
+function applyTheme(){
+    document.body.style.background=document.getElementById('bgColor').value;
+    document.body.style.color=document.getElementById('textColor').value;
+    document.querySelectorAll('button').forEach(b=>{
+        b.style.background=document.getElementById('btnColor').value;
+        b.style.color=document.getElementById('btnTextColor').value;
+    });
+}
+function renderAll(){ renderProducts(); renderReviews(); renderOrders(); }
+
+// ===== Products =====
+function generateProductId() {
+    products = JSON.parse(localStorage.getItem('products')||'[]');
+    return products.length>0?Math.max(...products.map(p=>p.id))+1:1;
+}
+
+function addProduct() {
+    const name=document.getElementById('pName').value;
+    const category=document.getElementById('pCategory').value;
+    const price=Number(document.getElementById('pPrice').value);
+    const stock=Number(document.getElementById('pStock').value);
+    const badge=document.getElementById('pBadge').value||null;
+    const imageURL=document.getElementById('pImageURL').value;
+
+    if(!name||!price||!stock||!imageURL||price<=0||stock<0){ 
+        alert("Please enter valid info"); return; 
+    }
+    const newProduct={id:generateProductId(),name,category,price,stock,rating:5,badge,imageURL,vendorId:'admin'};
+    products.push(newProduct);
+    localStorage.setItem('products',JSON.stringify(products));
+    renderProducts();
+}
+
+function renderProducts(){
+    products=JSON.parse(localStorage.getItem('products')||'[]');
+    let list=document.getElementById('productList'); list.innerHTML='';
+    if(products.length===0){ list.innerHTML='<p>No products</p>'; return;}
+    products.forEach((p,i)=>{
+        let div=document.createElement('div'); div.className='product';
+        const imageUrl=p.imageURL||"https://via.placeholder.com/100?text=No+Image";
+        div.innerHTML=`
+            <img src="${imageUrl}" alt="${p.name}">
+            <h3>${p.name}</h3>
+            <p>Category: ${p.category}</p>
+            <p>Vendor: ${p.vendorId}</p>
+            <p>Price: $${p.price.toFixed(2)}</p>
+            <p>Stock: ${p.stock}</p>
+        `;
+        list.appendChild(div);
+    });
+}
+
+// ===== Reviews =====
+function renderReviews(){
+    reviews=JSON.parse(localStorage.getItem('reviews')||'[]');
+    let list=document.getElementById('reviewList'); list.innerHTML='';
+    if(reviews.length===0){list.innerHTML='<p>No reviews</p>'; return;}
+    reviews.forEach(r=>{
+        let div=document.createElement('div'); div.className='review';
+        div.innerHTML=`<p><b>${r.name||r.customer}</b>: ${r.text}</p>`;
+        list.appendChild(div);
+    });
+}
+
+// ===== Orders =====
+function renderOrders(){
+    orders=JSON.parse(localStorage.getItem('orders')||'[]');
+    let list=document.getElementById('orderList'); list.innerHTML='';
+    const filterStatus=document.getElementById('orderStatusFilter').value;
+    let filteredOrders=orders;
+    if(filterStatus!=='All'){ filteredOrders=orders.filter(o=>o.status===filterStatus); }
+    filteredOrders.sort((a,b)=>({Pending:1,Shipped:2,Delivered:3}[a.status]-{Pending:1,Shipped:2,Delivered:3}[b.status]));
+    if(filteredOrders.length===0){ list.innerHTML='<p>No orders</p>'; return;}
+    filteredOrders.forEach(o=>{
+        let productsStr=o.products.map(p=>`${p.name} (x${p.quantity})`).join(', ');
+        let div=document.createElement('div'); div.className='order';
+        div.innerHTML=`
+            <p><b>Order ID:</b> ${o.id}</p>
+            <p><b>Customer:</b> ${o.customerName}</p>
+            <p><b>Products:</b> ${productsStr}</p>
+            <p><b>Total:</b> $${o.total}</p>
+            <p><b>Status:</b> ${o.status}</p>
+        `;
+        list.appendChild(div);
+    });
+}
 </script>
 </body>
 </html>
