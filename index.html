@@ -146,7 +146,7 @@ input,select,textarea{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;b
 // ====== DATA STORAGE ======
 // প্রাথমিক পণ্য ডেটা (যদি localStorage খালি থাকে)
 let initialProducts = [
-    // নির্ভরযোগ্য ডেমো লিঙ্ক ব্যবহার করা হয়েছে
+    // নির্ভরযোগ্য ডেমো লিঙ্ক ব্যবহার করা হয়েছে
     { id: 1, name: "Luxury Smartphone X", price: 799.99, category: "Electronics", stock: 15, rating: 5, badge: "New", image: "https://picsum.photos/id/237/150/150" }, 
     { id: 2, name: "Cotton T-Shirt (Blue)", price: 19.99, category: "Apparel", stock: 50, rating: 4, badge: "Sale", image: "https://picsum.photos/id/20/150/150" }, 
     { id: 3, name: "Modular Sofa Set", price: 1299.00, category: "Furniture", stock: 5, rating: 5, badge: "Popular", image: "https://picsum.photos/id/160/150/150" }, 
@@ -154,6 +154,7 @@ let initialProducts = [
     { id: 5, name: "Designer Leather Wallet", price: 49.99, category: "Apparel", stock: 30, rating: 5, badge: "Premium", image: "https://picsum.photos/id/1015/150/150" }, 
     { id: 6, name: "LED Desk Lamp", price: 35.00, category: "Furniture", stock: 60, rating: 3, badge: "", image: "https://picsum.photos/id/12/150/150" } 
 ];
+// লোকাল স্টোরেজে Products সেভ করা
 if (!localStorage.getItem("products") || JSON.parse(localStorage.getItem("products")).length === 0) {
     localStorage.setItem("products", JSON.stringify(initialProducts));
 }
@@ -180,6 +181,7 @@ function toggleDarkMode(){ document.body.classList.toggle('dark'); }
 // Function to call all necessary renders when changing pages
 function renderAllPageContent() {
     products = JSON.parse(localStorage.getItem("products")||'[]'); // Reload products in case admin/vendor changed them
+    populateCategoryFilter(); // Recalculate categories
     renderProducts(homeList, products.slice(0, 6)); // Update home list
     filterCategory(); // Update category list
     renderCart(); // Update cart list
@@ -280,18 +282,20 @@ function renderProducts(list, arr){
     list.innerHTML='';
     if(arr.length===0){ list.innerHTML="<p>No products.</p>"; return; }
     arr.forEach((p,i)=>{
-        const productIndexInMainArray = products.findIndex(prod => prod.id === p.id);
+        // Product index in the global `products` array is needed for `addToCart`
+        const productIndexInMainArray = products.findIndex(prod => prod.id === p.id); 
         const div=document.createElement('div'); div.className='product';
         let stars=''; for(let s=1;s<=5;s++){ stars += s<=p.rating ? '★':'☆'; }
         let badgeHTML=p.badge?`<div class="badge">${p.badge}</div>`:'';
         
-        // ছবি রেন্ডারিং: imageURL থাকলে সেটি ব্যবহার করা হবে, অন্যথায় p.image ব্যবহার করা হবে।
-        const imageUrl = p.imageURL && p.imageURL.startsWith('http') ? p.imageURL : (p.image && p.image.startsWith('http') ? p.image : "https://via.placeholder.com/150?text=No+Image");
+        // Use p.imageURL (from vendor/admin) if available, otherwise p.image, or fallback
+        const imageUrl = (p.imageURL && p.imageURL.startsWith('http')) ? p.imageURL : 
+                         (p.image && p.image.startsWith('http') ? p.image : "https://via.placeholder.com/150?text=No+Image");
 
         div.innerHTML=`${badgeHTML}<div class="product-image-container"><img src="${imageUrl}" alt="${p.name}"></div>
         <h3>${p.name}</h3>
         <p>Category: ${p.category}</p><p>$${p.price.toFixed(2)}</p><p>Stock: ${p.stock}</p><p>${stars}</p>
-        <button onclick="addToCart(${productIndexInMainArray})">Add to Cart</button>`; 
+        <button onclick="addToCart(${productIndexInMainArray})" ${p.stock <= 0 ? 'disabled style="background-color: #ff6347;"' : ''}>${p.stock > 0 ? 'Add to Cart' : 'Out of Stock'}</button>`; 
         list.appendChild(div);
     });
     updateCartBadge();
@@ -318,11 +322,12 @@ function renderCarousel(){
         carousel.appendChild(img);
     }); 
     
+    // Simple carousel logic
     let carouselIdx=0;
     const intervalId = setInterval(()=>{ 
         const imgs=carousel.querySelectorAll('img'); 
         if (imgs.length === 0) {
-             clearInterval(intervalId); // Stop interval if no images
+             clearInterval(intervalId); 
              return;
         }
         imgs.forEach((img)=>{ 
@@ -332,7 +337,7 @@ function renderCarousel(){
     },3000);
 }
 
-// ====== CATEGORY FILTERING & SORTING (Unchanged) ======
+// ====== CATEGORY FILTERING & SORTING ======
 function filterCategory() {
     let filteredProducts = products;
     const selectedCategory = document.getElementById('categoryFilter').value;
@@ -380,7 +385,7 @@ function renderCart(){
     cart.forEach((p,i)=>{
         const div=document.createElement('div'); div.className='product';
         const quantity = p.quantity || 1; 
-        div.innerHTML=`<p>${p.name} - $<span class="price">${(p.price * quantity).toFixed(2)}</span></p>
+        div.innerHTML=`<p>${p.name} - $ <span class="price">${(p.price * quantity).toFixed(2)}</span></p>
         <input type="number" value="${quantity}" min="1" onchange="updateQuantity(${i},this.value)">
         <button onclick="removeFromCart(${i})">Remove</button>`;
         cartList.appendChild(div);
@@ -426,12 +431,15 @@ function updateQuantity(i, val){
     if (quantity < 1 || isNaN(quantity)) return;
     
     const productInCart = cart[i];
+    // Find the product's current stock from the main array
     const productInStock = products.find(p => p.id === productInCart.id);
 
     if (productInStock && quantity > productInStock.stock) {
         alert(`Cannot add more than available stock: ${productInStock.stock}`);
         cart[i].quantity = productInStock.stock; // Set to max stock
-        document.querySelector(`#cartList .product:nth-child(${i + 1}) input`).value = productInStock.stock;
+        // Update input field manually
+        const inputElement = document.querySelector(`#cartList .product:nth-child(${i + 1}) input`);
+        if (inputElement) inputElement.value = productInStock.stock;
     } else {
         cart[i].quantity = quantity; 
     }
@@ -467,14 +475,15 @@ function checkout(){
     localStorage.setItem("orders",JSON.stringify(orders));
 
     // Update stock in main products array after order
+    let updatedProducts = JSON.parse(localStorage.getItem("products")||'[]');
     cart.forEach(cartItem => {
-        const productIndex = products.findIndex(p => p.id === cartItem.id);
+        const productIndex = updatedProducts.findIndex(p => p.id === cartItem.id);
         if (productIndex !== -1) {
-            products[productIndex].stock -= (cartItem.quantity || 1);
+            updatedProducts[productIndex].stock -= (cartItem.quantity || 1);
         }
     });
-    localStorage.setItem("products", JSON.stringify(products));
-
+    localStorage.setItem("products", JSON.stringify(updatedProducts));
+    products = updatedProducts; // Update local scope variable
 
     cart=[]; 
     localStorage.setItem("cart",JSON.stringify(cart)); 
@@ -515,7 +524,6 @@ function renderReviews(){
 function openWhatsApp(){ window.open("https://wa.me/8801913821910","_blank"); }
 
 // ====== INITIAL RENDER ======
-populateCategoryFilter();
 renderAllPageContent();
 
 // Ensure the login form is shown first if not logged in
