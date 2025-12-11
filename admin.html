@@ -14,21 +14,18 @@ nav a{color:white;margin-left:1em;text-decoration:none;font-weight:bold;transiti
 nav a:hover{text-decoration:underline;color:#ffc107;}
 nav button{margin-left:1em;cursor:pointer;}
 .page{display:none;padding:1em;}
-h2, h3 {text-align: center; margin-bottom: 0.5em;}
+h2,h3{text-align:center;margin-bottom:0.5em;}
 .product-list,.vendor-list,.review-list,.order-list{display:flex;flex-wrap:wrap;gap:1em;justify-content:center;margin-top:1em;}
 .product,.vendor,.review,.order{border:1px solid #28a745;border-radius:12px;padding:1em;width:280px;text-align:center;background:#fff;box-shadow:2px2px10px rgba(0,0,0,0.1);transition:0.3s;position:relative;overflow:hidden;}
 .product:hover,.vendor:hover,.review:hover,.order:hover{transform:scale(1.05);box-shadow:4px4px15px rgba(0,0,0,0.2);}
-.product img{width:100px; height:100px; object-fit:cover; margin-bottom:10px; border-radius:8px;}
+.product img{width:100px;height:100px;object-fit:cover;margin-bottom:10px;border-radius:8px;}
 button{background:#28a745;color:white;border:none;padding:0.5em 1em;border-radius:5px;cursor:pointer;margin-top:0.5em;transition:0.3s;}
 button:hover{background:#218838;}
 input,select{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;border:1px solid #ccc;}
-.order-status-pending {color: orange; font-weight: bold;}
-.order-status-shipped {color: blue; font-weight: bold;}
-.order-status-delivered {color: green; font-weight: bold;}
-.edit-input {width: 45%; margin: 0.2em 2%; padding: 0.3em;}
-.vendor-status-pending{color:orange;font-weight:bold;}
-.vendor-status-approved{color:green;font-weight:bold;}
-#addProductContainer{max-width:600px; margin:1em auto; border:1px solid #28a745; padding:1em; border-radius:12px; background:#e2f0e6;}
+.order-status-pending{color:orange;font-weight:bold;}
+.order-status-shipped{color:blue;font-weight:bold;}
+.order-status-delivered{color:green;font-weight:bold;}
+.edit-input{width:45%;margin:0.2em 2%;padding:0.3em;}
 </style>
 </head>
 <body>
@@ -38,9 +35,9 @@ input,select{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;border:1px
 <nav>
 <a href="#dashboard" onclick="showPage('dashboard')">Dashboard</a>
 <a href="#products" onclick="showPage('products')">Products</a>
-<a href="#vendors" onclick="showPage('vendors')">Vendors</a>
 <a href="#reviews" onclick="showPage('reviews')">Reviews</a>
 <a href="#orders" onclick="showPage('orders')">Orders</a>
+<a href="vendor.html" target="_blank">Vendor Panel</a>
 <a href="index.html" target="_blank">View Shop</a>
 <button onclick="toggleDarkMode()">🌙</button>
 </nav>
@@ -57,19 +54,18 @@ input,select{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;border:1px
 <h2>Dashboard</h2>
 <p>Welcome, Admin!</p>
 <h3>Theme Customization</h3>
-<div style="max-width: 400px; margin: 0 auto; padding: 1em; border: 1px solid #ccc; border-radius: 8px;">
-    <label style="display: block;">Background Color: <input type="color" id="bgColor" onchange="applyTheme()"></label>
-    <label style="display: block;">Text Color: <input type="color" id="textColor" onchange="applyTheme()"></label>
-    <label style="display: block;">Button Color: <input type="color" id="btnColor" onchange="applyTheme()"></label>
-    <label style="display: block;">Button Text Color: <input type="color" id="btnTextColor" onchange="applyTheme()"></label>
+<div style="max-width:400px;margin:0 auto;padding:1em;border:1px solid #ccc;border-radius:8px;">
+<label style="display:block;">Background Color: <input type="color" id="bgColor" onchange="applyTheme()"></label>
+<label style="display:block;">Text Color: <input type="color" id="textColor" onchange="applyTheme()"></label>
+<label style="display:block;">Button Color: <input type="color" id="btnColor" onchange="applyTheme()"></label>
+<label style="display:block;">Button Text Color: <input type="color" id="btnTextColor" onchange="applyTheme()"></label>
 </div>
 </div>
 
 <div id="products" class="page">
 <h2>Products Management</h2>
-
-<div id="addProductContainer">
-<h3>Add / Approve Product</h3>
+<div id="addProductContainer" style="max-width:600px;margin:1em auto;border:1px solid #28a745;padding:1em;border-radius:12px;background:#e2f0e6;">
+<h3>Add New Product</h3>
 <input type="text" id="pName" placeholder="Product Name">
 <select id="pCategory">
 <option value="Electronics">Electronics</option>
@@ -80,18 +76,11 @@ input,select{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;border:1px
 </select>
 <input type="number" id="pPrice" placeholder="Price">
 <input type="number" id="pStock" placeholder="Stock">
-<input type="text" id="pVendor" placeholder="Vendor ID (if approving)">
 <input type="text" id="pBadge" placeholder="Badge (Optional)">
 <input type="url" id="pImageURL" placeholder="Image URL">
-<button onclick="addProduct()">Add Product / Approve</button>
+<button onclick="addProduct()">Add Product</button>
 </div>
-
 <div class="product-list" id="productList"></div>
-</div>
-
-<div id="vendors" class="page">
-<h2>Vendor Management</h2>
-<div class="vendor-list" id="vendorList"></div>
 </div>
 
 <div id="reviews" class="page">
@@ -101,7 +90,7 @@ input,select{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;border:1px
 
 <div id="orders" class="page">
 <h2>Orders</h2>
-<div style="text-align: center; margin-bottom: 1em;">
+<div style="text-align:center;margin-bottom:1em;">
 <select id="orderStatusFilter" onchange="renderOrders()">
 <option value="All">Filter by Status (All)</option>
 <option value="Pending">Pending</option>
@@ -118,164 +107,165 @@ let adminLoggedIn=false;
 let products=JSON.parse(localStorage.getItem('products')||'[]');
 let reviews=JSON.parse(localStorage.getItem('reviews')||'[]');
 let orders=JSON.parse(localStorage.getItem('orders')||'[]');
-let vendors=JSON.parse(localStorage.getItem('vendors')||'[]');
-if(vendors.length===0){
-    vendors.push({id:'vendor1',name:'Vendor One',status:'Pending',password:'1234'});
-    vendors.push({id:'vendor2',name:'Vendor Two',status:'Approved',password:'1234'});
-    localStorage.setItem('vendors',JSON.stringify(vendors));
+
+function reloadData(){
+products=JSON.parse(localStorage.getItem('products')||'[]');
+reviews=JSON.parse(localStorage.getItem('reviews')||'[]');
+orders=JSON.parse(localStorage.getItem('orders')||'[]');
 }
 
-// ===== PAGE CONTROL & LOGIN =====
-function reloadData() {
-    products = JSON.parse(localStorage.getItem('products')||'[]');
-    reviews = JSON.parse(localStorage.getItem('reviews')||'[]');
-    orders = JSON.parse(localStorage.getItem('orders')||'[]');
-    vendors = JSON.parse(localStorage.getItem('vendors')||'[]');
-}
-
+// ===== PAGE CONTROL =====
 function showPage(page){
-    if(!adminLoggedIn && page!=='loginPage'){alert('Login required'); return;}
-    document.querySelectorAll('.page').forEach(p=>p.style.display='none');
-    document.getElementById(page).style.display='block';
-    reloadData();
-    renderAll();
+if(!adminLoggedIn && page!=='loginPage'){alert('Login required'); return;}
+document.querySelectorAll('.page').forEach(p=>p.style.display='none');
+document.getElementById(page).style.display='block';
+reloadData();
+renderAll();
 }
 showPage('loginPage');
 
 function adminLogin(){
-    let pass=document.getElementById('adminPassword').value;
-    if(pass==='NAFIS128'){
-        adminLoggedIn=true;
-        showPage('dashboard');
-    }else{
-        document.getElementById('loginMsg').innerText='Wrong Password';
-    }
+let pass=document.getElementById('adminPassword').value;
+if(pass==='NAFIS128'){
+adminLoggedIn=true;
+showPage('dashboard');
+}else{
+document.getElementById('loginMsg').innerText='Wrong Password';
 }
-function toggleDarkMode(){ document.body.classList.toggle('dark'); }
+}
+function toggleDarkMode(){document.body.classList.toggle('dark');}
 function applyTheme(){
-    document.body.style.background=document.getElementById('bgColor').value;
-    document.body.style.color=document.getElementById('textColor').value;
-    document.querySelectorAll('button').forEach(b=>{
-        b.style.background=document.getElementById('btnColor').value;
-        b.style.color=document.getElementById('btnTextColor').value;
-    });
+document.body.style.background=document.getElementById('bgColor').value;
+document.body.style.color=document.getElementById('textColor').value;
+document.querySelectorAll('button').forEach(b=>{
+b.style.background=document.getElementById('btnColor').value;
+b.style.color=document.getElementById('btnTextColor').value;
+});
 }
-function renderAll(){ renderProducts(); renderReviews(); renderOrders(); renderVendors(); }
+function renderAll(){renderProducts();renderReviews();renderOrders();}
 
 // ===== PRODUCTS =====
-function generateProductId() {
-    products = JSON.parse(localStorage.getItem('products')||'[]');
-    return products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1;
+function generateProductId(){
+products=JSON.parse(localStorage.getItem('products')||'[]');
+return products.length>0?Math.max(...products.map(p=>p.id))+1:1;
 }
 
 function addProduct(){
-    const name = document.getElementById('pName').value;
-    const category = document.getElementById('pCategory').value;
-    const price = Number(document.getElementById('pPrice').value);
-    const stock = Number(document.getElementById('pStock').value);
-    const vendorId = document.getElementById('pVendor').value || 'admin';
-    const badge = document.getElementById('pBadge').value || null;
-    const imageURL = document.getElementById('pImageURL').value; 
-
-    if (!name || !price || !stock || !imageURL || price <= 0 || stock < 0){ 
-        alert("Please enter valid data."); 
-        return; 
-    }
-
-    const newProduct = {
-        id: generateProductId(),
-        name, category, price, stock, rating:5, badge, imageURL, vendorId, status: vendorId==='admin'?'Approved':'Pending'
-    };
-    products.push(newProduct);
-    localStorage.setItem('products', JSON.stringify(products));
-    alert(`Product "${name}" added!`);
-    renderProducts();
+const name=document.getElementById('pName').value;
+const category=document.getElementById('pCategory').value;
+const price=Number(document.getElementById('pPrice').value);
+const stock=Number(document.getElementById('pStock').value);
+const badge=document.getElementById('pBadge').value||null;
+const imageURL=document.getElementById('pImageURL').value;
+if(!name||!price||!stock||!imageURL||price<=0||stock<0){alert("Enter valid info");return;}
+const newProduct={id:generateProductId(),name,category,price,stock,rating:5,badge,imageURL,vendorId:'admin'};
+products.push(newProduct);
+localStorage.setItem('products',JSON.stringify(products));
+document.getElementById('pName').value='';
+document.getElementById('pPrice').value='';
+document.getElementById('pStock').value='';
+document.getElementById('pBadge').value='';
+document.getElementById('pImageURL').value='';
+alert(`Product "${name}" added!`);
+renderProducts();
 }
 
 function renderProducts(){
-    products=JSON.parse(localStorage.getItem('products')||'[]');
-    let list=document.getElementById('productList'); list.innerHTML='';
-    if(products.length===0){list.innerHTML='<p>No products</p>'; return;}
-    products.forEach((p,i)=>{
-        let div=document.createElement('div'); div.className='product';
-        const img = p.imageURL || "https://via.placeholder.com/100?text=No+Image";
-        div.innerHTML=`
-        <img src="${img}" alt="${p.name}">
-        <h3>${p.name} (ID: ${p.id})</h3>
-        <p>Category: ${p.category}</p>
-        <p>Vendor: ${p.vendorId}</p>
-        <p>Price: $${p.price}</p>
-        <p>Stock: ${p.stock}</p>
-        <p>Status: <b>${p.status}</b></p>
-        <button onclick="approveProduct(${i})" style="background:blue;">Approve</button>
-        <button onclick="deleteProduct(${i})" style="background:red;">Delete</button>`;
-        list.appendChild(div);
-    });
+products=JSON.parse(localStorage.getItem('products')||'[]');
+let list=document.getElementById('productList');list.innerHTML='';
+if(products.length===0){list.innerHTML='<p>No products</p>';return;}
+products.forEach((p,i)=>{
+let div=document.createElement('div');div.className='product';
+const imageUrl=p.imageURL||"https://via.placeholder.com/100?text=No+Image";
+div.innerHTML=`<img src="${imageUrl}" alt="${p.name}">
+<h3>${p.name} (ID: ${p.id})</h3>
+<p>Category: ${p.category}</p>
+<p>Vendor: ${p.vendorId}</p>
+<p>Price: $${p.price.toFixed(2)}</p>
+<p>Stock: ${p.stock}</p>
+<input type="number" id="priceEdit${p.id}" value="${p.price}" class="edit-input" placeholder="New Price">
+<input type="number" id="stockEdit${p.id}" value="${p.stock}" class="edit-input" placeholder="New Stock">
+<button onclick="editProduct(${p.id})">Update</button>
+<button onclick="deleteProduct(${i})" style="background:red;">Delete</button>`;
+list.appendChild(div);
+});
 }
 
-function approveProduct(i){
-    if(products[i].status==='Approved'){ alert('Already approved'); return;}
-    products[i].status='Approved';
-    localStorage.setItem('products',JSON.stringify(products));
-    renderProducts();
+function editProduct(productId){
+const newPrice=Number(document.getElementById(`priceEdit${productId}`).value);
+const newStock=Number(document.getElementById(`stockEdit${productId}`).value);
+if(isNaN(newPrice)||newPrice<=0||isNaN(newStock)||newStock<0){alert("Invalid values");return;}
+products=JSON.parse(localStorage.getItem('products')||'[]');
+const index=products.findIndex(p=>p.id===productId);
+if(index!==-1){products[index].price=newPrice;products[index].stock=newStock;localStorage.setItem('products',JSON.stringify(products));alert(`Product ID ${productId} updated.`);renderProducts();}
 }
-function deleteProduct(i){if(confirm(`Delete ${products[i].name}?`)){products.splice(i,1); localStorage.setItem('products',JSON.stringify(products)); renderProducts();}}
 
-// ===== VENDORS =====
-function renderVendors(){
-    vendors = JSON.parse(localStorage.getItem('vendors')||'[]');
-    let list = document.getElementById('vendorList'); list.innerHTML='';
-    vendors.forEach((v,i)=>{
-        let div=document.createElement('div'); div.className='vendor';
-        div.innerHTML=`
-        <h3>${v.name} (ID: ${v.id})</h3>
-        <p>Status: <span class="vendor-status-${v.status.toLowerCase()}">${v.status}</span></p>
-        <button onclick="approveVendor(${i})" style="background:blue;">Approve</button>
-        <button onclick="deleteVendor(${i})" style="background:red;">Delete</button>`;
-        list.appendChild(div);
-    });
+function deleteProduct(i){
+products=JSON.parse(localStorage.getItem('products')||'[]');
+if(confirm(`Delete ${products[i].name}?`)){products.splice(i,1);localStorage.setItem('products',JSON.stringify(products));renderProducts();}
 }
-function approveVendor(i){vendors[i].status='Approved'; localStorage.setItem('vendors',JSON.stringify(vendors)); renderVendors();}
-function deleteVendor(i){vendors.splice(i,1); localStorage.setItem('vendors',JSON.stringify(vendors)); renderVendors();}
 
 // ===== REVIEWS =====
-function renderReviews(){reviews=JSON.parse(localStorage.getItem('reviews')||'[]'); let list=document.getElementById('reviewList'); list.innerHTML=''; if(reviews.length===0){list.innerHTML='<p>No reviews</p>'; return;} reviews.forEach((r,i)=>{let div=document.createElement('div'); div.className='review'; div.innerHTML=`<p><b>${r.name||r.customer}</b>: ${r.text}</p><button onclick="deleteReview(${i})" style="background:red;">Delete</button>`; list.appendChild(div);});}
-function deleteReview(i){reviews.splice(i,1); localStorage.setItem('reviews',JSON.stringify(reviews)); renderReviews();}
+function renderReviews(){
+reviews=JSON.parse(localStorage.getItem('reviews')||'[]');
+let list=document.getElementById('reviewList');list.innerHTML='';
+if(reviews.length===0){list.innerHTML='<p>No reviews</p>';return;}
+reviews.forEach((r,i)=>{
+let div=document.createElement('div');div.className='review';
+div.innerHTML=`<p><b>${r.name||r.customer}</b>: ${r.text}</p>
+<button onclick="deleteReview(${i})" style="background:red;">Delete</button>`;
+list.appendChild(div);
+});
+}
+function deleteReview(i){reviews=JSON.parse(localStorage.getItem('reviews')||'[]');reviews.splice(i,1);localStorage.setItem('reviews',JSON.stringify(reviews));renderReviews();}
 
 // ===== ORDERS =====
 function renderOrders(){
-    orders=JSON.parse(localStorage.getItem('orders')||'[]');
-    let list=document.getElementById('orderList'); list.innerHTML='';
-    const filterStatus=document.getElementById('orderStatusFilter').value;
-    let filteredOrders = orders;
-    if(filterStatus!=='All'){filteredOrders = orders.filter(o=>o.status===filterStatus);}
-    if(filteredOrders.length===0){list.innerHTML='<p>No orders</p>'; return;}
-    filteredOrders.forEach((o,i)=>{
-        const originalIndex = orders.findIndex(item => item.id===o.id);
-        let productsStr=o.products.map(p=>`${p.name} (x${p.quantity})`).join(', ');
-        let statusClass = `order-status-${o.status.toLowerCase()}`;
-        let div=document.createElement('div'); div.className='order';
-        div.innerHTML=`
-            <p><b>Order ID:</b> ${o.id}</p>
-            <p><b>Customer:</b> ${o.customerName}</p>
-            <p><b>WhatsApp:</b> ${o.customerWhatsapp}</p>
-            <p><b>Address:</b> ${o.customerAddress}</p>
-            <p><b>Products:</b> ${productsStr}</p>
-            <p><b>Total:</b> $${o.total}</p>
-            <p><b>Date:</b> ${o.date}</p>
-            <p><b>Status:</b> <span class="${statusClass}">${o.status}</span></p>
-            <select onchange="updateOrderStatus(${originalIndex}, this.value)">
-                <option value="${o.status}">${o.status} (Select New)</option>
-                <option value="Pending">Pending</option>
-                <option value="Shipped">Shipped</option>
-                <option value="Delivered">Delivered</option>
-            </select>
-            <button onclick="deleteOrder(${originalIndex})" style="background:red;">Delete</button>`;
-        list.appendChild(div);
-    });
+orders=JSON.parse(localStorage.getItem('orders')||'[]');
+let list=document.getElementById('orderList');list.innerHTML='';
+const filterStatus=document.getElementById('orderStatusFilter').value;
+let filteredOrders=orders;
+if(filterStatus!=='All'){filteredOrders=orders.filter(o=>o.status===filterStatus);}
+filteredOrders.sort((a,b)=>{const statusOrder={Pending:1,Shipped:2,Delivered:3};return statusOrder[a.status]-statusOrder[b.status];});
+if(filteredOrders.length===0){list.innerHTML='<p>No orders for this status.</p>';return;}
+filteredOrders.forEach((o)=>{
+const originalIndex=orders.findIndex(item=>item.id===o.id);
+let productsStr=o.products.map(p=>`${p.name} (x${p.quantity})`).join(', ');
+let statusClass=`order-status-${o.status.toLowerCase()}`;
+let div=document.createElement('div');div.className='order';
+div.innerHTML=`<p><b>Order ID:</b> ${o.id}</p>
+<p><b>Customer:</b> ${o.customerName}</p>
+<p><b>WhatsApp:</b> ${o.customerWhatsapp}</p>
+<p><b>Address:</b> ${o.customerAddress}</p>
+<p><b>Products:</b> ${productsStr}</p>
+<p><b>Total:</b> $${o.total}</p>
+<p><b>Date:</b> ${o.date}</p>
+<p><b>Status:</b> <span class="${statusClass}">${o.status}</span></p>
+<select onchange="updateOrderStatus(${originalIndex},this.value)">
+<option value="${o.status}">${o.status} (Select New)</option>
+<option value="Pending">Pending</option>
+<option value="Shipped">Shipped</option>
+<option value="Delivered">Delivered</option>
+</select>
+<button onclick="deleteOrder(${originalIndex})" style="background:red;">Delete Order</button>`;
+list.appendChild(div);
+});
 }
-function updateOrderStatus(i,newStatus){if(orders[i].status===newStatus) return; orders[i].status=newStatus; localStorage.setItem('orders',JSON.stringify(orders)); alert(`Order ${orders[i].id} updated`); renderOrders();}
-function deleteOrder(i){if(confirm(`Delete order ${orders[i].id}?`)){orders.splice(i,1); localStorage.setItem('orders',JSON.stringify(orders)); renderOrders();}}
+
+function updateOrderStatus(i,newStatus){
+orders=JSON.parse(localStorage.getItem('orders')||'[]');
+if(orders[i].status===newStatus)return;
+orders[i].status=newStatus;
+localStorage.setItem('orders',JSON.stringify(orders));
+alert(`Order ID ${orders[i].id} updated to ${newStatus}`);
+renderOrders();
+}
+
+function deleteOrder(i){
+orders=JSON.parse(localStorage.getItem('orders')||'[]');
+if(confirm(`Delete Order ID ${orders[i].id}?`)){orders.splice(i,1);localStorage.setItem('orders',JSON.stringify(orders));renderOrders();}
+}
 </script>
+
 </body>
 </html>
