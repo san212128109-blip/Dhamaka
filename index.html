@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dhamaka Shop - Customer</title>
+<title>Dhamaka Shop</title>
 <style>
 body{font-family:Arial,sans-serif;background:#f8f9fa;color:#212529;margin:0;padding:0;}
 header{background:#28a745;color:white;padding:1em;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;}
@@ -11,19 +11,18 @@ header h1{margin:0;}
 header nav a{color:white;margin-left:1em;text-decoration:none;font-weight:bold;}
 header nav a:hover{color:#ffc107;}
 .container{padding:1em;}
-.product-list{display:flex;flex-wrap:wrap;gap:1em;justify-content:center;}
-.product{border:1px solid #28a745;border-radius:12px;padding:1em;width:220px;text-align:center;background:#fff;box-shadow:2px2px10px rgba(0,0,0,0.1);transition:0.3s;position:relative;}
+.product-list{display:flex;flex-wrap:wrap;gap:1em;justify-content:center;margin-top:1em;}
+.product{border:1px solid #28a745;border-radius:12px;padding:1em;width:220px;text-align:center;background:#fff;box-shadow:2px2px10px rgba(0,0,0,0.1);position:relative;overflow:hidden;transition:0.3s;}
 .product:hover{transform:scale(1.05);box-shadow:4px4px15px rgba(0,0,0,0.2);}
 .product img{width:100px;height:100px;object-fit:cover;margin-bottom:10px;border-radius:8px;}
-button{background:#28a745;color:white;border:none;padding:0.5em 1em;border-radius:5px;cursor:pointer;transition:0.3s;}
+.badge{position:absolute;top:10px;left:10px;background:red;color:white;padding:2px 6px;border-radius:4px;font-size:0.8em;}
+.cart{position:fixed;right:0;top:0;background:#fff;border-left:2px solid #28a745;width:300px;height:100%;overflow-y:auto;padding:1em;box-shadow:-2px 0 5px rgba(0,0,0,0.2);}
+.cart h3{text-align:center;}
+.cart-item{border-bottom:1px solid #ccc;padding:0.5em 0;}
+.cart-item p{margin:0.3em 0;}
+button{background:#28a745;color:white;border:none;padding:0.3em 0.6em;border-radius:5px;cursor:pointer;transition:0.3s;}
 button:hover{background:#218838;}
-.cart{position:fixed;top:70px;right:20px;background:#fff;padding:1em;border:1px solid #28a745;border-radius:8px;box-shadow:2px2px10px rgba(0,0,0,0.2);width:300px;max-height:80vh;overflow:auto;}
-.cart h3{text-align:center;margin-bottom:0.5em;}
-.cart-item{display:flex;justify-content:space-between;margin-bottom:0.5em;}
-.cart-item span{margin:0 2px;}
-input[type="number"]{width:50px;}
-.checkout-form{display:flex;flex-direction:column;margin-top:1em;}
-.checkout-form input, .checkout-form textarea{margin-bottom:0.5em;padding:0.5em;border-radius:5px;border:1px solid #ccc;}
+input{padding:0.3em;margin:0.3em 0;width:95%;border-radius:5px;border:1px solid #ccc;}
 </style>
 </head>
 <body>
@@ -31,133 +30,102 @@ input[type="number"]{width:50px;}
 <header>
 <h1>Dhamaka Shop</h1>
 <nav>
-<a href="#products" onclick="scrollToProducts()">Products</a>
-<a href="#cart" onclick="toggleCart()">Cart (<span id="cartCount">0</span>)</a>
+<a href="admin.html" target="_blank">Admin Panel</a>
+<a href="vendor.html" target="_blank">Vendor Panel</a>
 </nav>
 </header>
 
 <div class="container">
-<h2 style="text-align:center;">Our Products</h2>
+<h2>Products</h2>
 <div class="product-list" id="productList"></div>
 </div>
 
-<div class="cart" id="cart" style="display:none;">
-<h3>Your Cart</h3>
+<div class="cart" id="cartPanel">
+<h3>Cart</h3>
 <div id="cartItems"></div>
-<p><b>Total: $<span id="cartTotal">0</span></b></p>
-<div class="checkout-form">
+<p><b>Total: $<span id="cartTotal">0.00</span></b></p>
+<h4>Checkout</h4>
 <input type="text" id="customerName" placeholder="Your Name">
-<input type="text" id="customerPhone" placeholder="WhatsApp Number">
-<textarea id="customerAddress" placeholder="Address"></textarea>
+<input type="text" id="customerWhatsapp" placeholder="WhatsApp Number">
+<textarea id="customerAddress" placeholder="Delivery Address"></textarea>
 <button onclick="checkout()">Place Order</button>
-</div>
+<p id="checkoutMsg" style="color:green;"></p>
 </div>
 
 <script>
-// ===== Data =====
 let products=JSON.parse(localStorage.getItem('products')||'[]');
 let orders=JSON.parse(localStorage.getItem('orders')||'[]');
 let cart=JSON.parse(localStorage.getItem('cart')||'[]');
 
-// ===== Product Listing =====
 function renderProducts(){
-    products=JSON.parse(localStorage.getItem('products')||'[]');
-    let list=document.getElementById('productList');
-    list.innerHTML='';
-    if(products.length===0){ list.innerHTML='<p>No products available</p>'; return;}
+    const list=document.getElementById('productList'); list.innerHTML='';
+    if(products.length===0){ list.innerHTML='<p>No products available.</p>'; return;}
     products.forEach(p=>{
-        let div=document.createElement('div');
-        div.className='product';
-        const imgURL = p.imageURL || "https://via.placeholder.com/100?text=No+Image";
-        div.innerHTML=`
-            <img src="${imgURL}" alt="${p.name}">
-            <h3>${p.name}</h3>
-            <p>Category: ${p.category}</p>
-            <p>Price: $${p.price.toFixed(2)}</p>
-            <p>Stock: ${p.stock}</p>
-            <button onclick="addToCart(${p.id})">Add to Cart</button>
-        `;
+        const div=document.createElement('div'); div.className='product';
+        div.innerHTML=`${p.badge?'<div class="badge">'+p.badge+'</div>':''}
+        <img src="${p.imageURL||'https://via.placeholder.com/100?text=No+Image'}" alt="${p.name}">
+        <h4>${p.name}</h4>
+        <p>Category: ${p.category}</p>
+        <p>Price: $${p.price.toFixed(2)}</p>
+        <button onclick="addToCart(${p.id})">Add to Cart</button>`;
         list.appendChild(div);
     });
 }
 
-// ===== Cart Management =====
 function saveCart(){ localStorage.setItem('cart',JSON.stringify(cart)); }
+
 function renderCart(){
-    let container=document.getElementById('cartItems');
-    container.innerHTML='';
-    if(cart.length===0){ container.innerHTML='<p>Your cart is empty</p>'; document.getElementById('cartTotal').innerText='0'; return;}
+    const container=document.getElementById('cartItems'); container.innerHTML='';
+    if(cart.length===0){ container.innerHTML='<p>Cart is empty.</p>'; document.getElementById('cartTotal').innerText='0.00'; return;}
     let total=0;
-    cart.forEach((item,index)=>{
-        let product=products.find(p=>p.id===item.id);
-        if(!product) return;
-        let div=document.createElement('div'); div.className='cart-item';
-        let itemTotal = product.price * item.quantity;
-        total+=itemTotal;
-        div.innerHTML=`
-            <span>${product.name} ($${product.price.toFixed(2)})</span>
-            <span>
-                Qty: <input type="number" min="1" value="${item.quantity}" onchange="updateCart(${product.id}, this.value)">
-                <button onclick="removeFromCart(${product.id})">x</button>
-            </span>
-        `;
+    cart.forEach((item,i)=>{
+        total+=item.price*item.quantity;
+        const div=document.createElement('div'); div.className='cart-item';
+        div.innerHTML=`<p><b>${item.name}</b></p>
+        <p>Price: $${item.price.toFixed(2)}</p>
+        <p>Quantity: <input type="number" value="${item.quantity}" min="1" onchange="updateQuantity(${i},this.value)"></p>
+        <button onclick="removeFromCart(${i})">Remove</button>`;
         container.appendChild(div);
     });
     document.getElementById('cartTotal').innerText=total.toFixed(2);
-    document.getElementById('cartCount').innerText=cart.length;
 }
 
 function addToCart(id){
-    let item=cart.find(c=>c.id===id);
-    if(item){ item.quantity+=1; } 
-    else { cart.push({id:id,quantity:1}); }
-    saveCart(); renderCart(); alert('Product added to cart');
+    const p=products.find(prod=>prod.id===id);
+    if(!p) return;
+    const index=cart.findIndex(c=>c.id===id);
+    if(index!==-1){ cart[index].quantity+=1; } else { cart.push({...p,quantity:1}); }
+    saveCart();
+    renderCart();
 }
-function updateCart(id, qty){ 
-    qty=parseInt(qty); 
-    if(qty<1) qty=1; 
-    let item=cart.find(c=>c.id===id); 
-    if(item){ item.quantity=qty; saveCart(); renderCart(); }
+
+function updateQuantity(i,val){
+    let q=parseInt(val); if(isNaN(q)||q<1) q=1;
+    cart[i].quantity=q;
+    saveCart();
+    renderCart();
 }
-function removeFromCart(id){ cart=cart.filter(c=>c.id!==id); saveCart(); renderCart(); }
-function toggleCart(){ let c=document.getElementById('cart'); c.style.display=(c.style.display==='none')?'block':'none'; }
+
+function removeFromCart(i){
+    cart.splice(i,1);
+    saveCart();
+    renderCart();
+}
 
 function checkout(){
-    let name=document.getElementById('customerName').value.trim();
-    let phone=document.getElementById('customerPhone').value.trim();
-    let address=document.getElementById('customerAddress').value.trim();
-    if(!name || !phone || !address){ alert('Fill all checkout fields'); return;}
-    if(cart.length===0){ alert('Cart is empty'); return;}
-    let total=0;
-    let orderProducts=[];
-    cart.forEach(item=>{
-        let p=products.find(pr=>pr.id===item.id);
-        if(p){
-            orderProducts.push({id:p.id,name:p.name,price:p.price,quantity:item.quantity});
-            total+=p.price*item.quantity;
-        }
-    });
-    let newOrder={
-        id:orders.length>0?Math.max(...orders.map(o=>o.id))+1:1,
-        customerName:name,
-        customerWhatsapp:phone,
-        customerAddress:address,
-        products:orderProducts,
-        total:total,
-        date:new Date().toLocaleString(),
-        status:'Pending'
-    };
+    const name=document.getElementById('customerName').value.trim();
+    const whatsapp=document.getElementById('customerWhatsapp').value.trim();
+    const address=document.getElementById('customerAddress').value.trim();
+    if(!name||!whatsapp||!address||cart.length===0){ alert('Fill all fields and add products to cart'); return;}
+    const newOrder={id:orders.length>0?Math.max(...orders.map(o=>o.id))+1:1,customerName:name,customerWhatsapp:whatsapp,customerAddress:address,products:cart,total:cart.reduce((sum,i)=>sum+i.price*i.quantity,0).toFixed(2),status:'Pending',date:new Date().toLocaleString()};
     orders.push(newOrder);
     localStorage.setItem('orders',JSON.stringify(orders));
     cart=[]; saveCart(); renderCart();
-    alert('Order placed successfully! WhatsApp support: 01913821910');
-    document.getElementById('customerName').value='';
-    document.getElementById('customerPhone').value='';
-    document.getElementById('customerAddress').value='';
+    document.getElementById('customerName').value=''; document.getElementById('customerWhatsapp').value=''; document.getElementById('customerAddress').value='';
+    document.getElementById('checkoutMsg').innerText='Order placed successfully!';
 }
 
 renderProducts(); renderCart();
-function scrollToProducts(){ window.scrollTo({top:150,behavior:'smooth'});}
 </script>
 
 </body>
