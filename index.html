@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dhamaka Daily Items - Shop</title>
 <style>
-/* CSS: আপনার দেওয়া পুরোনো স্টাইল অপরিবর্তিত আছে */
+/* CSS: General Styling (Unchanged) */
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:Arial,sans-serif;background:#d4edda;color:#155724;transition:0.3s;}
 body.dark{background:#121212;color:#ddd;}
@@ -27,23 +27,55 @@ h1,h2,h3{text-align:center;margin-bottom:0.5em;}
 @keyframes bounce{0%{transform:translateY(0);}100%{transform:translateY(-5px);}}
 button{background:#28a745;color:white;border:none;padding:0.5em 1em;border-radius:5px;cursor:pointer;margin-top:0.5em;transition:0.3s;}
 button:hover{background:#218838;}
-input,select{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;border:1px solid #ccc;}
+input,select,textarea{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;border:1px solid #ccc;}
 #cartSummary{text-align:center;margin-top:1em;font-weight:bold;}
-.carousel{display:flex;overflow:hidden;width:90%;margin:1em auto;position:relative;border-radius:12px;}
+.carousel{display:flex;overflow:hidden;width:90%;margin:1em auto;position:relative;border-radius:12px; border: 3px solid #ffc107;} /* UPDATED */
 .carousel img{width:100%;border-radius:12px;transition:transform 0.5s;}
 .star{color:gold;font-size:1em;cursor:pointer;}
 .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);justify-content:center;align-items:center;animation:fadeIn 0.3s;}
 .modal-content{background:#fff;padding:1em;border-radius:12px;width:90%;max-width:400px;text-align:center;}
 .modal button{width:45%;margin:0.5em;}
 @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
-#loginForm{max-width:400px;margin:1em auto;text-align:center;}
-#loginForm input{width:80%;margin-bottom:0.5em;}
 #support{position:fixed;bottom:20px;right:20px;background:#25D366;color:white;padding:10px 15px;border-radius:50px;cursor:pointer;box-shadow:2px2px10px rgba(0,0,0,0.2);}
-#reviewForm{max-width:400px;margin:1em auto;text-align:center;border:1px solid #ccc;padding:1em;border-radius:8px;}
-#reviewForm input, #reviewForm textarea{width:90%;margin:0.3em 0;padding:0.5em;}
-#reviewList{margin-top:1em;}
-.product-image-container img {width: 150px; height: 150px; object-fit: cover; border-radius: 8px;} /* নতুন স্টাইল */
+.product-image-container img {width: 150px; height: 150px; object-fit: cover; border-radius: 8px;} 
 @media(max-width:600px){ .product{width:45%; } header{flex-direction:column;align-items:flex-start;} nav a{margin:0.3em 0;} }
+
+/* --- Home Page Specific Styling --- (Added from previous response) */
+#home {
+    padding-top: 20px;
+}
+.product-list {
+    padding: 20px 0;
+    border-top: 1px solid #28a745;
+}
+#reviewSectionContainer {
+    max-width: 900px;
+    margin: 30px auto;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 15px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+.review-item {
+    border-bottom: 1px dashed #ccc;
+    padding: 10px 0;
+    text-align: left;
+}
+.review-item:last-child {
+    border-bottom: none;
+}
+.review-customer {
+    font-size: 0.9em;
+    color: #6c757d;
+}
+.review-customer b {
+    color: #000;
+}
+/* Login/Register Toggle Button Style */
+#loginToggleBtn, #registerToggleBtn {
+    width: 45%;
+    background-color: #6c757d; /* Default Inactive */
+}
 </style>
 </head>
 <body>
@@ -60,50 +92,78 @@ input,select{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;border:1px
 </header>
 
 <div id="home" class="page">
-<h2>Featured Products</h2>
-<div class="carousel" id="carousel"></div>
-<div class="product-list" id="homeList"></div>
+    <h2>🔥 Top Deals of the Day</h2>
+    <div class="carousel" id="carousel"></div>
+
+    <h2 style="margin-top: 20px;">Featured Products</h2>
+    <div class="product-list" id="homeList"></div>
+    <div style="text-align: center; margin: 20px 0;">
+        <button onclick="showPage('categories')">View All Products →</button>
+    </div>
 </div>
 
 <div id="categories" class="page">
-<h2>Categories</h2>
-<select id="categoryFilter" onchange="filterCategory()"><option value="All">All</option></select>
-<input type="text" id="searchInput" placeholder="Search Products..." oninput="filterCategory()">
-<select id="sortSelect" onchange="filterCategory()">
-<option value="">Sort By</option>
-<option value="price-asc">Price Low→High</option>
-<option value="price-desc">Price High→Low</option>
-<option value="name-asc">Name A→Z</option>
-<option value="name-desc">Name Z→A</option>
-</select>
-<div class="product-list" id="categoryList"></div>
+    <h2>Categories</h2>
+    <select id="categoryFilter" onchange="filterCategory()"><option value="All">All</option></select>
+    <input type="text" id="searchInput" placeholder="Search Products..." oninput="filterCategory()">
+    <select id="sortSelect" onchange="filterCategory()">
+        <option value="">Sort By</option>
+        <option value="price-asc">Price Low→High</option>
+        <option value="price-desc">Price High→Low</option>
+        <option value="name-asc">Name A→Z</option>
+        <option value="name-desc">Name Z→A</option>
+    </select>
+    <div class="product-list" id="categoryList"></div>
 </div>
 
 <div id="cart" class="page">
-<h2>Your Cart</h2>
-<div class="cart-list" id="cartList"></div>
-<div id="cartSummary"></div>
-<button onclick="checkout()">Checkout</button>
+    <h2>Your Cart</h2>
+    <div class="cart-list" id="cartList"></div>
+    <div id="cartSummary"></div>
+    <button onclick="checkout()">Checkout</button>
 </div>
 
 <div id="loginForm" class="page">
-<h2>Customer Login/Register</h2>
-<input type="text" id="username" placeholder="Username">
-<input type="text" id="userWhatsapp" placeholder="WhatsApp Number">
-<input type="text" id="userAddress" placeholder="Address"> 
-<input type="password" id="password" placeholder="Password">
-<button onclick="customerRegister()">Register</button>
-<button onclick="customerLogin()">Login</button>
-<p id="loginMsg" style="color:red;"></p>
+    <h2>Customer Area</h2>
+    
+    <div style="text-align: center; margin-bottom: 1em;">
+        <button onclick="toggleAuthForm('login')" id="loginToggleBtn">Login</button>
+        <button onclick="toggleAuthForm('register')" id="registerToggleBtn">Register</button>
+    </div>
+
+    <div id="loginDiv" style="max-width:400px; margin:1em auto; text-align:center;">
+        <h3>Login to Shop</h3>
+        <input type="text" id="usernameLogin" placeholder="Username">
+        <input type="password" id="passwordLogin" placeholder="Password">
+        <button onclick="customerLogin()">Login</button>
+        <p id="loginMsg" style="color:red;"></p>
+    </div>
+
+    <div id="registerDiv" style="max-width:400px; margin:1em auto; text-align:center; display:none;">
+        <h3>Register New Account</h3>
+        <input type="text" id="usernameRegister" placeholder="Username">
+        <input type="text" id="userWhatsappRegister" placeholder="WhatsApp Number">
+        <input type="text" id="userAddressRegister" placeholder="Address"> 
+        <input type="password" id="passwordRegister" placeholder="Password">
+        <button onclick="customerRegister()">Register</button>
+        <p id="registerMsg" style="color:red;"></p>
+    </div>
+
 </div>
 
-<div id="reviewForm">
-<h3>Submit Review</h3>
-<input type="text" id="reviewName" placeholder="Your Name">
-<textarea id="reviewText" placeholder="Your review"></textarea>
-<button onclick="submitReview()">Submit</button>
+<div id="reviewSectionContainer">
+    <h3>⭐ Customer Reviews</h3>
+    <div id="reviewList"></div>
+
+    <hr style="margin: 15px 0;">
+
+    <div id="reviewForm">
+        <h3>Submit Your Review</h3>
+        <input type="text" id="reviewName" placeholder="Your Name">
+        <textarea id="reviewText" placeholder="Your review"></textarea>
+        <button onclick="submitReview()">Submit</button>
+    </div>
 </div>
-<div id="reviewList"></div>
 
 <div id="support" onclick="openWhatsApp()">💬 Support</div>
 
@@ -113,7 +173,10 @@ input,select{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;border:1px
 let initialProducts = [
     { id: 1, name: "Luxury Smartphone X", price: 799.99, category: "Electronics", stock: 15, rating: 5, badge: "New", image: "https://via.placeholder.com/150/007bff/ffffff?text=Smartphone" },
     { id: 2, name: "Cotton T-Shirt (Blue)", price: 19.99, category: "Apparel", stock: 50, rating: 4, badge: "Sale", image: "https://via.placeholder.com/150/ffc107/000000?text=T-Shirt" },
-    { id: 3, name: "Modular Sofa Set", price: 1299.00, category: "Furniture", stock: 5, rating: 5, badge: "Popular", image: "https://via.placeholder.com/150/dc3545/ffffff?text=Sofa" }
+    { id: 3, name: "Modular Sofa Set", price: 1299.00, category: "Furniture", stock: 5, rating: 5, badge: "Popular", image: "https://via.placeholder.com/150/dc3545/ffffff?text=Sofa" },
+    { id: 4, name: "Gaming Mouse Pad", price: 29.50, category: "Electronics", stock: 100, rating: 4, badge: "Best Seller", image: "https://via.placeholder.com/150/17a2b8/ffffff?text=MousePad" },
+    { id: 5, name: "Designer Leather Wallet", price: 49.99, category: "Apparel", stock: 30, rating: 5, badge: "Premium", image: "https://via.placeholder.com/150/6f42c1/ffffff?text=Wallet" },
+    { id: 6, name: "LED Desk Lamp", price: 35.00, category: "Furniture", stock: 60, rating: 3, badge: "", image: "https://via.placeholder.com/150/fd7e14/ffffff?text=Lamp" }
 ];
 if (!localStorage.getItem("products")) {
     localStorage.setItem("products", JSON.stringify(initialProducts));
@@ -123,10 +186,10 @@ let products = JSON.parse(localStorage.getItem("products")||'[]');
 let cart = JSON.parse(localStorage.getItem("cart")||"[]");
 let reviews = JSON.parse(localStorage.getItem("reviews")||'[]');
 let customers = JSON.parse(localStorage.getItem("customers")||'[]');
-let orders = JSON.parse(localStorage.getItem("orders")||'[]'); // অর্ডার ডেটা স্টোরেজ
+let orders = JSON.parse(localStorage.getItem("orders")||'[]'); 
 let loggedCustomer = JSON.parse(localStorage.getItem("loggedCustomer")||'null');
 
-// ====== AUTO LOGIN ======
+// ====== AUTO LOGIN & INITIAL VIEW ======
 if(loggedCustomer){
     showPage('home');
     document.getElementById('logoutBtn').style.display='inline-block';
@@ -134,50 +197,91 @@ if(loggedCustomer){
     showPage('loginForm');
 }
 
-// ====== PAGE CONTROL & DARK MODE (অপরিবর্তিত) ======
+// ====== PAGE CONTROL & DARK MODE (Unchanged) ======
 function showPage(page){ document.querySelectorAll('.page').forEach(p=>p.style.display='none'); document.getElementById(page).style.display='block'; }
 function toggleDarkMode(){ document.body.classList.toggle('dark'); }
 
-// ====== CUSTOMER SYSTEM (অপরিবর্তিত) ======
+// ====== NEW: Auth Form Toggle ======
+function toggleAuthForm(mode) {
+    const login = document.getElementById('loginDiv');
+    const register = document.getElementById('registerDiv');
+    const loginBtn = document.getElementById('loginToggleBtn');
+    const registerBtn = document.getElementById('registerToggleBtn');
+
+    if (mode === 'login') {
+        login.style.display = 'block';
+        register.style.display = 'none';
+        loginBtn.style.backgroundColor = '#28a745'; 
+        registerBtn.style.backgroundColor = '#6c757d'; 
+    } else {
+        login.style.display = 'none';
+        register.style.display = 'block';
+        loginBtn.style.backgroundColor = '#6c757d'; 
+        registerBtn.style.backgroundColor = '#28a745'; 
+    }
+}
+
+// ====== UPDATED: Customer System ======
 function customerRegister(){
-    let username=document.getElementById("username").value;
-    let whatsapp=document.getElementById("userWhatsapp").value;
-    let address=document.getElementById("userAddress").value;
-    let password=document.getElementById("password").value;
-    if(!username || !whatsapp || !address || !password){ alert("Fill all fields"); return; }
-    if(customers.some(c=>c.username===username)){ alert("Username exists"); return; }
+    let username=document.getElementById("usernameRegister").value;
+    let whatsapp=document.getElementById("userWhatsappRegister").value;
+    let address=document.getElementById("userAddressRegister").value;
+    let password=document.getElementById("passwordRegister").value;
+    
+    if(!username || !whatsapp || !address || !password){ 
+        document.getElementById("registerMsg").innerText="Please fill all fields.";
+        return; 
+    }
+    if(customers.some(c=>c.username===username)){ 
+        document.getElementById("registerMsg").innerText="Username already exists.";
+        return; 
+    }
+    
     customers.push({username, whatsapp, address, password});
     localStorage.setItem("customers",JSON.stringify(customers));
-    alert("Registered successfully! Now login.");
-    document.getElementById("username").value='';
-    document.getElementById("userWhatsapp").value='';
-    document.getElementById("userAddress").value='';
-    document.getElementById("password").value='';
+    
+    document.getElementById("registerMsg").innerText="Registered successfully! Now log in.";
+    
+    // Clear fields and switch to login
+    document.getElementById("usernameRegister").value='';
+    document.getElementById("userWhatsappRegister").value='';
+    document.getElementById("userAddressRegister").value='';
+    document.getElementById("passwordRegister").value='';
+    
+    toggleAuthForm('login'); 
 }
+
 function customerLogin(){
-    let username=document.getElementById("username").value;
-    let password=document.getElementById("password").value;
+    let username=document.getElementById("usernameLogin").value;
+    let password=document.getElementById("passwordLogin").value;
+    
     let user = customers.find(c=>c.username===username && c.password===password);
+    
     if(user){
         loggedCustomer = user;
         localStorage.setItem("loggedCustomer",JSON.stringify(loggedCustomer));
         alert("Welcome, "+user.username);
         showPage('home');
         document.getElementById('logoutBtn').style.display='inline-block';
-        document.getElementById("username").value='';
-        document.getElementById("password").value='';
+        
+        // Clear fields
+        document.getElementById("usernameLogin").value='';
+        document.getElementById("passwordLogin").value='';
+        document.getElementById("loginMsg").innerText=""; 
     } else {
-        document.getElementById("loginMsg").innerText="Invalid credentials";
+        document.getElementById("loginMsg").innerText="Invalid username or password.";
     }
 }
+
 function logout(){
     loggedCustomer=null;
     localStorage.removeItem("loggedCustomer");
     showPage('loginForm');
     document.getElementById('logoutBtn').style.display='none';
+    toggleAuthForm('login'); // Ensure it returns to login tab
 }
 
-// ====== PRODUCTS RENDERING (ইমেজ URL ব্যবহারের জন্য আপডেট করা হয়েছে) ======
+// ====== PRODUCTS RENDERING (Unchanged) ======
 const homeList = document.getElementById("homeList");
 const categoryList = document.getElementById("categoryList");
 const cartList = document.getElementById("cartList");
@@ -189,9 +293,7 @@ function renderProducts(list, arr){
     list.innerHTML='';
     if(arr.length===0){ list.innerHTML="<p>No products.</p>"; return; }
     arr.forEach((p,i)=>{
-        // প্রোডাক্টের ID ব্যবহার করে মূল প্রোডাক্ট অ্যারেতে তার ইন্ডেক্স খুঁজে নেওয়া
         const productIndexInMainArray = products.findIndex(prod => prod.id === p.id);
-        
         const div=document.createElement('div'); div.className='product';
         let stars=''; for(let s=1;s<=5;s++){ stars += s<=p.rating ? '★':'☆'; }
         let badgeHTML=p.badge?`<div class="badge">${p.badge}</div>`:'';
@@ -199,7 +301,7 @@ function renderProducts(list, arr){
         div.innerHTML=`${badgeHTML}<div class="product-image-container"><img src="${p.image}" alt="${p.name}"></div>
         <h3>${p.name}</h3>
         <p>Category: ${p.category}</p><p>$${p.price}</p><p>Stock: ${p.stock}</p><p>${stars}</p>
-        <button onclick="addToCart(${productIndexInMainArray})">Add to Cart</button>`; // মূল ইন্ডেক্স পাঠানো হলো
+        <button onclick="addToCart(${productIndexInMainArray})">Add to Cart</button>`; 
         list.appendChild(div);
     });
     updateCartBadge();
@@ -207,21 +309,20 @@ function renderProducts(list, arr){
 
 function updateCartBadge(){ cartLink.setAttribute('data-count',cart.length); }
 
-function renderCarousel(){ 
-    carousel.innerHTML=''; 
-    // প্রথম ৩টি পণ্য ব্যবহার করা হলো
+function renderCarousel(){ 
+    carousel.innerHTML=''; 
     products.slice(0,3).forEach(p=>{
         const img=document.createElement('img'); img.src=p.image; img.alt=p.name; carousel.appendChild(img);
-    }); 
+    }); 
     let carouselIdx=0;
-    setInterval(()=>{ 
-        const imgs=carousel.querySelectorAll('img'); 
-        imgs.forEach((img,i)=>{ img.style.transform=`translateX(-${carouselIdx*100}%)`; }); 
-        carouselIdx=(carouselIdx+1)%(imgs.length || 1); 
+    setInterval(()=>{ 
+        const imgs=carousel.querySelectorAll('img'); 
+        imgs.forEach((img,i)=>{ img.style.transform=`translateX(-${carouselIdx*100}%)`; }); 
+        carouselIdx=(carouselIdx+1)%(imgs.length || 1); 
     },3000);
 }
 
-// ====== CATEGORY FILTERING & SORTING (নতুন করে আপডেট করা হয়নি, আগের মতো আছে) ======
+// ====== CATEGORY FILTERING & SORTING (Unchanged) ======
 function filterCategory() {
     let filteredProducts = products;
     const selectedCategory = document.getElementById('categoryFilter').value;
@@ -260,15 +361,14 @@ function populateCategoryFilter() {
 }
 
 
-// ====== CART & CHECKOUT (অর্ডার ডেটা সংরক্ষণের জন্য আপডেট করা হয়েছে) ======
+// ====== CART & CHECKOUT (Unchanged Logic) ======
 function renderCart(){
-    // ... (rest of renderCart is same) ...
     cartList.innerHTML='';
     if(cart.length===0){ cartList.innerHTML="<p>Cart is empty.</p>"; return; }
     cart.forEach((p,i)=>{
         const div=document.createElement('div'); div.className='product';
-        const quantity = p.quantity || 1; // Quantity
-        div.innerHTML=`<p>${p.name} - $<span class="price">${p.price * quantity}</span></p>
+        const quantity = p.quantity || 1; 
+        div.innerHTML=`<p>${p.name} - $<span class="price">${(p.price * quantity).toFixed(2)}</span></p>
         <input type="number" value="${quantity}" min="1" onchange="updateQuantity(${i},this.value)">
         <button onclick="removeFromCart(${i})">Remove</button>`;
         cartList.appendChild(div);
@@ -277,43 +377,43 @@ function renderCart(){
     updateCartBadge();
 }
 
-function addToCart(i){ 
-    if(!loggedCustomer){ alert("Please login first!"); showPage('loginForm'); return; }
+function addToCart(i){ 
+    if(!loggedCustomer){ alert("Please login first!"); showPage('loginForm'); toggleAuthForm('login'); return; }
     
     const existingItem = cart.find(item => item.id === products[i].id);
     if(existingItem){
         existingItem.quantity = (existingItem.quantity || 1) + 1;
     } else {
-        cart.push({...products[i], quantity: 1}); 
+        cart.push({...products[i], quantity: 1}); 
     }
     
-    localStorage.setItem("cart",JSON.stringify(cart)); 
-    renderCart(); 
+    localStorage.setItem("cart",JSON.stringify(cart)); 
+    renderCart(); 
     alert(`${products[i].name} added to cart!`);
 }
 
-function removeFromCart(i){ 
-    cart.splice(i,1); 
-    localStorage.setItem("cart",JSON.stringify(cart)); 
-    renderCart(); 
+function removeFromCart(i){ 
+    cart.splice(i,1); 
+    localStorage.setItem("cart",JSON.stringify(cart)); 
+    renderCart(); 
 }
 
-function updateQuantity(i, val){ 
+function updateQuantity(i, val){ 
     const quantity = Number(val);
     if (quantity < 1) return;
-    cart[i].quantity = quantity; 
-    localStorage.setItem("cart",JSON.stringify(cart)); 
-    updateCartTotal(); 
+    cart[i].quantity = quantity; 
+    localStorage.setItem("cart",JSON.stringify(cart)); 
+    updateCartTotal(); 
 }
 
-function updateCartTotal(){ 
-    let total=0; 
-    cart.forEach(p=>{ total+=Number(p.price) * (p.quantity || 1); }); 
-    document.getElementById('cartSummary').innerText=`Total: $${total.toFixed(2)}`; 
+function updateCartTotal(){ 
+    let total=0; 
+    cart.forEach(p=>{ total+=Number(p.price) * (p.quantity || 1); }); 
+    document.getElementById('cartSummary').innerText=`Total: $${total.toFixed(2)}`; 
 }
 
-function checkout(){ 
-    if(cart.length===0){ alert("Cart empty!"); return; } 
+function checkout(){ 
+    if(cart.length===0){ alert("Cart empty!"); return; } 
     if(!loggedCustomer) { alert("Please login to checkout!"); return; }
 
     const total = cart.reduce((sum, p) => sum + (p.price * (p.quantity || 1)), 0);
@@ -332,13 +432,13 @@ function checkout(){
     orders.push(newOrder);
     localStorage.setItem("orders",JSON.stringify(orders));
 
-    cart=[]; 
-    localStorage.setItem("cart",JSON.stringify(cart)); 
-    alert(`Order placed successfully! Total: $${newOrder.total}. Check your WhatsApp for confirmation.`); 
-    renderCart(); 
+    cart=[]; 
+    localStorage.setItem("cart",JSON.stringify(cart)); 
+    alert(`Order placed successfully! Total: $${newOrder.total}. Check your WhatsApp for confirmation.`); 
+    renderCart(); 
 }
 
-// ====== REVIEWS & SUPPORT (অপরিবর্তিত) ======
+// ====== REVIEWS & SUPPORT (Updated renderReviews) ======
 function submitReview(){
     let name=document.getElementById("reviewName").value;
     let text=document.getElementById("reviewText").value;
@@ -352,10 +452,17 @@ function submitReview(){
 
 function renderReviews(){
     reviewList.innerHTML='';
-    if(reviews.length===0){ reviewList.innerHTML="<p>No reviews yet.</p>"; return; }
-    reviews.forEach(r=>{
+    if(reviews.length===0){ reviewList.innerHTML="<p>No reviews yet. Be the first!</p>"; return; }
+    
+    const latestReviews = reviews.slice(-5).reverse(); 
+    
+    latestReviews.forEach(r=>{
         let div=document.createElement('div');
-        div.innerHTML=`<p><b>${r.name}:</b> ${r.text}</p>`;
+        div.className='review-item';
+        div.innerHTML=`
+            <p><strong>${r.name}:</strong> ${r.text}</p>
+            <p class="review-customer">Reviewed by: <b>${r.customer}</b></p>
+        `;
         reviewList.appendChild(div);
     });
 }
@@ -368,6 +475,11 @@ renderProducts(categoryList,products);
 renderCart();
 renderCarousel();
 renderReviews();
+
+// Ensure the login form is shown first if not logged in
+if (!loggedCustomer) {
+    toggleAuthForm('login'); 
+}
 </script>
 </body>
 </html>
