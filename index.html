@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dhamaka Daily Items - Shop</title>
 <style>
-/* CSS: General Styling (Unchanged) */
+/* CSS: General Styling */
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:Arial,sans-serif;background:#d4edda;color:#155724;transition:0.3s;}
 body.dark{background:#121212;color:#ddd;}
@@ -14,6 +14,7 @@ header h1{margin:0;font-size:1.5em;}
 nav{display:flex;align-items:center;flex-wrap:wrap;}
 nav a{color:white;margin-left:1em;text-decoration:none;font-weight:bold;transition:0.3s;position:relative;}
 nav a:hover{text-decoration:underline;color:#ffc107;}
+/* Cart Badge Style */
 nav #cartLink::after{content:attr(data-count);position:absolute;top:-10px;right:-10px;background:red;color:white;width:20px;height:20px;text-align:center;line-height:20px;border-radius:50%;font-size:0.8em;display:inline-block;}
 nav button{margin-left:1em;cursor:pointer;}
 .page{display:none;padding:1em;}
@@ -30,7 +31,7 @@ button:hover{background:#218838;}
 input,select,textarea{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;border:1px solid #ccc;}
 #cartSummary{text-align:center;margin-top:1em;font-weight:bold;}
 .carousel{display:flex;overflow:hidden;width:90%;margin:1em auto;position:relative;border-radius:12px; border: 3px solid #ffc107;} 
-.carousel img{width:100%;border-radius:12px;transition:transform 0.5s;}
+.carousel img{min-width:100%;border-radius:12px;transition:transform 0.5s; object-fit: cover; height: 300px;} /* height added for carousel */
 .star{color:gold;font-size:1em;cursor:pointer;}
 .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);justify-content:center;align-items:center;animation:fadeIn 0.3s;}
 .modal-content{background:#fff;padding:1em;border-radius:12px;width:90%;max-width:400px;text-align:center;}
@@ -40,42 +41,16 @@ input,select,textarea{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;b
 .product-image-container img {width: 150px; height: 150px; object-fit: cover; border-radius: 8px;} 
 @media(max-width:600px){ .product{width:45%; } header{flex-direction:column;align-items:flex-start;} nav a{margin:0.3em 0;} }
 
-/* --- Home Page Specific Styling --- */
-#home {
-    padding-top: 20px;
-}
-.product-list {
-    padding: 20px 0;
-    border-top: 1px solid #28a745;
-}
-#reviewSectionContainer {
-    max-width: 900px;
-    margin: 30px auto;
-    padding: 20px;
-    background: #f8f9fa;
-    border-radius: 15px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-.review-item {
-    border-bottom: 1px dashed #ccc;
-    padding: 10px 0;
-    text-align: left;
-}
-.review-item:last-child {
-    border-bottom: none;
-}
-.review-customer {
-    font-size: 0.9em;
-    color: #6c757d;
-}
-.review-customer b {
-    color: #000;
-}
+/* Home Page Specific Styling */
+#home {padding-top: 20px;}
+.product-list {padding: 20px 0; border-top: 1px solid #28a745;}
+#reviewSectionContainer {max-width: 900px; margin: 30px auto; padding: 20px; background: #f8f9fa; border-radius: 15px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);}
+.review-item {border-bottom: 1px dashed #ccc; padding: 10px 0; text-align: left;}
+.review-item:last-child {border-bottom: none;}
+.review-customer {font-size: 0.9em; color: #6c757d;}
+.review-customer b {color: #000;}
 /* Login/Register Toggle Button Style */
-#loginToggleBtn, #registerToggleBtn {
-    width: 45%;
-    background-color: #6c757d; 
-}
+#loginToggleBtn, #registerToggleBtn {width: 45%; background-color: #6c757d;} 
 </style>
 </head>
 <body>
@@ -143,7 +118,7 @@ input,select,textarea{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;b
         <h3>Register New Account</h3>
         <input type="text" id="usernameRegister" placeholder="Username">
         <input type="text" id="userWhatsappRegister" placeholder="WhatsApp Number">
-        <input type="text" id="userAddressRegister" placeholder="Address"> 
+        <input type="text" id="userAddressRegister" placeholder="Address"> 
         <input type="password" id="passwordRegister" placeholder="Password">
         <button onclick="customerRegister()">Register</button>
         <p id="registerMsg" style="color:red;"></p>
@@ -171,14 +146,15 @@ input,select,textarea{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;b
 // ====== DATA STORAGE ======
 // প্রাথমিক পণ্য ডেটা (যদি localStorage খালি থাকে)
 let initialProducts = [
-    { id: 1, name: "Luxury Smartphone X", price: 799.99, category: "Electronics", stock: 15, rating: 5, badge: "New", image: "https://via.placeholder.com/150/007bff/ffffff?text=Smartphone" },
-    { id: 2, name: "Cotton T-Shirt (Blue)", price: 19.99, category: "Apparel", stock: 50, rating: 4, badge: "Sale", image: "https://via.placeholder.com/150/ffc107/000000?text=T-Shirt" },
-    { id: 3, name: "Modular Sofa Set", price: 1299.00, category: "Furniture", stock: 5, rating: 5, badge: "Popular", image: "https://via.placeholder.com/150/dc3545/ffffff?text=Sofa" },
-    { id: 4, name: "Gaming Mouse Pad", price: 29.50, category: "Electronics", stock: 100, rating: 4, badge: "Best Seller", image: "https://via.placeholder.com/150/17a2b8/ffffff?text=MousePad" },
-    { id: 5, name: "Designer Leather Wallet", price: 49.99, category: "Apparel", stock: 30, rating: 5, badge: "Premium", image: "https://via.placeholder.com/150/6f42c1/ffffff?text=Wallet" },
-    { id: 6, name: "LED Desk Lamp", price: 35.00, category: "Furniture", stock: 60, rating: 3, badge: "", image: "https://via.placeholder.com/150/fd7e14/ffffff?text=Lamp" }
+    // নির্ভরযোগ্য ডেমো লিঙ্ক ব্যবহার করা হয়েছে
+    { id: 1, name: "Luxury Smartphone X", price: 799.99, category: "Electronics", stock: 15, rating: 5, badge: "New", image: "https://picsum.photos/id/237/150/150" }, 
+    { id: 2, name: "Cotton T-Shirt (Blue)", price: 19.99, category: "Apparel", stock: 50, rating: 4, badge: "Sale", image: "https://picsum.photos/id/20/150/150" }, 
+    { id: 3, name: "Modular Sofa Set", price: 1299.00, category: "Furniture", stock: 5, rating: 5, badge: "Popular", image: "https://picsum.photos/id/160/150/150" }, 
+    { id: 4, name: "Gaming Mouse Pad", price: 29.50, category: "Electronics", stock: 100, rating: 4, badge: "Best Seller", image: "https://picsum.photos/id/10/150/150" }, 
+    { id: 5, name: "Designer Leather Wallet", price: 49.99, category: "Apparel", stock: 30, rating: 5, badge: "Premium", image: "https://picsum.photos/id/1015/150/150" }, 
+    { id: 6, name: "LED Desk Lamp", price: 35.00, category: "Furniture", stock: 60, rating: 3, badge: "", image: "https://picsum.photos/id/12/150/150" } 
 ];
-if (!localStorage.getItem("products")) {
+if (!localStorage.getItem("products") || JSON.parse(localStorage.getItem("products")).length === 0) {
     localStorage.setItem("products", JSON.stringify(initialProducts));
 }
 
@@ -197,9 +173,20 @@ if(loggedCustomer){
     showPage('loginForm');
 }
 
-// ====== PAGE CONTROL & DARK MODE (Unchanged) ======
-function showPage(page){ document.querySelectorAll('.page').forEach(p=>p.style.display='none'); document.getElementById(page).style.display='block'; }
+// ====== PAGE CONTROL & DARK MODE ======
+function showPage(page){ document.querySelectorAll('.page').forEach(p=>p.style.display='none'); document.getElementById(page).style.display='block'; renderAllPageContent(); }
 function toggleDarkMode(){ document.body.classList.toggle('dark'); }
+
+// Function to call all necessary renders when changing pages
+function renderAllPageContent() {
+    products = JSON.parse(localStorage.getItem("products")||'[]'); // Reload products in case admin/vendor changed them
+    renderProducts(homeList, products.slice(0, 6)); // Update home list
+    filterCategory(); // Update category list
+    renderCart(); // Update cart list
+    renderReviews(); // Update reviews
+    renderCarousel(); // Update carousel
+    updateCartBadge();
+}
 
 // ====== NEW: Auth Form Toggle ======
 function toggleAuthForm(mode) {
@@ -223,9 +210,9 @@ function toggleAuthForm(mode) {
 
 // ====== UPDATED: Customer System ======
 function customerRegister(){
-    let username=document.getElementById("usernameRegister").value;
-    let whatsapp=document.getElementById("userWhatsappRegister").value;
-    let address=document.getElementById("userAddressRegister").value;
+    let username=document.getElementById("usernameRegister").value.trim();
+    let whatsapp=document.getElementById("userWhatsappRegister").value.trim();
+    let address=document.getElementById("userAddressRegister").value.trim();
     let password=document.getElementById("passwordRegister").value;
     
     if(!username || !whatsapp || !address || !password){ 
@@ -252,7 +239,7 @@ function customerRegister(){
 }
 
 function customerLogin(){
-    let username=document.getElementById("usernameLogin").value;
+    let username=document.getElementById("usernameLogin").value.trim();
     let password=document.getElementById("passwordLogin").value;
     
     let user = customers.find(c=>c.username===username && c.password===password);
@@ -281,7 +268,7 @@ function logout(){
     toggleAuthForm('login'); // Ensure it returns to login tab
 }
 
-// ====== PRODUCTS RENDERING (Unchanged) ======
+// ====== PRODUCTS RENDERING (Image fix applied) ======
 const homeList = document.getElementById("homeList");
 const categoryList = document.getElementById("categoryList");
 const cartList = document.getElementById("cartList");
@@ -298,9 +285,12 @@ function renderProducts(list, arr){
         let stars=''; for(let s=1;s<=5;s++){ stars += s<=p.rating ? '★':'☆'; }
         let badgeHTML=p.badge?`<div class="badge">${p.badge}</div>`:'';
         
-        div.innerHTML=`${badgeHTML}<div class="product-image-container"><img src="${p.image}" alt="${p.name}"></div>
+        // ছবি রেন্ডারিং: imageURL থাকলে সেটি ব্যবহার করা হবে, অন্যথায় p.image ব্যবহার করা হবে।
+        const imageUrl = p.imageURL && p.imageURL.startsWith('http') ? p.imageURL : (p.image && p.image.startsWith('http') ? p.image : "https://via.placeholder.com/150?text=No+Image");
+
+        div.innerHTML=`${badgeHTML}<div class="product-image-container"><img src="${imageUrl}" alt="${p.name}"></div>
         <h3>${p.name}</h3>
-        <p>Category: ${p.category}</p><p>$${p.price}</p><p>Stock: ${p.stock}</p><p>${stars}</p>
+        <p>Category: ${p.category}</p><p>$${p.price.toFixed(2)}</p><p>Stock: ${p.stock}</p><p>${stars}</p>
         <button onclick="addToCart(${productIndexInMainArray})">Add to Cart</button>`; 
         list.appendChild(div);
     });
@@ -309,16 +299,36 @@ function renderProducts(list, arr){
 
 function updateCartBadge(){ cartLink.setAttribute('data-count',cart.length); }
 
-function renderCarousel(){ 
-    carousel.innerHTML=''; 
-    products.slice(0,3).forEach(p=>{
-        const img=document.createElement('img'); img.src=p.image; img.alt=p.name; carousel.appendChild(img);
-    }); 
+function renderCarousel(){ 
+    carousel.innerHTML=''; 
+    
+    // Ensure the carousel only uses products with valid image links
+    const carouselProducts = products.filter(p => p.imageURL || (p.image && p.image.startsWith('http'))).slice(0,3);
+
+    if (carouselProducts.length === 0) {
+        carousel.innerHTML = '<p style="text-align: center; width: 100%; padding: 50px;">No images available for carousel.</p>';
+        return;
+    }
+    
+    carouselProducts.forEach(p=>{
+        const imageUrl = p.imageURL && p.imageURL.startsWith('http') ? p.imageURL : p.image;
+        const img=document.createElement('img'); 
+        img.src=imageUrl; 
+        img.alt=p.name; 
+        carousel.appendChild(img);
+    }); 
+    
     let carouselIdx=0;
-    setInterval(()=>{ 
-        const imgs=carousel.querySelectorAll('img'); 
-        imgs.forEach((img,i)=>{ img.style.transform=`translateX(-${carouselIdx*100}%)`; }); 
-        carouselIdx=(carouselIdx+1)%(imgs.length || 1); 
+    const intervalId = setInterval(()=>{ 
+        const imgs=carousel.querySelectorAll('img'); 
+        if (imgs.length === 0) {
+             clearInterval(intervalId); // Stop interval if no images
+             return;
+        }
+        imgs.forEach((img)=>{ 
+            img.style.transform=`translateX(-${carouselIdx*100}%)`; 
+        }); 
+        carouselIdx=(carouselIdx+1)%(imgs.length || 1); 
     },3000);
 }
 
@@ -352,6 +362,8 @@ function filterCategory() {
 function populateCategoryFilter() {
     const categories = [...new Set(products.map(p => p.category))];
     const filter = document.getElementById('categoryFilter');
+    // Clear existing options except 'All'
+    filter.innerHTML = '<option value="All">All</option>';
     categories.forEach(cat => {
         const option = document.createElement('option');
         option.value = cat;
@@ -361,7 +373,7 @@ function populateCategoryFilter() {
 }
 
 
-// ====== CART & CHECKOUT (Unchanged Logic) ======
+// ====== CART & CHECKOUT ======
 function renderCart(){
     cartList.innerHTML='';
     if(cart.length===0){ cartList.innerHTML="<p>Cart is empty.</p>"; return; }
@@ -377,43 +389,65 @@ function renderCart(){
     updateCartBadge();
 }
 
-function addToCart(i){ 
+function addToCart(i){ 
     if(!loggedCustomer){ alert("Please login first!"); showPage('loginForm'); toggleAuthForm('login'); return; }
     
-    const existingItem = cart.find(item => item.id === products[i].id);
-    if(existingItem){
-        existingItem.quantity = (existingItem.quantity || 1) + 1;
-    } else {
-        cart.push({...products[i], quantity: 1}); 
+    // Check if product index is valid and product has stock
+    if (i === -1 || !products[i] || products[i].stock < 1) {
+        alert("Product out of stock or unavailable.");
+        return;
     }
     
-    localStorage.setItem("cart",JSON.stringify(cart)); 
-    renderCart(); 
+    const existingItem = cart.find(item => item.id === products[i].id);
+    
+    if(existingItem){
+        if ((existingItem.quantity || 1) >= products[i].stock) {
+            alert(`Maximum stock limit reached for ${products[i].name} (${products[i].stock}).`);
+            return;
+        }
+        existingItem.quantity = (existingItem.quantity || 1) + 1;
+    } else {
+        cart.push({...products[i], quantity: 1}); 
+    }
+    
+    localStorage.setItem("cart",JSON.stringify(cart)); 
+    renderCart(); 
     alert(`${products[i].name} added to cart!`);
 }
 
-function removeFromCart(i){ 
-    cart.splice(i,1); 
-    localStorage.setItem("cart",JSON.stringify(cart)); 
-    renderCart(); 
+function removeFromCart(i){ 
+    cart.splice(i,1); 
+    localStorage.setItem("cart",JSON.stringify(cart)); 
+    renderCart(); 
 }
 
-function updateQuantity(i, val){ 
+function updateQuantity(i, val){ 
     const quantity = Number(val);
-    if (quantity < 1) return;
-    cart[i].quantity = quantity; 
-    localStorage.setItem("cart",JSON.stringify(cart)); 
-    updateCartTotal(); 
+    if (quantity < 1 || isNaN(quantity)) return;
+    
+    const productInCart = cart[i];
+    const productInStock = products.find(p => p.id === productInCart.id);
+
+    if (productInStock && quantity > productInStock.stock) {
+        alert(`Cannot add more than available stock: ${productInStock.stock}`);
+        cart[i].quantity = productInStock.stock; // Set to max stock
+        document.querySelector(`#cartList .product:nth-child(${i + 1}) input`).value = productInStock.stock;
+    } else {
+        cart[i].quantity = quantity; 
+    }
+    
+    localStorage.setItem("cart",JSON.stringify(cart)); 
+    updateCartTotal(); 
 }
 
-function updateCartTotal(){ 
-    let total=0; 
-    cart.forEach(p=>{ total+=Number(p.price) * (p.quantity || 1); }); 
-    document.getElementById('cartSummary').innerText=`Total: $${total.toFixed(2)}`; 
+function updateCartTotal(){ 
+    let total=0; 
+    cart.forEach(p=>{ total+=Number(p.price) * (p.quantity || 1); }); 
+    document.getElementById('cartSummary').innerText=`Total: $${total.toFixed(2)}`; 
 }
 
-function checkout(){ 
-    if(cart.length===0){ alert("Cart empty!"); return; } 
+function checkout(){ 
+    if(cart.length===0){ alert("Cart empty!"); return; } 
     if(!loggedCustomer) { alert("Please login to checkout!"); return; }
 
     const total = cart.reduce((sum, p) => sum + (p.price * (p.quantity || 1)), 0);
@@ -432,16 +466,26 @@ function checkout(){ 
     orders.push(newOrder);
     localStorage.setItem("orders",JSON.stringify(orders));
 
-    cart=[]; 
-    localStorage.setItem("cart",JSON.stringify(cart)); 
-    alert(`Order placed successfully! Total: $${newOrder.total}. Check your WhatsApp for confirmation.`); 
-    renderCart(); 
+    // Update stock in main products array after order
+    cart.forEach(cartItem => {
+        const productIndex = products.findIndex(p => p.id === cartItem.id);
+        if (productIndex !== -1) {
+            products[productIndex].stock -= (cartItem.quantity || 1);
+        }
+    });
+    localStorage.setItem("products", JSON.stringify(products));
+
+
+    cart=[]; 
+    localStorage.setItem("cart",JSON.stringify(cart)); 
+    alert(`Order placed successfully! Total: $${newOrder.total}. Check your WhatsApp for confirmation.`); 
+    showPage('home');
 }
 
-// ====== REVIEWS & SUPPORT (Updated renderReviews) ======
+// ====== REVIEWS & SUPPORT ======
 function submitReview(){
-    let name=document.getElementById("reviewName").value;
-    let text=document.getElementById("reviewText").value;
+    let name=document.getElementById("reviewName").value.trim();
+    let text=document.getElementById("reviewText").value.trim();
     if(!name || !text){ alert("Enter name & review"); return; }
     reviews.push({name: name, text: text, customer: loggedCustomer ? loggedCustomer.username : 'Guest'});
     localStorage.setItem("reviews",JSON.stringify(reviews));
@@ -452,8 +496,10 @@ function submitReview(){
 
 function renderReviews(){
     reviewList.innerHTML='';
+    reviews = JSON.parse(localStorage.getItem("reviews")||'[]'); // Reload
     if(reviews.length===0){ reviewList.innerHTML="<p>No reviews yet. Be the first!</p>"; return; }
     
+    // Show only last 5 reviews
     const latestReviews = reviews.slice(-5).reverse(); 
     
     latestReviews.forEach(r=>{
@@ -470,11 +516,7 @@ function openWhatsApp(){ window.open("https://wa.me/8801913821910","_blank"); }
 
 // ====== INITIAL RENDER ======
 populateCategoryFilter();
-renderProducts(homeList,products.slice(0, 6));
-renderProducts(categoryList,products);
-renderCart();
-renderCarousel();
-renderReviews();
+renderAllPageContent();
 
 // Ensure the login form is shown first if not logged in
 if (!loggedCustomer) {
