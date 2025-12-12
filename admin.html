@@ -3,160 +3,146 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dhamaka Admin Panel - Future Ready</title>
+<title>Vendor Panel - Dhamaka Daily Items</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:Arial,sans-serif;background:#f8f9fa;color:#333;transition:0.3s;}
+body{font-family:Arial,sans-serif;background:#f7f7f7;color:#212529;transition:0.3s;}
 body.dark{background:#121212;color:#ddd;}
-header{background:#28a745;color:white;padding:1em;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10;flex-wrap:wrap;}
-header h1{margin:0;font-size:1.5em;}
+header{background:#17a2b8;color:white;padding:1em;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;}
+header h1{font-size:1.5em;}
 nav a{color:white;margin-left:1em;text-decoration:none;font-weight:bold;transition:0.3s;}
 nav a:hover{text-decoration:underline;color:#ffc107;}
 nav button{margin-left:1em;cursor:pointer;}
 .page{display:none;padding:1em;}
-h2, h3 {text-align: center; margin-bottom: 0.5em;}
-.container{display:flex;flex-wrap:wrap;gap:1em;justify-content:center;}
-.list{border:1px solid #28a745;border-radius:12px;padding:1em;width:300px;text-align:center;background:#fff;box-shadow:2px2px10px rgba(0,0,0,0.1);transition:0.3s;overflow:hidden;}
-.list:hover{transform:scale(1.05);box-shadow:4px4px15px rgba(0,0,0,0.2);}
-.list img{width:100px;height:100px;object-fit:cover;margin-bottom:10px;border-radius:8px;}
-button{background:#28a745;color:white;border:none;padding:0.5em 1em;border-radius:5px;cursor:pointer;margin-top:0.5em;transition:0.3s;}
-button:hover{background:#218838;}
-input,select{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;border:1px solid #ccc;}
-.order-status-pending {color: orange; font-weight: bold;}
-.order-status-shipped {color: blue; font-weight: bold;}
-.order-status-delivered {color: green; font-weight: bold;}
-.edit-input {width: 45%; margin: 0.2em 2%; padding: 0.3em;}
-.half-layout{display:flex;flex-wrap:wrap;gap:1em;}
-.half-layout .list{flex:1 1 45%;}
+input,select,textarea,button{padding:0.5em;margin:0.3em 0;border-radius:5px;border:1px solid #ccc;}
+button{background:#17a2b8;color:white;border:none;cursor:pointer;}
+button:hover{background:#138496;}
+.product-list{display:flex;flex-wrap:wrap;gap:1em;}
+.product{border:1px solid #17a2b8;padding:1em;border-radius:10px;width:200px;position:relative;}
+.badge{position:absolute;top:10px;left:10px;background:#ffc107;color:#000;padding:2px 6px;border-radius:4px;font-size:0.8em;}
 </style>
 </head>
 <body>
+
 <header>
-<h1>Dhamaka Admin Panel</h1>
+<h1>Vendor Panel</h1>
 <nav>
-<a href="#dashboard" onclick="showPage('dashboard')">Dashboard</a>
-<a href="#products" onclick="showPage('products')">Products</a>
-<a href="#vendors" onclick="showPage('vendors')">Vendors</a>
-<a href="#customers" onclick="showPage('customers')">Customers</a>
-<a href="#orders" onclick="showPage('orders')">Orders</a>
 <button onclick="toggleDarkMode()">🌙</button>
+<button id="logoutBtn" style="display:none;" onclick="logout()">Logout</button>
 </nav>
 </header>
 
-<div id="loginPage" class="page">
-<h2>Admin Login</h2>
-<input type="password" id="adminPassword" placeholder="Enter Password">
-<button onclick="adminLogin()">Login</button>
-<p id="loginMsg" style="color:red"></p>
+<div id="vendorLogin" class="page">
+<h2>Vendor Login</h2>
+<input type="text" id="vendorUsername" placeholder="Username">
+<input type="password" id="vendorPassword" placeholder="Password">
+<button onclick="vendorLogin()">Login</button>
+<p id="vendorLoginMsg" style="color:red;"></p>
+<p>New vendor? Register below (admin approval required)</p>
+<input type="text" id="vendorRegName" placeholder="Name">
+<input type="text" id="vendorRegPromo" placeholder="Promo Code">
+<input type="password" id="vendorRegPass" placeholder="Password">
+<button onclick="vendorRegister()">Register</button>
+<p id="vendorRegMsg" style="color:red;"></p>
 </div>
 
-<div id="dashboard" class="page">
-<h2>Dashboard</h2>
-<p>Welcome, Admin!</p>
-<div style="max-width:400px;margin:1em auto;">
-<label>Background Color: <input type="color" id="bgColor" onchange="applyTheme()"></label>
-<label>Text Color: <input type="color" id="textColor" onchange="applyTheme()"></label>
-<label>Button Color: <input type="color" id="btnColor" onchange="applyTheme()"></label>
-<label>Button Text Color: <input type="color" id="btnTextColor" onchange="applyTheme()"></label>
-</div>
-</div>
+<div id="vendorDashboard" class="page">
+<h2>Welcome, <span id="vendorName"></span></h2>
+<p>Promo Code: <b><span id="vendorPromo"></span></b></p>
+<p>Total Customers from Promo: <b><span id="vendorCustomerCount">0</span></b></p>
 
-<div id="products" class="page">
-<h2>Products</h2>
-<div class="container" id="productList"></div>
-</div>
+<h3>Add / Edit Product</h3>
+<input type="text" id="productName" placeholder="Product Name">
+<input type="text" id="productCategory" placeholder="Category">
+<input type="number" id="productPrice" placeholder="Price">
+<input type="number" id="productStock" placeholder="Stock">
+<input type="text" id="productImage" placeholder="Image URL">
+<select id="productBadge">
+<option value="">No Badge</option>
+<option value="New">New</option>
+<option value="Sale">Sale</option>
+<option value="Popular">Popular</option>
+<option value="Best Seller">Best Seller</option>
+<option value="Premium">Premium</option>
+</select>
+<button onclick="addProduct()">Add Product</button>
 
-<div id="vendors" class="page">
-<h2>Vendors</h2>
-<div class="container" id="vendorList"></div>
-</div>
-
-<div id="customers" class="page">
-<h2>Customers</h2>
-<div class="container" id="customerList"></div>
-</div>
-
-<div id="orders" class="page">
-<h2>Orders</h2>
-<div class="container" id="orderList"></div>
+<h3>Your Products</h3>
+<div class="product-list" id="vendorProductList"></div>
 </div>
 
 <script>
-let adminLoggedIn=false;
-let products=JSON.parse(localStorage.getItem('products')||'[]');
-let vendors=JSON.parse(localStorage.getItem('vendors')||'[]');
-let customers=JSON.parse(localStorage.getItem('customers')||'[]');
-let orders=JSON.parse(localStorage.getItem('orders')||'[]');
+// ====== Data Storage ======
+let vendors=JSON.parse(localStorage.getItem("vendors")||'[]');
+let products=JSON.parse(localStorage.getItem("products")||'[]');
+let loggedVendor=JSON.parse(localStorage.getItem("loggedVendor")||'null');
 
-function showPage(page){
-  if(!adminLoggedIn && page!=='loginPage'){alert('Login required');return;}
-  document.querySelectorAll('.page').forEach(p=>p.style.display='none');
-  document.getElementById(page).style.display='block';
-  if(page!=='loginPage'){renderAll();}
+if(loggedVendor && loggedVendor.approved){ showPage('vendorDashboard'); renderVendorDashboard(); }
+else{ showPage('vendorLogin'); }
+
+function showPage(page){ document.querySelectorAll('.page').forEach(p=>p.style.display='none'); document.getElementById(page).style.display='block'; }
+
+function toggleDarkMode(){ document.body.classList.toggle('dark'); }
+
+// ====== Vendor Auth ======
+function vendorRegister(){
+let name=document.getElementById("vendorRegName").value.trim();
+let promo=document.getElementById("vendorRegPromo").value.trim();
+let pass=document.getElementById("vendorRegPass").value;
+if(!name||!promo||!pass){ document.getElementById("vendorRegMsg").innerText="Fill all fields"; return; }
+if(vendors.some(v=>v.name===name)){ document.getElementById("vendorRegMsg").innerText="Username exists"; return; }
+vendors.push({id:vendors.length+1,name, password:pass, approved:false, promoCode:promo, customers:0});
+localStorage.setItem("vendors",JSON.stringify(vendors));
+document.getElementById("vendorRegMsg").innerText="Registered! Wait for admin approval";
 }
 
-function adminLogin(){
-  if(document.getElementById('adminPassword').value==='NAFIS128'){
-    adminLoggedIn=true;
-    showPage('dashboard');
-  }else{document.getElementById('loginMsg').innerText='Wrong Password';}
+function vendorLogin(){
+let name=document.getElementById("vendorUsername").value.trim();
+let pass=document.getElementById("vendorPassword").value.trim();
+let vendor=vendors.find(v=>v.name===name && v.password===pass);
+if(!vendor){ document.getElementById("vendorLoginMsg").innerText="Invalid credentials"; return; }
+if(!vendor.approved){ document.getElementById("vendorLoginMsg").innerText="Not approved yet"; return; }
+loggedVendor=vendor; localStorage.setItem("loggedVendor",JSON.stringify(loggedVendor));
+showPage('vendorDashboard'); renderVendorDashboard();
 }
 
-function toggleDarkMode(){document.body.classList.toggle('dark');}
-function applyTheme(){
-  document.body.style.background=document.getElementById('bgColor').value;
-  document.body.style.color=document.getElementById('textColor').value;
-  document.querySelectorAll('button').forEach(b=>{b.style.background=document.getElementById('btnColor').value;b.style.color=document.getElementById('btnTextColor').value;});
+function logout(){ loggedVendor=null; localStorage.removeItem("loggedVendor"); showPage('vendorLogin'); }
+
+// ====== Vendor Dashboard ======
+function renderVendorDashboard(){
+if(!loggedVendor) return;
+document.getElementById("vendorName").innerText=loggedVendor.name;
+document.getElementById("vendorPromo").innerText=loggedVendor.promoCode;
+document.getElementById("vendorCustomerCount").innerText=loggedVendor.customers||0;
+renderVendorProducts();
 }
 
-function renderAll(){renderProducts();renderVendors();renderCustomers();renderOrders();}
-
-function renderProducts(){
-  let list=document.getElementById('productList');list.innerHTML='';
-  if(products.length===0){list.innerHTML='<p>No products</p>';return;}
-  products.forEach(p=>{
-    let div=document.createElement('div');div.className='list';
-    div.innerHTML=`<h3>${p.name}</h3><p>Category: ${p.category}</p><p>Vendor: ${p.vendorId}</p><p>Price: $${p.price}</p><p>Stock: ${p.stock}</p><img src='${p.imageURL}' alt='${p.name}'><button onclick='deleteProduct(${p.id})'>Delete</button>`;
-    list.appendChild(div);
-  });
+// ====== Products ======
+function addProduct(){
+if(!loggedVendor) return;
+let name=document.getElementById("productName").value.trim();
+let category=document.getElementById("productCategory").value.trim();
+let price=parseFloat(document.getElementById("productPrice").value);
+let stock=parseInt(document.getElementById("productStock").value);
+let image=document.getElementById("productImage").value.trim();
+let badge=document.getElementById("productBadge").value;
+if(!name||!category||isNaN(price)||isNaN(stock)){ alert("Fill valid product info"); return; }
+products.push({id:products.length+1,name,category,price,stock,imageURL:image,badge,buyer:[],vendorId:loggedVendor.id,approved:false});
+localStorage.setItem("products",JSON.stringify(products));
+renderVendorProducts();
+alert("Product added! Wait for admin approval");
+document.getElementById("productName").value=''; document.getElementById("productCategory").value=''; document.getElementById("productPrice").value=''; document.getElementById("productStock").value=''; document.getElementById("productImage").value=''; document.getElementById("productBadge").value='';
 }
 
-function renderVendors(){
-  let list=document.getElementById('vendorList');list.innerHTML='';
-  if(vendors.length===0){list.innerHTML='<p>No vendors</p>';return;}
-  vendors.forEach(v=>{
-    let div=document.createElement('div');div.className='list';
-    div.innerHTML=`<h3>${v.name}</h3><p>ID: ${v.id}</p><p>Status: ${v.status}</p><button onclick='deleteVendor("${v.id}")'>Delete</button>`;
-    list.appendChild(div);
-  });
+function renderVendorProducts(){
+const list=document.getElementById("vendorProductList"); list.innerHTML='';
+products.filter(p=>p.vendorId===loggedVendor.id).forEach(p=>{
+const div=document.createElement('div'); div.className='product';
+let badgeHTML=p.badge?`<div class="badge">${p.badge}</div>`:'';
+div.innerHTML=`${badgeHTML}<h4>${p.name}</h4><p>$${p.price}</p><p>Stock: ${p.stock}</p><p>Status: ${p.approved?'Approved':'Pending'}</p>`;
+list.appendChild(div);
+});
 }
-
-function renderCustomers(){
-  let list=document.getElementById('customerList');list.innerHTML='';
-  if(customers.length===0){list.innerHTML='<p>No customers</p>';return;}
-  customers.forEach(c=>{
-    let div=document.createElement('div');div.className='list';
-    div.innerHTML=`<h3>${c.name}</h3><p>ID: ${c.id}</p><p>Email: ${c.email}</p><button onclick='deleteCustomer("${c.id}")'>Delete</button>`;
-    list.appendChild(div);
-  });
-}
-
-function renderOrders(){
-  let list=document.getElementById('orderList');list.innerHTML='';
-  if(orders.length===0){list.innerHTML='<p>No orders</p>';return;}
-  orders.forEach(o=>{
-    let div=document.createElement('div');div.className='list';
-    let productsStr=o.products.map(p=>`${p.name} (x${p.quantity})`).join(', ');
-    div.innerHTML=`<p>Order ID: ${o.id}</p><p>Customer: ${o.customerName}</p><p>Products: ${productsStr}</p><p>Total: $${o.total}</p><p>Status: ${o.status}</p>`;
-    list.appendChild(div);
-  });
-}
-
-function deleteProduct(id){products=products.filter(p=>p.id!==id);localStorage.setItem('products',JSON.stringify(products));renderProducts();}
-function deleteVendor(id){vendors=vendors.filter(v=>v.id!==id);localStorage.setItem('vendors',JSON.stringify(vendors));renderVendors();}
-function deleteCustomer(id){customers=customers.filter(c=>c.id!==id);localStorage.setItem('customers',JSON.stringify(customers));renderCustomers();}
-
-showPage('loginPage');
 </script>
 </body>
 </html>
