@@ -41,10 +41,10 @@ input,select{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;border:1px
 <a href="#vendors" onclick="showPage('vendors')">Vendors</a>
 <a href="#" onclick="alert('WhatsApp Support: 01913821910')">Support</a>
 <button onclick="toggleDarkMode()">🌙</button>
+<a href="index.html" target="_blank" style="margin-left:15px;color:#ffc107;font-weight:bold;">View Shop</a>
 </nav>
 </header>
 
-<!-- LOGIN PAGE -->
 <div id="loginPage" class="page">
 <h2>Admin Login</h2>
 <input type="text" id="adminUser" placeholder="User ID">
@@ -53,7 +53,6 @@ input,select{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;border:1px
 <p id="loginMsg" style="color:red"></p>
 </div>
 
-<!-- DASHBOARD -->
 <div id="dashboard" class="page">
 <h2>Dashboard</h2>
 <p>Welcome, Admin!</p>
@@ -66,7 +65,6 @@ input,select{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;border:1px
 </div>
 </div>
 
-<!-- PRODUCTS PAGE -->
 <div id="products" class="page">
 <h2>Products Management</h2>
 <div id="addProductContainer">
@@ -88,13 +86,11 @@ input,select{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;border:1px
 <div class="product-list" id="productList"></div>
 </div>
 
-<!-- REVIEWS PAGE -->
 <div id="reviews" class="page">
 <h2>Customer Reviews</h2>
 <div class="review-list" id="reviewList"></div>
 </div>
 
-<!-- ORDERS PAGE -->
 <div id="orders" class="page">
 <h2>Orders</h2>
 <div style="text-align:center;margin-bottom:1em;">
@@ -108,7 +104,6 @@ input,select{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;border:1px
 <div class="order-list" id="orderList"></div>
 </div>
 
-<!-- VENDORS PAGE -->
 <div id="vendors" class="page">
 <h2>Vendors</h2>
 <div class="vendor-list" id="vendorList"></div>
@@ -121,71 +116,69 @@ let products=JSON.parse(localStorage.getItem('products')||'[]');
 let reviews=JSON.parse(localStorage.getItem('reviews')||'[]');
 let orders=JSON.parse(localStorage.getItem('orders')||'[]');
 let vendors=JSON.parse(localStorage.getItem('vendors')||'[]');
-
 if(vendors.length===0){
-    vendors.push({id:'vendor1',password:'1234',name:'Vendor One',status:'Approved'});
-    vendors.push({id:'vendor2',password:'1234',name:'Vendor Two',status:'Pending'});
-    localStorage.setItem('vendors',JSON.stringify(vendors));
+vendors.push({id:'vendor1',password:'1234',name:'Vendor One',status:'Approved'});
+vendors.push({id:'vendor2',password:'1234',name:'Vendor Two',status:'Pending'});
+localStorage.setItem('vendors',JSON.stringify(vendors));
 }
 
-// --- PAGE CONTROL ---
 function reloadData(){products=JSON.parse(localStorage.getItem('products')||'[]');reviews=JSON.parse(localStorage.getItem('reviews')||'[]');orders=JSON.parse(localStorage.getItem('orders')||'[]');vendors=JSON.parse(localStorage.getItem('vendors')||'[]');}
 function showPage(page){if(!adminLoggedIn && page!=='loginPage'){alert('Login required'); return;} document.querySelectorAll('.page').forEach(p=>p.style.display='none'); document.getElementById(page).style.display='block'; reloadData(); renderAll();}
 showPage('loginPage');
 
 function adminLogin(){
-    let user=document.getElementById('adminUser').value.trim();
-    let pass=document.getElementById('adminPassword').value.trim();
-    if(user==='Nafis' && pass==='nafis128'){adminLoggedIn=true; showPage('dashboard');}
-    else{document.getElementById('loginMsg').innerText='Invalid credentials';}
+let user=document.getElementById('adminUser').value.trim();
+let pass=document.getElementById('adminPassword').value.trim();
+if(user==='Nafis' && pass==='nafis128'){adminLoggedIn=true; showPage('dashboard');}
+else{document.getElementById('loginMsg').innerText='Invalid credentials';}
 }
 
 function toggleDarkMode(){document.body.classList.toggle('dark');}
 function applyTheme(){
-    document.body.style.background=document.getElementById('bgColor').value;
-    document.body.style.color=document.getElementById('textColor').value;
-    document.querySelectorAll('button').forEach(b=>{b.style.background=document.getElementById('btnColor').value;b.style.color=document.getElementById('btnTextColor').value;});
+document.body.style.background=document.getElementById('bgColor').value;
+document.body.style.color=document.getElementById('textColor').value;
+document.querySelectorAll('button').forEach(b=>{b.style.background=document.getElementById('btnColor').value;b.style.color=document.getElementById('btnTextColor').value;});
 }
 function renderAll(){renderProducts();renderReviews();renderOrders();renderVendors();}
 
 // --- PRODUCTS ---
 function generateProductId(){products=JSON.parse(localStorage.getItem('products')||'[]');return products.length>0?Math.max(...products.map(p=>p.id))+1:1;}
 function addProduct(){
-    const name=document.getElementById('pName').value.trim();
-    const category=document.getElementById('pCategory').value;
-    const price=Number(document.getElementById('pPrice').value);
-    const stock=Number(document.getElementById('pStock').value);
-    const badge=document.getElementById('pBadge').value||null;
-    const imageURL=document.getElementById('pImageURL').value.trim();
-    if(!name||!price||!stock||!imageURL||price<=0||stock<0){alert('Provide valid info'); return;}
-    let newProduct={id:generateProductId(),name,category,price,stock,rating:5,badge,imageURL,vendorId:'admin'};
-    products.push(newProduct);
-    localStorage.setItem('products',JSON.stringify(products));
-    document.getElementById('pName').value='';document.getElementById('pPrice').value='';document.getElementById('pStock').value='';document.getElementById('pBadge').value='';document.getElementById('pImageURL').value='';
-    renderProducts();
+const name=document.getElementById('pName').value.trim();
+const category=document.getElementById('pCategory').value;
+const price=Number(document.getElementById('pPrice').value);
+const stock=Number(document.getElementById('pStock').value);
+const badge=document.getElementById('pBadge').value||null;
+const imageURL=document.getElementById('pImageURL').value.trim();
+if(!name||!price||!stock||!imageURL||price<=0||stock<0){alert('Provide valid info'); return;}
+let newProduct={id:generateProductId(),name,category,price,stock,rating:5,badge,imageURL,vendorId:'admin'};
+products.push(newProduct);
+localStorage.setItem('products',JSON.stringify(products));
+document.getElementById('pName').value='';document.getElementById('pPrice').value='';document.getElementById('pStock').value='';document.getElementById('pBadge').value='';document.getElementById('pImageURL').value='';
+renderProducts();
 }
 function renderProducts(){
-    products=JSON.parse(localStorage.getItem('products')||'[]');
-    let list=document.getElementById('productList'); list.innerHTML='';
-    if(products.length===0){list.innerHTML='<p>No products</p>';return;}
-    products.forEach((p,i)=>{
-        let div=document.createElement('div'); div.className='product';
-        let imageUrl=p.imageURL||'https://via.placeholder.com/100?text=No+Image';
-        div.innerHTML=`<img src="${imageUrl}" alt="${p.name}"><h3>${p.name} (ID:${p.id})</h3><p>Category:${p.category}</p><p>Vendor:${p.vendorId}</p><p>Price:$${p.price.toFixed(2)}</p><p>Stock:${p.stock}</p>
-        <input type="number" id="priceEdit${p.id}" value="${p.price}" class="edit-input" placeholder="New Price">
-        <input type="number" id="stockEdit${p.id}" value="${p.stock}" class="edit-input" placeholder="New Stock">
-        <button onclick="editProduct(${p.id})">Update Price/Stock</button>
-        <button onclick="deleteProduct(${i})" style="background:red;">Delete</button>`;
-        list.appendChild(div);
-    });
+products=JSON.parse(localStorage.getItem('products')||'[]');
+let list=document.getElementById('productList'); list.innerHTML='';
+if(products.length===0){list.innerHTML='<p>No products</p>';return;}
+products.forEach((p,i)=>{
+let div=document.createElement('div'); div.className='product';
+let imageUrl=p.imageURL||'https://via.placeholder.com/100?text=No+Image';
+div.innerHTML=`<img src="${imageUrl}" alt="${p.name}"><h3>${p.name} (ID:${p.id})</h3><p>Category:${p.category}</p><p>Vendor:${p.vendorId}</p><p>Price:$${p.price.toFixed(2)}</p><p>Stock:${p.stock}</p>
+<input type="number" id="priceEdit${p.id}" value="${p.price}" class="edit-input" placeholder="New Price">
+<input type="number" id="stockEdit${p.id}" value="${p.stock}" class="edit-input" placeholder="New Stock">
+<button onclick="editProduct(${p.id})">Update Price/Stock</button>
+<button onclick="deleteProduct(${i})" style="background:red;">Delete</button>`;
+list.appendChild(div);
+});
 }
 function editProduct(id){
-    const newPrice=Number(document.getElementById(`priceEdit${id}`).value);
-    const newStock=Number(document.getElementById(`stockEdit${id}`).value);
-    if(isNaN(newPrice)||newPrice<=0||isNaN(newStock)||newStock<0){alert('Provide valid values'); return;}
-    products=JSON.parse(localStorage.getItem('products')||'[]');
-    const index=products.findIndex(p=>p.id===id);
-    if(index!==-1){products[index].price=newPrice;products[index].stock=newStock;localStorage.setItem('products',JSON.stringify(products));renderProducts();}
+const newPrice=Number(document.getElementById(`priceEdit${id}`).value);
+const newStock=Number(document.getElementById(`stockEdit${id}`).value);
+if(isNaN(newPrice)||newPrice<=0||isNaN(newStock)||newStock<0){alert('Provide valid values'); return;}
+products=JSON.parse(localStorage.getItem('products')||'[]');
+const index=products.findIndex(p=>p.id===id);
+if(index!==-1){products[index].price=newPrice;products[index].stock=newStock;localStorage.setItem('products',JSON.stringify(products));renderProducts();}
 }
 function deleteProduct(i){products=JSON.parse(localStorage.getItem('products')||'[]');if(confirm(`Delete ${products[i].name}?`)){products.splice(i,1);localStorage.setItem('products',JSON.stringify(products));renderProducts();}}
 
