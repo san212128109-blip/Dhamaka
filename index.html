@@ -3,130 +3,533 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dhamaka Shop</title>
+<title>Dhamaka Daily Items - Shop</title>
 <style>
-body{font-family:Arial,sans-serif;background:#f8f9fa;color:#212529;margin:0;padding:0;}
-header{background:#28a745;color:white;padding:1em;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;}
-header h1{margin:0;}
-header nav a{color:white;margin-left:1em;text-decoration:none;font-weight:bold;}
-header nav a:hover{color:#ffc107;}
-.container{padding:1em;}
-.product-list{display:flex;flex-wrap:wrap;gap:1em;justify-content:center;margin-top:1em;}
-.product{border:1px solid #28a745;border-radius:12px;padding:1em;width:220px;text-align:center;background:#fff;box-shadow:2px2px10px rgba(0,0,0,0.1);position:relative;overflow:hidden;transition:0.3s;}
+/* CSS: General Styling */
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:Arial,sans-serif;background:#d4edda;color:#155724;transition:0.3s;}
+body.dark{background:#121212;color:#ddd;}
+header{background:#28a745;color:white;padding:1em;display:flex;justify-content:space-between;flex-wrap:wrap;align-items:center;position:sticky;top:0;z-index:10;}
+header h1{margin:0;font-size:1.5em;}
+nav{display:flex;align-items:center;flex-wrap:wrap;}
+nav a{color:white;margin-left:1em;text-decoration:none;font-weight:bold;transition:0.3s;position:relative;}
+nav a:hover{text-decoration:underline;color:#ffc107;}
+/* Cart Badge Style */
+nav #cartLink::after{content:attr(data-count);position:absolute;top:-10px;right:-10px;background:red;color:white;width:20px;height:20px;text-align:center;line-height:20px;border-radius:50%;font-size:0.8em;display:inline-block;}
+nav button{margin-left:1em;cursor:pointer;}
+.page{display:none;padding:1em;}
+h1,h2,h3{text-align:center;margin-bottom:0.5em;}
+.product-list,.cart-list{display:flex;flex-wrap:wrap;gap:1em;justify-content:center;margin-top:1em;}
+.product{border:1px solid #28a745;border-radius:12px;padding:1em;width:200px;text-align:center;background:#fff;box-shadow:2px2px10px rgba(0,0,0,0.1);transition:0.3s;position:relative;overflow:hidden;}
 .product:hover{transform:scale(1.05);box-shadow:4px4px15px rgba(0,0,0,0.2);}
-.product img{width:100px;height:100px;object-fit:cover;margin-bottom:10px;border-radius:8px;}
-.badge{position:absolute;top:10px;left:10px;background:red;color:white;padding:2px 6px;border-radius:4px;font-size:0.8em;}
-.cart{position:fixed;right:0;top:0;background:#fff;border-left:2px solid #28a745;width:300px;height:100%;overflow-y:auto;padding:1em;box-shadow:-2px 0 5px rgba(0,0,0,0.2);}
-.cart h3{text-align:center;}
-.cart-item{border-bottom:1px solid #ccc;padding:0.5em 0;}
-.cart-item p{margin:0.3em 0;}
-button{background:#28a745;color:white;border:none;padding:0.3em 0.6em;border-radius:5px;cursor:pointer;transition:0.3s;}
+.product img{transition: transform 0.3s;}
+.product:hover img{transform:scale(1.2);}
+.badge{position:absolute;top:10px;left:10px;background:#ffc107;color:#000;padding:2px 6px;border-radius:4px;font-size:0.8em;animation:bounce 1s infinite alternate;}
+@keyframes bounce{0%{transform:translateY(0);}100%{transform:translateY(-5px);}}
+button{background:#28a745;color:white;border:none;padding:0.5em 1em;border-radius:5px;cursor:pointer;margin-top:0.5em;transition:0.3s;}
 button:hover{background:#218838;}
-input{padding:0.3em;margin:0.3em 0;width:95%;border-radius:5px;border:1px solid #ccc;}
+input,select,textarea{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;border:1px solid #ccc;}
+#cartSummary{text-align:center;margin-top:1em;font-weight:bold;}
+.carousel{display:flex;overflow:hidden;width:90%;margin:1em auto;position:relative;border-radius:12px; border: 3px solid #ffc107;} 
+.carousel img{min-width:100%;border-radius:12px;transition:transform 0.5s; object-fit: cover; height: 300px;} /* height added for carousel */
+.star{color:gold;font-size:1em;cursor:pointer;}
+.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);justify-content:center;align-items:center;animation:fadeIn 0.3s;}
+.modal-content{background:#fff;padding:1em;border-radius:12px;width:90%;max-width:400px;text-align:center;}
+.modal button{width:45%;margin:0.5em;}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+#support{position:fixed;bottom:20px;right:20px;background:#25D366;color:white;padding:10px 15px;border-radius:50px;cursor:pointer;box-shadow:2px2px10px rgba(0,0,0,0.2);}
+.product-image-container img {width: 150px; height: 150px; object-fit: cover; border-radius: 8px;} 
+@media(max-width:600px){ .product{width:45%; } header{flex-direction:column;align-items:flex-start;} nav a{margin:0.3em 0;} }
+
+/* Home Page Specific Styling */
+#home {padding-top: 20px;}
+.product-list {padding: 20px 0; border-top: 1px solid #28a745;}
+#reviewSectionContainer {max-width: 900px; margin: 30px auto; padding: 20px; background: #f8f9fa; border-radius: 15px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);}
+.review-item {border-bottom: 1px dashed #ccc; padding: 10px 0; text-align: left;}
+.review-item:last-child {border-bottom: none;}
+.review-customer {font-size: 0.9em; color: #6c757d;}
+.review-customer b {color: #000;}
+/* Login/Register Toggle Button Style */
+#loginToggleBtn, #registerToggleBtn {width: 45%; background-color: #6c757d;} 
 </style>
 </head>
 <body>
 
 <header>
-<h1>Dhamaka Shop</h1>
+<h1>Dhamaka Daily Items</h1>
 <nav>
-<a href="admin.html" target="_blank">Admin Panel</a>
-<a href="vendor.html" target="_blank">Vendor Panel</a>
+<a href="#home" onclick="showPage('home')">Home</a>
+<a href="#categories" onclick="showPage('categories')">Categories</a>
+<a id="cartLink" href="#cart" data-count="0" onclick="showPage('cart')">Cart</a>
+<button onclick="toggleDarkMode()">🌙</button>
+<button id="logoutBtn" style="display:none;" onclick="logout()">Logout</button>
 </nav>
 </header>
 
-<div class="container">
-<h2>Products</h2>
-<div class="product-list" id="productList"></div>
+<div id="home" class="page">
+    <h2>🔥 Top Deals of the Day</h2>
+    <div class="carousel" id="carousel"></div>
+
+    <h2 style="margin-top: 20px;">Featured Products</h2>
+    <div class="product-list" id="homeList"></div>
+    <div style="text-align: center; margin: 20px 0;">
+        <button onclick="showPage('categories')">View All Products →</button>
+    </div>
 </div>
 
-<div class="cart" id="cartPanel">
-<h3>Cart</h3>
-<div id="cartItems"></div>
-<p><b>Total: $<span id="cartTotal">0.00</span></b></p>
-<h4>Checkout</h4>
-<input type="text" id="customerName" placeholder="Your Name">
-<input type="text" id="customerWhatsapp" placeholder="WhatsApp Number">
-<textarea id="customerAddress" placeholder="Delivery Address"></textarea>
-<button onclick="checkout()">Place Order</button>
-<p id="checkoutMsg" style="color:green;"></p>
+<div id="categories" class="page">
+    <h2>Categories</h2>
+    <select id="categoryFilter" onchange="filterCategory()"><option value="All">All</option></select>
+    <input type="text" id="searchInput" placeholder="Search Products..." oninput="filterCategory()">
+    <select id="sortSelect" onchange="filterCategory()">
+        <option value="">Sort By</option>
+        <option value="price-asc">Price Low→High</option>
+        <option value="price-desc">Price High→Low</option>
+        <option value="name-asc">Name A→Z</option>
+        <option value="name-desc">Name Z→A</option>
+    </select>
+    <div class="product-list" id="categoryList"></div>
 </div>
+
+<div id="cart" class="page">
+    <h2>Your Cart</h2>
+    <div class="cart-list" id="cartList"></div>
+    <div id="cartSummary"></div>
+    <button onclick="checkout()">Checkout</button>
+</div>
+
+<div id="loginForm" class="page">
+    <h2>Customer Area</h2>
+    
+    <div style="text-align: center; margin-bottom: 1em;">
+        <button onclick="toggleAuthForm('login')" id="loginToggleBtn">Login</button>
+        <button onclick="toggleAuthForm('register')" id="registerToggleBtn">Register</button>
+    </div>
+
+    <div id="loginDiv" style="max-width:400px; margin:1em auto; text-align:center;">
+        <h3>Login to Shop</h3>
+        <input type="text" id="usernameLogin" placeholder="Username">
+        <input type="password" id="passwordLogin" placeholder="Password">
+        <button onclick="customerLogin()">Login</button>
+        <p id="loginMsg" style="color:red;"></p>
+    </div>
+
+    <div id="registerDiv" style="max-width:400px; margin:1em auto; text-align:center; display:none;">
+        <h3>Register New Account</h3>
+        <input type="text" id="usernameRegister" placeholder="Username">
+        <input type="text" id="userWhatsappRegister" placeholder="WhatsApp Number">
+        <input type="text" id="userAddressRegister" placeholder="Address"> 
+        <input type="password" id="passwordRegister" placeholder="Password">
+        <button onclick="customerRegister()">Register</button>
+        <p id="registerMsg" style="color:red;"></p>
+    </div>
+
+</div>
+
+<div id="reviewSectionContainer">
+    <h3>⭐ Customer Reviews</h3>
+    <div id="reviewList"></div>
+
+    <hr style="margin: 15px 0;">
+
+    <div id="reviewForm">
+        <h3>Submit Your Review</h3>
+        <input type="text" id="reviewName" placeholder="Your Name">
+        <textarea id="reviewText" placeholder="Your review"></textarea>
+        <button onclick="submitReview()">Submit</button>
+    </div>
+</div>
+
+<div id="support" onclick="openWhatsApp()">💬 Support</div>
 
 <script>
-let products=JSON.parse(localStorage.getItem('products')||'[]');
-let orders=JSON.parse(localStorage.getItem('orders')||'[]');
-let cart=JSON.parse(localStorage.getItem('cart')||'[]');
+// ====== DATA STORAGE ======
+// প্রাথমিক পণ্য ডেটা (যদি localStorage খালি থাকে)
+let initialProducts = [
+    // নির্ভরযোগ্য ডেমো লিঙ্ক ব্যবহার করা হয়েছে
+    { id: 1, name: "Luxury Smartphone X", price: 799.99, category: "Electronics", stock: 15, rating: 5, badge: "New", image: "https://picsum.photos/id/237/150/150" }, 
+    { id: 2, name: "Cotton T-Shirt (Blue)", price: 19.99, category: "Apparel", stock: 50, rating: 4, badge: "Sale", image: "https://picsum.photos/id/20/150/150" }, 
+    { id: 3, name: "Modular Sofa Set", price: 1299.00, category: "Furniture", stock: 5, rating: 5, badge: "Popular", image: "https://picsum.photos/id/160/150/150" }, 
+    { id: 4, name: "Gaming Mouse Pad", price: 29.50, category: "Electronics", stock: 100, rating: 4, badge: "Best Seller", image: "https://picsum.photos/id/10/150/150" }, 
+    { id: 5, name: "Designer Leather Wallet", price: 49.99, category: "Apparel", stock: 30, rating: 5, badge: "Premium", image: "https://picsum.photos/id/1015/150/150" }, 
+    { id: 6, name: "LED Desk Lamp", price: 35.00, category: "Furniture", stock: 60, rating: 3, badge: "", image: "https://picsum.photos/id/12/150/150" } 
+];
+// লোকাল স্টোরেজে Products সেভ করা
+if (!localStorage.getItem("products") || JSON.parse(localStorage.getItem("products")).length === 0) {
+    localStorage.setItem("products", JSON.stringify(initialProducts));
+}
 
-function renderProducts(){
-    const list=document.getElementById('productList'); list.innerHTML='';
-    if(products.length===0){ list.innerHTML='<p>No products available.</p>'; return;}
-    products.forEach(p=>{
+let products = JSON.parse(localStorage.getItem("products")||'[]');
+let cart = JSON.parse(localStorage.getItem("cart")||"[]");
+let reviews = JSON.parse(localStorage.getItem("reviews")||'[]');
+let customers = JSON.parse(localStorage.getItem("customers")||'[]');
+let orders = JSON.parse(localStorage.getItem("orders")||'[]'); 
+let loggedCustomer = JSON.parse(localStorage.getItem("loggedCustomer")||'null');
+
+// ====== AUTO LOGIN & INITIAL VIEW ======
+if(loggedCustomer){
+    showPage('home');
+    document.getElementById('logoutBtn').style.display='inline-block';
+} else {
+    showPage('loginForm');
+}
+
+// ====== PAGE CONTROL & DARK MODE ======
+function showPage(page){ document.querySelectorAll('.page').forEach(p=>p.style.display='none'); document.getElementById(page).style.display='block'; renderAllPageContent(); }
+function toggleDarkMode(){ document.body.classList.toggle('dark'); }
+
+// Function to call all necessary renders when changing pages
+function renderAllPageContent() {
+    products = JSON.parse(localStorage.getItem("products")||'[]'); // Reload products in case admin/vendor changed them
+    populateCategoryFilter(); // Recalculate categories
+    renderProducts(homeList, products.slice(0, 6)); // Update home list
+    filterCategory(); // Update category list
+    renderCart(); // Update cart list
+    renderReviews(); // Update reviews
+    renderCarousel(); // Update carousel
+    updateCartBadge();
+}
+
+// ====== NEW: Auth Form Toggle ======
+function toggleAuthForm(mode) {
+    const login = document.getElementById('loginDiv');
+    const register = document.getElementById('registerDiv');
+    const loginBtn = document.getElementById('loginToggleBtn');
+    const registerBtn = document.getElementById('registerToggleBtn');
+
+    if (mode === 'login') {
+        login.style.display = 'block';
+        register.style.display = 'none';
+        loginBtn.style.backgroundColor = '#28a745'; 
+        registerBtn.style.backgroundColor = '#6c757d'; 
+    } else {
+        login.style.display = 'none';
+        register.style.display = 'block';
+        loginBtn.style.backgroundColor = '#6c757d'; 
+        registerBtn.style.backgroundColor = '#28a745'; 
+    }
+}
+
+// ====== UPDATED: Customer System ======
+function customerRegister(){
+    let username=document.getElementById("usernameRegister").value.trim();
+    let whatsapp=document.getElementById("userWhatsappRegister").value.trim();
+    let address=document.getElementById("userAddressRegister").value.trim();
+    let password=document.getElementById("passwordRegister").value;
+    
+    if(!username || !whatsapp || !address || !password){ 
+        document.getElementById("registerMsg").innerText="Please fill all fields.";
+        return; 
+    }
+    if(customers.some(c=>c.username===username)){ 
+        document.getElementById("registerMsg").innerText="Username already exists.";
+        return; 
+    }
+    
+    customers.push({username, whatsapp, address, password});
+    localStorage.setItem("customers",JSON.stringify(customers));
+    
+    document.getElementById("registerMsg").innerText="Registered successfully! Now log in.";
+    
+    // Clear fields and switch to login
+    document.getElementById("usernameRegister").value='';
+    document.getElementById("userWhatsappRegister").value='';
+    document.getElementById("userAddressRegister").value='';
+    document.getElementById("passwordRegister").value='';
+    
+    toggleAuthForm('login'); 
+}
+
+function customerLogin(){
+    let username=document.getElementById("usernameLogin").value.trim();
+    let password=document.getElementById("passwordLogin").value;
+    
+    let user = customers.find(c=>c.username===username && c.password===password);
+    
+    if(user){
+        loggedCustomer = user;
+        localStorage.setItem("loggedCustomer",JSON.stringify(loggedCustomer));
+        alert("Welcome, "+user.username);
+        showPage('home');
+        document.getElementById('logoutBtn').style.display='inline-block';
+        
+        // Clear fields
+        document.getElementById("usernameLogin").value='';
+        document.getElementById("passwordLogin").value='';
+        document.getElementById("loginMsg").innerText=""; 
+    } else {
+        document.getElementById("loginMsg").innerText="Invalid username or password.";
+    }
+}
+
+function logout(){
+    loggedCustomer=null;
+    localStorage.removeItem("loggedCustomer");
+    showPage('loginForm');
+    document.getElementById('logoutBtn').style.display='none';
+    toggleAuthForm('login'); // Ensure it returns to login tab
+}
+
+// ====== PRODUCTS RENDERING (Image fix applied) ======
+const homeList = document.getElementById("homeList");
+const categoryList = document.getElementById("categoryList");
+const cartList = document.getElementById("cartList");
+const cartLink = document.getElementById("cartLink");
+const reviewList = document.getElementById("reviewList");
+const carousel = document.getElementById("carousel");
+
+function renderProducts(list, arr){
+    list.innerHTML='';
+    if(arr.length===0){ list.innerHTML="<p>No products.</p>"; return; }
+    arr.forEach((p,i)=>{
+        // Product index in the global `products` array is needed for `addToCart`
+        const productIndexInMainArray = products.findIndex(prod => prod.id === p.id); 
         const div=document.createElement('div'); div.className='product';
-        div.innerHTML=`${p.badge?'<div class="badge">'+p.badge+'</div>':''}
-        <img src="${p.imageURL||'https://via.placeholder.com/100?text=No+Image'}" alt="${p.name}">
-        <h4>${p.name}</h4>
-        <p>Category: ${p.category}</p>
-        <p>Price: $${p.price.toFixed(2)}</p>
-        <button onclick="addToCart(${p.id})">Add to Cart</button>`;
+        let stars=''; for(let s=1;s<=5;s++){ stars += s<=p.rating ? '★':'☆'; }
+        let badgeHTML=p.badge?`<div class="badge">${p.badge}</div>`:'';
+        
+        // Use p.imageURL (from vendor/admin) if available, otherwise p.image, or fallback
+        const imageUrl = (p.imageURL && p.imageURL.startsWith('http')) ? p.imageURL : 
+                         (p.image && p.image.startsWith('http') ? p.image : "https://via.placeholder.com/150?text=No+Image");
+
+        div.innerHTML=`${badgeHTML}<div class="product-image-container"><img src="${imageUrl}" alt="${p.name}"></div>
+        <h3>${p.name}</h3>
+        <p>Category: ${p.category}</p><p>$${p.price.toFixed(2)}</p><p>Stock: ${p.stock}</p><p>${stars}</p>
+        <button onclick="addToCart(${productIndexInMainArray})" ${p.stock <= 0 ? 'disabled style="background-color: #ff6347;"' : ''}>${p.stock > 0 ? 'Add to Cart' : 'Out of Stock'}</button>`; 
         list.appendChild(div);
     });
+    updateCartBadge();
 }
 
-function saveCart(){ localStorage.setItem('cart',JSON.stringify(cart)); }
+function updateCartBadge(){ cartLink.setAttribute('data-count',cart.length); }
 
-function renderCart(){
-    const container=document.getElementById('cartItems'); container.innerHTML='';
-    if(cart.length===0){ container.innerHTML='<p>Cart is empty.</p>'; document.getElementById('cartTotal').innerText='0.00'; return;}
-    let total=0;
-    cart.forEach((item,i)=>{
-        total+=item.price*item.quantity;
-        const div=document.createElement('div'); div.className='cart-item';
-        div.innerHTML=`<p><b>${item.name}</b></p>
-        <p>Price: $${item.price.toFixed(2)}</p>
-        <p>Quantity: <input type="number" value="${item.quantity}" min="1" onchange="updateQuantity(${i},this.value)"></p>
-        <button onclick="removeFromCart(${i})">Remove</button>`;
-        container.appendChild(div);
+function renderCarousel(){ 
+    carousel.innerHTML=''; 
+    
+    // Ensure the carousel only uses products with valid image links
+    const carouselProducts = products.filter(p => p.imageURL || (p.image && p.image.startsWith('http'))).slice(0,3);
+
+    if (carouselProducts.length === 0) {
+        carousel.innerHTML = '<p style="text-align: center; width: 100%; padding: 50px;">No images available for carousel.</p>';
+        return;
+    }
+    
+    carouselProducts.forEach(p=>{
+        const imageUrl = p.imageURL && p.imageURL.startsWith('http') ? p.imageURL : p.image;
+        const img=document.createElement('img'); 
+        img.src=imageUrl; 
+        img.alt=p.name; 
+        carousel.appendChild(img);
+    }); 
+    
+    // Simple carousel logic
+    let carouselIdx=0;
+    const intervalId = setInterval(()=>{ 
+        const imgs=carousel.querySelectorAll('img'); 
+        if (imgs.length === 0) {
+             clearInterval(intervalId); 
+             return;
+        }
+        imgs.forEach((img)=>{ 
+            img.style.transform=`translateX(-${carouselIdx*100}%)`; 
+        }); 
+        carouselIdx=(carouselIdx+1)%(imgs.length || 1); 
+    },3000);
+}
+
+// ====== CATEGORY FILTERING & SORTING ======
+function filterCategory() {
+    let filteredProducts = products;
+    const selectedCategory = document.getElementById('categoryFilter').value;
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const sortValue = document.getElementById('sortSelect').value;
+
+    if (selectedCategory !== 'All') {
+        filteredProducts = filteredProducts.filter(p => p.category === selectedCategory);
+    }
+    if (searchTerm) {
+        filteredProducts = filteredProducts.filter(p => p.name.toLowerCase().includes(searchTerm));
+    }
+
+    if (sortValue === 'price-asc') {
+        filteredProducts.sort((a, b) => a.price - b.price);
+    } else if (sortValue === 'price-desc') {
+        filteredProducts.sort((a, b) => b.price - a.price);
+    } else if (sortValue === 'name-asc') {
+        filteredProducts.sort((a, b) => a.name.localeCompare(b.name));
+    } else if (sortValue === 'name-desc') {
+        filteredProducts.sort((a, b) => b.name.localeCompare(a.name));
+    }
+
+    renderProducts(categoryList, filteredProducts);
+}
+
+function populateCategoryFilter() {
+    const categories = [...new Set(products.map(p => p.category))];
+    const filter = document.getElementById('categoryFilter');
+    // Clear existing options except 'All'
+    filter.innerHTML = '<option value="All">All</option>';
+    categories.forEach(cat => {
+        const option = document.createElement('option');
+        option.value = cat;
+        option.textContent = cat;
+        filter.appendChild(option);
     });
-    document.getElementById('cartTotal').innerText=total.toFixed(2);
 }
 
-function addToCart(id){
-    const p=products.find(prod=>prod.id===id);
-    if(!p) return;
-    const index=cart.findIndex(c=>c.id===id);
-    if(index!==-1){ cart[index].quantity+=1; } else { cart.push({...p,quantity:1}); }
-    saveCart();
-    renderCart();
+
+// ====== CART & CHECKOUT ======
+function renderCart(){
+    cartList.innerHTML='';
+    if(cart.length===0){ cartList.innerHTML="<p>Cart is empty.</p>"; return; }
+    cart.forEach((p,i)=>{
+        const div=document.createElement('div'); div.className='product';
+        const quantity = p.quantity || 1; 
+        div.innerHTML=`<p>${p.name} - $ <span class="price">${(p.price * quantity).toFixed(2)}</span></p>
+        <input type="number" value="${quantity}" min="1" onchange="updateQuantity(${i},this.value)">
+        <button onclick="removeFromCart(${i})">Remove</button>`;
+        cartList.appendChild(div);
+    });
+    updateCartTotal();
+    updateCartBadge();
 }
 
-function updateQuantity(i,val){
-    let q=parseInt(val); if(isNaN(q)||q<1) q=1;
-    cart[i].quantity=q;
-    saveCart();
-    renderCart();
+function addToCart(i){ 
+    if(!loggedCustomer){ alert("Please login first!"); showPage('loginForm'); toggleAuthForm('login'); return; }
+    
+    // Check if product index is valid and product has stock
+    if (i === -1 || !products[i] || products[i].stock < 1) {
+        alert("Product out of stock or unavailable.");
+        return;
+    }
+    
+    const existingItem = cart.find(item => item.id === products[i].id);
+    
+    if(existingItem){
+        if ((existingItem.quantity || 1) >= products[i].stock) {
+            alert(`Maximum stock limit reached for ${products[i].name} (${products[i].stock}).`);
+            return;
+        }
+        existingItem.quantity = (existingItem.quantity || 1) + 1;
+    } else {
+        cart.push({...products[i], quantity: 1}); 
+    }
+    
+    localStorage.setItem("cart",JSON.stringify(cart)); 
+    renderCart(); 
+    alert(`${products[i].name} added to cart!`);
 }
 
-function removeFromCart(i){
-    cart.splice(i,1);
-    saveCart();
-    renderCart();
+function removeFromCart(i){ 
+    cart.splice(i,1); 
+    localStorage.setItem("cart",JSON.stringify(cart)); 
+    renderCart(); 
 }
 
-function checkout(){
-    const name=document.getElementById('customerName').value.trim();
-    const whatsapp=document.getElementById('customerWhatsapp').value.trim();
-    const address=document.getElementById('customerAddress').value.trim();
-    if(!name||!whatsapp||!address||cart.length===0){ alert('Fill all fields and add products to cart'); return;}
-    const newOrder={id:orders.length>0?Math.max(...orders.map(o=>o.id))+1:1,customerName:name,customerWhatsapp:whatsapp,customerAddress:address,products:cart,total:cart.reduce((sum,i)=>sum+i.price*i.quantity,0).toFixed(2),status:'Pending',date:new Date().toLocaleString()};
+function updateQuantity(i, val){ 
+    const quantity = Number(val);
+    if (quantity < 1 || isNaN(quantity)) return;
+    
+    const productInCart = cart[i];
+    // Find the product's current stock from the main array
+    const productInStock = products.find(p => p.id === productInCart.id);
+
+    if (productInStock && quantity > productInStock.stock) {
+        alert(`Cannot add more than available stock: ${productInStock.stock}`);
+        cart[i].quantity = productInStock.stock; // Set to max stock
+        // Update input field manually
+        const inputElement = document.querySelector(`#cartList .product:nth-child(${i + 1}) input`);
+        if (inputElement) inputElement.value = productInStock.stock;
+    } else {
+        cart[i].quantity = quantity; 
+    }
+    
+    localStorage.setItem("cart",JSON.stringify(cart)); 
+    updateCartTotal(); 
+}
+
+function updateCartTotal(){ 
+    let total=0; 
+    cart.forEach(p=>{ total+=Number(p.price) * (p.quantity || 1); }); 
+    document.getElementById('cartSummary').innerText=`Total: $${total.toFixed(2)}`; 
+}
+
+function checkout(){ 
+    if(cart.length===0){ alert("Cart empty!"); return; } 
+    if(!loggedCustomer) { alert("Please login to checkout!"); return; }
+
+    const total = cart.reduce((sum, p) => sum + (p.price * (p.quantity || 1)), 0);
+
+    const newOrder = {
+        id: orders.length + 1,
+        customerName: loggedCustomer.username,
+        customerWhatsapp: loggedCustomer.whatsapp,
+        customerAddress: loggedCustomer.address,
+        products: cart.map(p => ({name: p.name, price: p.price, quantity: p.quantity || 1, id: p.id})),
+        total: total.toFixed(2),
+        date: new Date().toLocaleString(),
+        status: "Pending"
+    };
+
     orders.push(newOrder);
-    localStorage.setItem('orders',JSON.stringify(orders));
-    cart=[]; saveCart(); renderCart();
-    document.getElementById('customerName').value=''; document.getElementById('customerWhatsapp').value=''; document.getElementById('customerAddress').value='';
-    document.getElementById('checkoutMsg').innerText='Order placed successfully!';
+    localStorage.setItem("orders",JSON.stringify(orders));
+
+    // Update stock in main products array after order
+    let updatedProducts = JSON.parse(localStorage.getItem("products")||'[]');
+    cart.forEach(cartItem => {
+        const productIndex = updatedProducts.findIndex(p => p.id === cartItem.id);
+        if (productIndex !== -1) {
+            updatedProducts[productIndex].stock -= (cartItem.quantity || 1);
+        }
+    });
+    localStorage.setItem("products", JSON.stringify(updatedProducts));
+    products = updatedProducts; // Update local scope variable
+
+    cart=[]; 
+    localStorage.setItem("cart",JSON.stringify(cart)); 
+    alert(`Order placed successfully! Total: $${newOrder.total}. Check your WhatsApp for confirmation.`); 
+    showPage('home');
 }
 
-renderProducts(); renderCart();
-</script>
+// ====== REVIEWS & SUPPORT ======
+function submitReview(){
+    let name=document.getElementById("reviewName").value.trim();
+    let text=document.getElementById("reviewText").value.trim();
+    if(!name || !text){ alert("Enter name & review"); return; }
+    reviews.push({name: name, text: text, customer: loggedCustomer ? loggedCustomer.username : 'Guest'});
+    localStorage.setItem("reviews",JSON.stringify(reviews));
+    renderReviews();
+    document.getElementById("reviewName").value='';
+    document.getElementById("reviewText").value='';
+}
 
+function renderReviews(){
+    reviewList.innerHTML='';
+    reviews = JSON.parse(localStorage.getItem("reviews")||'[]'); // Reload
+    if(reviews.length===0){ reviewList.innerHTML="<p>No reviews yet. Be the first!</p>"; return; }
+    
+    // Show only last 5 reviews
+    const latestReviews = reviews.slice(-5).reverse(); 
+    
+    latestReviews.forEach(r=>{
+        let div=document.createElement('div');
+        div.className='review-item';
+        div.innerHTML=`
+            <p><strong>${r.name}:</strong> ${r.text}</p>
+            <p class="review-customer">Reviewed by: <b>${r.customer}</b></p>
+        `;
+        reviewList.appendChild(div);
+    });
+}
+function openWhatsApp(){ window.open("https://wa.me/8801913821910","_blank"); }
+
+// ====== INITIAL RENDER ======
+renderAllPageContent();
+
+// Ensure the login form is shown first if not logged in
+if (!loggedCustomer) {
+    toggleAuthForm('login'); 
+}
+</script>
 </body>
-</html>
+</html>                       html
