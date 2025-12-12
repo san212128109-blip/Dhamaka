@@ -3,39 +3,99 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Customer Shop - Future Ready</title>
+<title>Dhamaka Shop - Full System</title>
 <style>
-body{font-family:Arial,sans-serif;background:#f8f9fa;color:#212529;margin:0;padding:0;}
-header{background:#28a745;color:white;padding:1em;display:flex;justify-content:space-between;align-items:center;}
-header h1{margin:0;}
-.container{padding:1em;display:flex;flex-wrap:wrap;gap:1em;justify-content:center;}
-.list{border:1px solid #28a745;border-radius:12px;padding:1em;width:280px;text-align:center;background:#fff;box-shadow:2px2px10px rgba(0,0,0,0.1);transition:0.3s;}
-.list:hover{transform:scale(1.05);box-shadow:4px4px15px rgba(0,0,0,0.2);}
-.list img{width:100px;height:100px;object-fit:cover;margin-bottom:10px;border-radius:8px;}
+/* --- COMMON STYLES --- */
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:Arial,sans-serif;background:#f8f9fa;color:#212529;transition:0.3s;}
+body.dark{background:#121212;color:#ddd;}
+header{background:#28a745;color:white;padding:1em;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;}
+header h1{margin:0;font-size:1.5em;}
+nav a{color:white;margin-left:1em;text-decoration:none;font-weight:bold;transition:0.3s;}
+nav a:hover{text-decoration:underline;color:#ffc107;}
+nav button{margin-left:1em;cursor:pointer;}
+.page{display:none;padding:1em;}
+h2,h3{text-align:center;margin-bottom:0.5em;}
+.product-list,.vendor-list,.review-list,.order-list{display:flex;flex-wrap:wrap;gap:1em;justify-content:center;margin-top:1em;}
+.product,.vendor,.review,.order{border:1px solid #28a745;border-radius:12px;padding:1em;width:280px;text-align:center;background:#fff;box-shadow:2px2px10px rgba(0,0,0,0.1);transition:0.3s;position:relative;overflow:hidden;}
+.product:hover,.vendor:hover,.review:hover,.order:hover{transform:scale(1.05);box-shadow:4px4px15px rgba(0,0,0,0.2);}
+.product img{width:100px;height:100px;object-fit:cover;margin-bottom:10px;border-radius:8px;}
 button{background:#28a745;color:white;border:none;padding:0.5em 1em;border-radius:5px;cursor:pointer;margin-top:0.5em;transition:0.3s;}
 button:hover{background:#218838;}
+input,select{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;border:1px solid #ccc;}
+.order-status-pending{color:orange;font-weight:bold;}
+.order-status-shipped{color:blue;font-weight:bold;}
+.order-status-delivered{color:green;font-weight:bold;}
+.edit-input{width:45%;margin:0.2em 2%;padding:0.3em;}
+/* Daraz-style grid */
+.shop-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1em;}
+.badge{position:absolute;top:5px;left:5px;background:#ff4757;color:white;padding:0.3em 0.5em;border-radius:5px;font-size:0.8em;}
 </style>
 </head>
 <body>
 <header>
 <h1>Dhamaka Shop</h1>
+<nav>
+<a href="#" onclick="showPage('index')">Shop</a>
+<a href="admin.html" target="_blank">Admin</a>
+<a href="vendor.html" target="_blank">Vendor</a>
+<button onclick="toggleDarkMode()">🌙</button>
+</nav>
 </header>
-<div class="container" id="productList"></div>
+
+<div id="index" class="page">
+<h2>All Products</h2>
+<div style="max-width:800px;margin:1em auto;text-align:center;">
+<input type="text" id="searchInput" placeholder="Search products..." oninput="renderShopProducts()">
+<select id="vendorFilter" onchange="renderShopProducts()">
+<option value="All">All Vendors</option>
+</select>
+<select id="categoryFilter" onchange="renderShopProducts()">
+<option value="All">All Categories</option>
+</select>
+</div>
+<div class="shop-grid" id="shopGrid"></div>
+</div>
+
 <script>
 let products=JSON.parse(localStorage.getItem('products')||'[]');
+let vendors=JSON.parse(localStorage.getItem('vendors')||'[]');
 
-function renderProducts(){
-let container=document.getElementById('productList');container.innerHTML='';
-products.forEach(p=>{
-let div=document.createElement('div');div.className='list';
-div.innerHTML=`<h3>${p.name}</h3><p>Category: ${p.category}</p><p>Price: $${p.price}</p><p>Stock: ${p.stock}</p><p>Vendor: ${p.vendorId}</p><img src='${p.imageURL}' alt='${p.name}'><button onclick='addToCart(${p.id})'>Add to Cart</button>`;
-container.appendChild(div);
-});
+function toggleDarkMode(){document.body.classList.toggle('dark');}
+
+function showPage(page){document.querySelectorAll('.page').forEach(p=>p.style.display='none');document.getElementById(page).style.display='block';renderShopProducts();}
+showPage('index');
+
+function populateFilters(){
+ let vendorSelect=document.getElementById('vendorFilter');
+ vendors.forEach(v=>{let opt=document.createElement('option');opt.value=v.id;opt.text=v.name;vendorSelect.appendChild(opt);});
+ let categorySelect=document.getElementById('categoryFilter');
+ let categories=[...new Set(products.map(p=>p.category))];
+ categories.forEach(c=>{let opt=document.createElement('option');opt.value=c;opt.text=c;categorySelect.appendChild(opt);});
 }
 
-function addToCart(id){alert('Product '+id+' added to cart (mock)');}
-
-renderProducts();
+function renderShopProducts(){
+ products=JSON.parse(localStorage.getItem('products')||'[]');
+ let search=document.getElementById('searchInput').value.toLowerCase();
+ let vendorFilter=document.getElementById('vendorFilter').value;
+ let categoryFilter=document.getElementById('categoryFilter').value;
+ let grid=document.getElementById('shopGrid');
+ grid.innerHTML='';
+ let filtered=products.filter(p=>
+ (p.name.toLowerCase().includes(search))&&
+ (vendorFilter==='All'||p.vendorId===vendorFilter)&&
+ (categoryFilter==='All'||p.category===categoryFilter)
+ );
+ if(filtered.length===0){grid.innerHTML='<p>No products found.</p>';return;}
+ filtered.forEach(p=>{
+  let vendorName=(vendors.find(v=>v.id===p.vendorId)||{name:'Admin'}).name;
+  let div=document.createElement('div');div.className='product';
+  let badgeHtml=p.badge?`<div class='badge'>${p.badge}</div>`:'';
+  div.innerHTML=`${badgeHtml}<img src='${p.imageURL||"https://via.placeholder.com/100"}' alt='${p.name}'><h3>${p.name}</h3><p>Category: ${p.category}</p><p>Vendor: ${vendorName}</p><p>Price: $${p.price.toFixed(2)}</p><p>Stock: ${p.stock}</p>`;
+  grid.appendChild(div);
+ });
+}
+populateFilters();
 </script>
 </body>
 </html>
