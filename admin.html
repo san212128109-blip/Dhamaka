@@ -3,159 +3,277 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin Panel - Dhamaka Daily Items</title>
+<title>Dhamaka Admin Panel</title>
 <style>
-*{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:Arial,sans-serif;background:#f1f1f1;color:#212529;}
-header{background:#343a40;color:white;padding:1em;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;}
-header h1{font-size:1.5em;}
-nav button{margin-left:1em;cursor:pointer;padding:0.3em 0.7em;border-radius:5px;border:none;color:white;background:#17a2b8;}
-nav button:hover{background:#138496;}
-.page{display:none;padding:1em;}
+body{font-family:Arial,sans-serif;background:#f0f2f5;color:#333;margin:0;padding:0;}
+header{background:#28a745;color:white;padding:1em;display:flex;justify-content:space-between;align-items:center;}
+header h1{margin:0;}
+nav a{margin-left:1em;color:white;text-decoration:none;font-weight:bold;}
+.container{padding:1em;}
 table{width:100%;border-collapse:collapse;margin-top:1em;}
 th,td{border:1px solid #ccc;padding:0.5em;text-align:center;}
-button.action{padding:0.3em 0.7em;margin:0.2em;border:none;border-radius:5px;cursor:pointer;}
+button{padding:0.5em 1em;margin:0.3em;border:none;border-radius:5px;cursor:pointer;}
+button.edit{background:#007bff;color:white;}
+button.delete{background:#dc3545;color:white;}
 button.approve{background:#28a745;color:white;}
-button.reject{background:#dc3545;color:white;}
+button.reject{background:#ffc107;color:black;}
+input,select{padding:0.4em;margin:0.3em;border-radius:4px;border:1px solid #ccc;}
+h2{margin-top:1em;text-align:center;}
+section{margin-top:2em;}
 </style>
 </head>
 <body>
 
 <header>
 <h1>Admin Panel</h1>
-<nav>
-<button onclick="logout()">Logout</button>
-</nav>
+<div>
+  <button onclick="logout()">Logout</button>
+</div>
 </header>
 
-<div id="adminLogin" class="page">
-<h2>Admin Login</h2>
-<input type="text" id="adminUsername" placeholder="Username">
-<input type="password" id="adminPassword" placeholder="Password">
-<button onclick="adminLogin()">Login</button>
-<p id="adminLoginMsg" style="color:red;"></p>
-</div>
+<div class="container">
 
-<div id="adminDashboard" class="page">
-<h2>Welcome, Admin</h2>
-
-<h3>Vendors Pending Approval</h3>
+<section>
+<h2>Vendors</h2>
 <table id="vendorTable">
 <thead>
-<tr><th>Name</th><th>Promo Code</th><th>Status</th><th>Actions</th></tr>
+<tr>
+<th>ID</th><th>Name</th><th>WhatsApp</th><th>Status</th><th>Color</th><th>Promocode</th><th>Actions</th>
+</tr>
 </thead>
 <tbody></tbody>
 </table>
+</section>
 
-<h3>Products Pending Approval</h3>
+<section>
+<h2>Customers</h2>
+<table id="customerTable">
+<thead>
+<tr>
+<th>Username</th><th>WhatsApp</th><th>Address</th><th>Color</th><th>Actions</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+</section>
+
+<section>
+<h2>Products</h2>
 <table id="productTable">
 <thead>
-<tr><th>Name</th><th>Vendor</th><th>Price</th><th>Stock</th><th>Status</th><th>Actions</th></tr>
+<tr>
+<th>Name</th><th>Vendor</th><th>Price</th><th>Stock</th><th>Category</th><th>Badge</th><th>Actions</th>
+</tr>
 </thead>
 <tbody></tbody>
 </table>
+</section>
 
-<h3>Vendor Promo Stats</h3>
-<table id="promoTable">
-<thead>
-<tr><th>Vendor</th><th>Promo Code</th><th>Customers</th></tr>
-</thead>
-<tbody></tbody>
-</table>
-
-<h3>Orders</h3>
+<section>
+<h2>Orders</h2>
 <table id="orderTable">
 <thead>
-<tr><th>Order ID</th><th>Customer</th><th>Vendor Products</th><th>Total</th><th>Status</th></tr>
+<tr>
+<th>Order ID</th><th>Customer</th><th>Vendor Items</th><th>Total</th><th>Status</th><th>Actions</th>
+</tr>
 </thead>
 <tbody></tbody>
 </table>
-</div>
+</section>
 
 <script>
-// ====== Data ======
-let adminUser={username:"admin",password:"admin123"};
-let vendors=JSON.parse(localStorage.getItem("vendors")||'[]');
-let products=JSON.parse(localStorage.getItem("products")||'[]');
-let orders=JSON.parse(localStorage.getItem("orders")||'[]');
-let loggedAdmin=JSON.parse(localStorage.getItem("loggedAdmin")||'null');
+// ======= INITIAL DATA =======
+let vendors = JSON.parse(localStorage.getItem("vendors")||'[]');
+let customers = JSON.parse(localStorage.getItem("customers")||'[]');
+let products = JSON.parse(localStorage.getItem("products")||'[]');
+let orders = JSON.parse(localStorage.getItem("orders")||'[]');
 
-if(loggedAdmin){ showPage('adminDashboard'); renderAdminData(); }
-else{ showPage('adminLogin'); }
+// ======= ADMIN LOGIN (default) =======
+let admin = {id:"admin",password:"admin123"};
 
-// ====== Auth ======
-function adminLogin(){
-let u=document.getElementById("adminUsername").value.trim();
-let p=document.getElementById("adminPassword").value.trim();
-if(u===adminUser.username && p===adminUser.password){
-loggedAdmin=true; localStorage.setItem("loggedAdmin",JSON.stringify(loggedAdmin));
-showPage('adminDashboard'); renderAdminData();
-}else{ document.getElementById("adminLoginMsg").innerText="Invalid credentials"; }
-}
-function logout(){ loggedAdmin=null; localStorage.removeItem("loggedAdmin"); showPage('adminLogin'); }
-
-// ====== Page Control ======
-function showPage(page){ document.querySelectorAll('.page').forEach(p=>p.style.display='none'); document.getElementById(page).style.display='block'; }
-
-// ====== Vendors ======
-function renderAdminData(){
-renderVendors(); renderProducts(); renderPromoStats(); renderOrders();
+let loggedAdmin = JSON.parse(localStorage.getItem("loggedAdmin")||'null');
+if(!loggedAdmin){
+  let username = prompt("Enter Admin ID:");
+  let password = prompt("Enter Admin Password:");
+  if(username===admin.id && password===admin.password){
+    loggedAdmin = admin;
+    localStorage.setItem("loggedAdmin",JSON.stringify(loggedAdmin));
+  } else { alert("Invalid Admin Credentials!"); window.location.href="index.html"; }
 }
 
+// ======= LOGOUT =======
+function logout(){
+  localStorage.removeItem("loggedAdmin");
+  alert("Admin logged out");
+  window.location.href="index.html";
+}
+
+// ======= VENDOR TABLE =======
 function renderVendors(){
-const tbody=document.querySelector("#vendorTable tbody"); tbody.innerHTML='';
-vendors.forEach((v,i)=>{
-const tr=document.createElement('tr');
-tr.innerHTML=`<td>${v.name}</td>
-<td>${v.promoCode}</td>
-<td>${v.approved?'Approved':'Pending'}</td>
-<td>${v.approved?'':'<button class="approve" onclick="approveVendor(${i})">Approve</button><button class="reject" onclick="rejectVendor(${i})">Reject</button>'}</td>`;
-tbody.appendChild(tr);
-});
+  const tbody = document.querySelector("#vendorTable tbody");
+  tbody.innerHTML="";
+  vendors.forEach((v,i)=>{
+    const tr=document.createElement("tr");
+    tr.innerHTML=`
+      <td>${v.id}</td>
+      <td><input value="${v.name}" onchange="updateVendor(${i},'name',this.value)"></td>
+      <td><input value="${v.whatsapp}" onchange="updateVendor(${i},'whatsapp',this.value)"></td>
+      <td>${v.status}</td>
+      <td><input type="color" value="${v.color||'#28a745'}" onchange="updateVendor(${i},'color',this.value)"></td>
+      <td><input value="${v.promocode||''}" onchange="updateVendor(${i},'promocode',this.value)"></td>
+      <td>
+        ${v.status!=='Approved'?`<button class="approve" onclick="approveVendor(${i})">Approve</button>
+        <button class="reject" onclick="rejectVendor(${i})">Reject</button>`:""}
+        <button class="delete" onclick="deleteVendor(${i})">Delete</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
 }
 
-function approveVendor(i){ vendors[i].approved=true; localStorage.setItem("vendors",JSON.stringify(vendors)); renderVendors(); }
-function rejectVendor(i){ vendors.splice(i,1); localStorage.setItem("vendors",JSON.stringify(vendors)); renderVendors(); }
-
-// ====== Products ======
-function renderProducts(){
-const tbody=document.querySelector("#productTable tbody"); tbody.innerHTML='';
-products.forEach((p,i)=>{
-const vendorName=(vendors.find(v=>v.id===p.vendorId)||{}).name||'Unknown';
-const tr=document.createElement('tr');
-tr.innerHTML=`<td>${p.name}</td>
-<td>${vendorName}</td>
-<td>$${p.price}</td>
-<td>${p.stock}</td>
-<td>${p.approved?'Approved':'Pending'}</td>
-<td>${p.approved?'':'<button class="approve" onclick="approveProduct(${i})">Approve</button><button class="reject" onclick="rejectProduct(${i})">Reject</button>'}</td>`;
-tbody.appendChild(tr);
-});
+function updateVendor(i,key,value){
+  vendors[i][key]=value;
+  localStorage.setItem("vendors",JSON.stringify(vendors));
 }
 
-function approveProduct(i){ products[i].approved=true; localStorage.setItem("products",JSON.stringify(products)); renderProducts(); }
-function rejectProduct(i){ products.splice(i,1); localStorage.setItem("products",JSON.stringify(products)); renderProducts(); }
-
-// ====== Promo Stats ======
-function renderPromoStats(){
-const tbody=document.querySelector("#promoTable tbody"); tbody.innerHTML='';
-vendors.forEach(v=>{
-const tr=document.createElement('tr');
-tr.innerHTML=`<td>${v.name}</td><td>${v.promoCode}</td><td>${v.customers||0}</td>`;
-tbody.appendChild(tr);
-});
+function approveVendor(i){
+  vendors[i].status="Approved";
+  localStorage.setItem("vendors",JSON.stringify(vendors));
+  renderVendors();
 }
 
-// ====== Orders ======
+function rejectVendor(i){
+  vendors[i].status="Rejected";
+  localStorage.setItem("vendors",JSON.stringify(vendors));
+  renderVendors();
+}
+
+function deleteVendor(i){
+  if(confirm(`Delete vendor ${vendors[i].name}?`)){
+    vendors.splice(i,1);
+    localStorage.setItem("vendors",JSON.stringify(vendors));
+    renderVendors();
+  }
+}
+
+// ======= CUSTOMER TABLE =======
+function renderCustomers(){
+  const tbody = document.querySelector("#customerTable tbody");
+  tbody.innerHTML="";
+  customers.forEach((c,i)=>{
+    const tr=document.createElement("tr");
+    tr.innerHTML=`
+      <td><input value="${c.username}" onchange="updateCustomer(${i},'username',this.value)"></td>
+      <td><input value="${c.whatsapp}" onchange="updateCustomer(${i},'whatsapp',this.value)"></td>
+      <td><input value="${c.address}" onchange="updateCustomer(${i},'address',this.value)"></td>
+      <td><input type="color" value="${c.color||'#28a745'}" onchange="updateCustomer(${i},'color',this.value)"></td>
+      <td><button class="delete" onclick="deleteCustomer(${i})">Delete</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function updateCustomer(i,key,value){
+  customers[i][key]=value;
+  localStorage.setItem("customers",JSON.stringify(customers));
+}
+
+function deleteCustomer(i){
+  if(confirm(`Delete customer ${customers[i].username}?`)){
+    customers.splice(i,1);
+    localStorage.setItem("customers",JSON.stringify(customers));
+    renderCustomers();
+  }
+}
+
+// ======= PRODUCT TABLE =======
+function renderProductsTable(){
+  const tbody = document.querySelector("#productTable tbody");
+  tbody.innerHTML="";
+  products.forEach((p,i)=>{
+    const vendorName = vendors.find(v=>v.id===p.vendorId)?.name || "Unknown";
+    const tr=document.createElement("tr");
+    tr.innerHTML=`
+      <td><input value="${p.name}" onchange="updateProduct(${i},'name',this.value)"></td>
+      <td>${vendorName}</td>
+      <td><input type="number" value="${p.price}" onchange="updateProduct(${i},'price',parseFloat(this.value))"></td>
+      <td><input type="number" value="${p.stock}" onchange="updateProduct(${i},'stock',parseInt(this.value))"></td>
+      <td><input value="${p.category}" onchange="updateProduct(${i},'category',this.value)"></td>
+      <td><input value="${p.badge}" onchange="updateProduct(${i},'badge',this.value)"></td>
+      <td>
+        ${p.status!=='Approved'?`<button class="approve" onclick="approveProduct(${i})">Approve</button>
+        <button class="reject" onclick="rejectProduct(${i})">Reject</button>`:""}
+        <button class="delete" onclick="deleteProduct(${i})">Delete</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function updateProduct(i,key,value){
+  products[i][key]=value;
+  localStorage.setItem("products",JSON.stringify(products));
+}
+
+function approveProduct(i){
+  products[i].status="Approved";
+  localStorage.setItem("products",JSON.stringify(products));
+  renderProductsTable();
+}
+
+function rejectProduct(i){
+  products[i].status="Rejected";
+  localStorage.setItem("products",JSON.stringify(products));
+  renderProductsTable();
+}
+
+function deleteProduct(i){
+  if(confirm(`Delete product ${products[i].name}?`)){
+    products.splice(i,1);
+    localStorage.setItem("products",JSON.stringify(products));
+    renderProductsTable();
+  }
+}
+
+// ======= ORDERS TABLE =======
 function renderOrders(){
-const tbody=document.querySelector("#orderTable tbody"); tbody.innerHTML='';
-orders.forEach(o=>{
-const vendorProducts=o.products.filter(p=>vendors.some(v=>v.id===p.vendorId)).map(p=>p.name+" x"+p.quantity).join(", ");
-const tr=document.createElement('tr');
-tr.innerHTML=`<td>${o.id}</td><td>${o.customerName}</td><td>${vendorProducts}</td><td>$${o.total}</td><td>${o.status}</td>`;
-tbody.appendChild(tr);
-});
+  const tbody = document.querySelector("#orderTable tbody");
+  tbody.innerHTML="";
+  orders.forEach((o,i)=>{
+    const vendorItems = o.products.map(p=>{
+      const vendorName = vendors.find(v=>v.id===p.vendorId)?.name || "Unknown";
+      return `${p.name} (${vendorName}) x${p.quantity}`;
+    }).join(", ");
+    const tr=document.createElement("tr");
+    tr.innerHTML=`
+      <td>${o.id}</td>
+      <td>${o.customerName}</td>
+      <td>${vendorItems}</td>
+      <td>$${o.total}</td>
+      <td>${o.status}</td>
+      <td>
+        <select onchange="updateOrderStatus(${i},this.value)">
+          <option value="Pending" ${o.status==="Pending"?"selected":""}>Pending</option>
+          <option value="Completed" ${o.status==="Completed"?"selected":""}>Completed</option>
+          <option value="Cancelled" ${o.status==="Cancelled"?"selected":""}>Cancelled</option>
+        </select>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
 }
+
+function updateOrderStatus(i,status){
+  orders[i].status=status;
+  localStorage.setItem("orders",JSON.stringify(orders));
+}
+
+// ======= INITIAL RENDER =======
+renderVendors();
+renderCustomers();
+renderProductsTable();
+renderOrders();
+
 </script>
 </body>
 </html>
