@@ -5,18 +5,46 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dhamaka Daily Items - Shop</title>
 <style>
-*{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:Arial,sans-serif;background:#f8f9fa;color:#212529;}
-header{background:#28a745;color:white;padding:1em;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;}
-header h1{font-size:1.5em;}
-nav a, nav button{color:white;margin-left:1em;text-decoration:none;font-weight:bold;cursor:pointer;}
+body{font-family:Arial,sans-serif;background:#d4edda;color:#155724;transition:0.3s;}
+body.dark{background:#121212;color:#ddd;}
+header{background:#28a745;color:white;padding:1em;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10;}
+header h1{margin:0;font-size:1.5em;}
+nav{display:flex;align-items:center;flex-wrap:wrap;}
+nav a{color:white;margin-left:1em;text-decoration:none;font-weight:bold;transition:0.3s;position:relative;}
+nav a:hover{text-decoration:underline;color:#ffc107;}
+nav #cartLink::after{content:attr(data-count);position:absolute;top:-10px;right:-10px;background:red;color:white;width:20px;height:20px;text-align:center;line-height:20px;border-radius:50%;font-size:0.8em;display:inline-block;}
+nav button{margin-left:1em;cursor:pointer;}
 .page{display:none;padding:1em;}
-.product-list{display:flex;flex-wrap:wrap;gap:1em;justify-content:center;margin-top:1em;}
-.product{border:1px solid #28a745;border-radius:12px;padding:1em;width:200px;text-align:center;background:#fff;box-shadow:2px2px10px rgba(0,0,0,0.1);}
-.product img{width:150px;height:150px;object-fit:cover;border-radius:8px;}
-button{background:#28a745;color:white;border:none;padding:0.5em 1em;border-radius:5px;cursor:pointer;margin-top:0.5em;}
-button:disabled{background:#ccc;cursor:not-allowed;}
+h1,h2,h3{text-align:center;margin-bottom:0.5em;}
+.product-list,.cart-list{display:flex;flex-wrap:wrap;gap:1em;justify-content:center;margin-top:1em;}
+.product{border:1px solid #28a745;border-radius:12px;padding:1em;width:200px;text-align:center;background:#fff;box-shadow:2px2px10px rgba(0,0,0,0.1);transition:0.3s;position:relative;overflow:hidden;}
+.product:hover{transform:scale(1.05);box-shadow:4px4px15px rgba(0,0,0,0.2);}
+.product img{transition: transform 0.3s;}
+.product:hover img{transform:scale(1.2);}
+.badge{position:absolute;top:10px;left:10px;background:#ffc107;color:#000;padding:2px 6px;border-radius:4px;font-size:0.8em;animation:bounce 1s infinite alternate;}
+@keyframes bounce{0%{transform:translateY(0);}100%{transform:translateY(-5px);}}
+button{background:#28a745;color:white;border:none;padding:0.5em 1em;border-radius:5px;cursor:pointer;margin-top:0.5em;transition:0.3s;}
+button:hover{background:#218838;}
+input,select,textarea{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;border:1px solid #ccc;}
 #cartSummary{text-align:center;margin-top:1em;font-weight:bold;}
+.carousel{display:flex;overflow:hidden;width:90%;margin:1em auto;position:relative;border-radius:12px; border: 3px solid #ffc107;}
+.carousel img{min-width:100%;border-radius:12px;transition:transform 0.5s; object-fit: cover; height: 300px;}
+.star{color:gold;font-size:1em;cursor:pointer;}
+.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);justify-content:center;align-items:center;animation:fadeIn 0.3s;}
+.modal-content{background:#fff;padding:1em;border-radius:12px;width:90%;max-width:400px;text-align:center;}
+.modal button{width:45%;margin:0.5em;}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+#support{position:fixed;bottom:20px;right:20px;background:#25D366;color:white;padding:10px 15px;border-radius:50px;cursor:pointer;box-shadow:2px2px10px rgba(0,0,0,0.2);}
+.product-image-container img {width: 150px; height: 150px; object-fit: cover; border-radius: 8px;}
+@media(max-width:600px){ .product{width:45%; } header{flex-direction:column;align-items:flex-start;} nav a{margin:0.3em 0;} }
+#home {padding-top: 20px;}
+.product-list {padding: 20px 0; border-top: 1px solid #28a745;}
+#reviewSectionContainer {max-width: 900px; margin: 30px auto; padding: 20px; background: #f8f9fa; border-radius: 15px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);}
+.review-item {border-bottom: 1px dashed #ccc; padding: 10px 0; text-align: left;}
+.review-item:last-child {border-bottom: none;}
+.review-customer {font-size: 0.9em; color: #6c757d;}
+.review-customer b {color: #000;}
+#loginToggleBtn, #registerToggleBtn {width: 45%; background-color: #6c757d;}
 </style>
 </head>
 <body>
@@ -24,47 +52,66 @@ button:disabled{background:#ccc;cursor:not-allowed;}
 <header>
 <h1>Dhamaka Daily Items</h1>
 <nav>
-<a onclick="showPage('home')">Home</a>
-<a onclick="showPage('categories')">Categories</a>
-<a id="cartLink" onclick="showPage('cart')">Cart (0)</a>
+<a href="#home" onclick="showPage('home')">Home</a>
+<a href="#categories" onclick="showPage('categories')">Categories</a>
+<a id="cartLink" href="#cart" data-count="0" onclick="showPage('cart')">Cart</a>
+<button onclick="toggleDarkMode()">🌙</button>
 <button id="logoutBtn" style="display:none;" onclick="logout()">Logout</button>
 </nav>
 </header>
 
+<!-- Home Page -->
 <div id="home" class="page">
-<h2>🔥 Featured Products</h2>
+<h2>🔥 Top Deals of the Day</h2>
+<div class="carousel" id="carousel"></div>
+<h2 style="margin-top: 20px;">Featured Products</h2>
 <div class="product-list" id="homeList"></div>
+<div style="text-align: center; margin: 20px 0;">
+<button onclick="showPage('categories')">View All Products →</button>
+</div>
 </div>
 
+<!-- Categories Page -->
 <div id="categories" class="page">
-<h2>All Products</h2>
+<h2>Categories</h2>
 <select id="categoryFilter" onchange="filterCategory()"><option value="All">All</option></select>
 <input type="text" id="searchInput" placeholder="Search Products..." oninput="filterCategory()">
+<select id="sortSelect" onchange="filterCategory()">
+<option value="">Sort By</option>
+<option value="price-asc">Price Low→High</option>
+<option value="price-desc">Price High→Low</option>
+<option value="name-asc">Name A→Z</option>
+<option value="name-desc">Name Z→A</option>
+</select>
 <div class="product-list" id="categoryList"></div>
 </div>
 
+<!-- Cart Page -->
 <div id="cart" class="page">
 <h2>Your Cart</h2>
-<div class="product-list" id="cartList"></div>
+<div class="cart-list" id="cartList"></div>
 <div id="cartSummary"></div>
+<input type="text" id="promoCodeInput" placeholder="Enter Promocode">
+<button onclick="applyPromo()">Apply Promocode</button>
 <button onclick="checkout()">Checkout</button>
 </div>
 
+<!-- Login/Register -->
 <div id="loginForm" class="page">
 <h2>Customer Area</h2>
-<div style="text-align:center;margin-bottom:1em;">
-<button onclick="toggleAuthForm('login')">Login</button>
-<button onclick="toggleAuthForm('register')">Register</button>
+<div style="text-align: center; margin-bottom: 1em;">
+<button onclick="toggleAuthForm('login')" id="loginToggleBtn">Login</button>
+<button onclick="toggleAuthForm('register')" id="registerToggleBtn">Register</button>
 </div>
-<div id="loginDiv" style="max-width:400px;margin:1em auto;text-align:center;">
-<h3>Login</h3>
+<div id="loginDiv" style="max-width:400px; margin:1em auto; text-align:center;">
+<h3>Login to Shop</h3>
 <input type="text" id="usernameLogin" placeholder="Username">
 <input type="password" id="passwordLogin" placeholder="Password">
 <button onclick="customerLogin()">Login</button>
 <p id="loginMsg" style="color:red;"></p>
 </div>
-<div id="registerDiv" style="max-width:400px;margin:1em auto;text-align:center;display:none;">
-<h3>Register</h3>
+<div id="registerDiv" style="max-width:400px; margin:1em auto; text-align:center; display:none;">
+<h3>Register New Account</h3>
 <input type="text" id="usernameRegister" placeholder="Username">
 <input type="text" id="userWhatsappRegister" placeholder="WhatsApp Number">
 <input type="text" id="userAddressRegister" placeholder="Address">
@@ -74,150 +121,170 @@ button:disabled{background:#ccc;cursor:not-allowed;}
 </div>
 </div>
 
+<!-- Reviews -->
+<div id="reviewSectionContainer">
+<h3>⭐ Customer Reviews</h3>
+<div id="reviewList"></div>
+<hr style="margin: 15px 0;">
+<div id="reviewForm">
+<h3>Submit Your Review</h3>
+<input type="text" id="reviewName" placeholder="Your Name">
+<textarea id="reviewText" placeholder="Your review"></textarea>
+<button onclick="submitReview()">Submit</button>
+</div>
+</div>
+
+<div id="support" onclick="openWhatsApp()">💬 Support</div>
+
 <script>
-// ====== Data ======
-let products=JSON.parse(localStorage.getItem("products")||'[]');
-let vendors=JSON.parse(localStorage.getItem("vendors")||'[]');
-let cart=JSON.parse(localStorage.getItem("cart")||'[]');
-let customers=JSON.parse(localStorage.getItem("customers")||'[]');
-let orders=JSON.parse(localStorage.getItem("orders")||'[]');
-let loggedCustomer=JSON.parse(localStorage.getItem("loggedCustomer")||'null');
+// ===== DATA =====
+let products = JSON.parse(localStorage.getItem("products")||'[]').filter(p=>p.status==='Approved');
+let cart = JSON.parse(localStorage.getItem("cart")||"[]");
+let customers = JSON.parse(localStorage.getItem("customers")||'[]');
+let loggedCustomer = JSON.parse(localStorage.getItem("loggedCustomer")||'null');
+let vendors = JSON.parse(localStorage.getItem("vendors")||'[]');
+let promocodeUsage = JSON.parse(localStorage.getItem("promocodeUsage")||'{}');
 
-// ====== Auth ======
+// ===== PAGE CONTROL =====
 if(loggedCustomer){ showPage('home'); document.getElementById('logoutBtn').style.display='inline-block'; } 
-else{ showPage('loginForm'); }
+else { showPage('loginForm'); }
 
-function toggleAuthForm(mode){
-const login=document.getElementById('loginDiv');
-const register=document.getElementById('registerDiv');
-if(mode==='login'){ login.style.display='block'; register.style.display='none'; }
-else{ login.style.display='none'; register.style.display='block'; }
+function showPage(page){ document.querySelectorAll('.page').forEach(p=>p.style.display='none'); document.getElementById(page).style.display='block'; renderAll(); }
+function toggleDarkMode(){ document.body.classList.toggle('dark'); }
+
+// ===== AUTH =====
+function toggleAuthForm(mode){ 
+  document.getElementById('loginDiv').style.display = mode==='login'?'block':'none';
+  document.getElementById('registerDiv').style.display = mode==='register'?'block':'none';
+  document.getElementById('loginToggleBtn').style.backgroundColor = mode==='login'?'#28a745':'#6c757d';
+  document.getElementById('registerToggleBtn').style.backgroundColor = mode==='register'?'#28a745':'#6c757d';
 }
 
 function customerRegister(){
-let username=document.getElementById("usernameRegister").value.trim();
-let whatsapp=document.getElementById("userWhatsappRegister").value.trim();
-let address=document.getElementById("userAddressRegister").value.trim();
-let password=document.getElementById("passwordRegister").value;
-if(!username||!whatsapp||!address||!password){ document.getElementById("registerMsg").innerText="Fill all fields"; return; }
-if(customers.some(c=>c.username===username)){ document.getElementById("registerMsg").innerText="Username exists"; return; }
-customers.push({username,whatsapp,address,password});
-localStorage.setItem("customers",JSON.stringify(customers));
-document.getElementById("registerMsg").innerText="Registered! Login now"; toggleAuthForm('login');
+  let username=document.getElementById("usernameRegister").value.trim();
+  let whatsapp=document.getElementById("userWhatsappRegister").value.trim();
+  let address=document.getElementById("userAddressRegister").value.trim();
+  let password=document.getElementById("passwordRegister").value;
+  if(!username||!whatsapp||!address||!password){ document.getElementById("registerMsg").innerText="Fill all fields"; return; }
+  if(customers.some(c=>c.username===username)){ document.getElementById("registerMsg").innerText="Username exists"; return; }
+  customers.push({username,whatsapp,address,password});
+  localStorage.setItem("customers",JSON.stringify(customers));
+  toggleAuthForm('login'); document.getElementById("registerMsg").innerText="Registered! Login now."; 
 }
 
 function customerLogin(){
-let username=document.getElementById("usernameLogin").value.trim();
-let password=document.getElementById("passwordLogin").value.trim();
-let user=customers.find(c=>c.username===username && c.password===password);
-if(user){ loggedCustomer=user; localStorage.setItem("loggedCustomer",JSON.stringify(loggedCustomer));
-showPage('home'); document.getElementById('logoutBtn').style.display='inline-block';
-document.getElementById("loginMsg").innerText="";
-document.getElementById("usernameLogin").value=''; document.getElementById("passwordLogin").value=''; }
-else{ document.getElementById("loginMsg").innerText="Invalid credentials"; }
+  let username=document.getElementById("usernameLogin").value.trim();
+  let password=document.getElementById("passwordLogin").value;
+  let user = customers.find(c=>c.username===username && c.password===password);
+  if(!user){ document.getElementById("loginMsg").innerText="Invalid username/password"; return; }
+  loggedCustomer=user; localStorage.setItem("loggedCustomer",JSON.stringify(loggedCustomer));
+  showPage('home'); document.getElementById('logoutBtn').style.display='inline-block';
 }
 
-function logout(){ loggedCustomer=null; localStorage.removeItem("loggedCustomer"); showPage('loginForm'); document.getElementById('logoutBtn').style.display='none'; }
+function logout(){ loggedCustomer=null; localStorage.removeItem("loggedCustomer"); showPage('loginForm'); document.getElementById('logoutBtn').style.display='none'; toggleAuthForm('login'); }
 
-// ====== Render Products ======
-const homeList=document.getElementById("homeList");
-const categoryList=document.getElementById("categoryList");
-const cartList=document.getElementById("cartList");
-const cartLink=document.getElementById("cartLink");
-function renderProducts(list,arr){
-list.innerHTML='';
-if(arr.length===0){ list.innerHTML="<p>No products.</p>"; return; }
-arr.forEach(p=>{
-if(!p.approved) return; // Only approved products
-const vendor=p.vendorId?vendors.find(v=>v.id===p.vendorId):null;
-const div=document.createElement('div'); div.className='product';
-const image=p.imageURL?p.imageURL:p.image?p.image:"https://via.placeholder.com/150";
-div.innerHTML=`<img src="${image}" alt="${p.name}"><h3>${p.name}</h3>
-<p>Price: $${p.price.toFixed(2)}</p><p>Stock: ${p.stock}</p>
-<button ${p.stock<=0?'disabled':''} onclick="addToCart(${p.id})">${p.stock>0?'Add to Cart':'Out of Stock'}</button>`;
-list.appendChild(div);
-});
-updateCartBadge();
+// ===== RENDER =====
+const homeList = document.getElementById("homeList");
+const categoryList = document.getElementById("categoryList");
+const cartList = document.getElementById("cartList");
+const cartLink = document.getElementById("cartLink");
+const carousel = document.getElementById("carousel");
+
+function renderProducts(list, arr){
+  list.innerHTML=''; if(arr.length===0){ list.innerHTML="<p>No products.</p>"; return; }
+  arr.forEach(p=>{
+    const idx=products.findIndex(pr=>pr.id===p.id);
+    const div=document.createElement('div'); div.className='product';
+    const badgeHTML=p.badge?`<div class="badge">${p.badge}</div>`:'';
+    const imageUrl = p.imageURL? p.imageURL : (p.image? p.image:'https://via.placeholder.com/150?text=No+Image');
+    div.innerHTML=`${badgeHTML}<div class="product-image-container"><img src="${imageUrl}"></div>
+                   <h3>${p.name}</h3><p>Category: ${p.category}</p><p>$${p.price.toFixed(2)}</p><p>Stock: ${p.stock}</p>
+                   <button onclick="addToCart(${idx})" ${p.stock<=0?'disabled style="background-color:#ff6347;"':''}>${p.stock>0?'Add to Cart':'Out of Stock'}</button>`;
+    list.appendChild(div);
+  });
 }
 
-// ====== Home & Categories ======
-function showPage(page){
-document.querySelectorAll('.page').forEach(p=>p.style.display='none');
-document.getElementById(page).style.display='block';
-renderAllContent();
+function renderAll(){
+  products = JSON.parse(localStorage.getItem("products")||'[]').filter(p=>p.status==='Approved');
+  populateCategoryFilter();
+  renderProducts(homeList, products.slice(0,6));
+  filterCategory();
+  renderCart();
+  renderCarousel();
+  updateCartBadge();
 }
 
-function renderAllContent(){
-renderProducts(homeList,products.slice(0,6));
-populateCategoryFilter(); filterCategory(); renderCart();
+// ===== CATEGORY FILTER =====
+function filterCategory(){
+  let filtered=products;
+  const cat=document.getElementById('categoryFilter').value;
+  const search=document.getElementById('searchInput').value.toLowerCase();
+  const sort=document.getElementById('sortSelect').value;
+  if(cat!=='All'){ filtered=filtered.filter(p=>p.category===cat); }
+  if(search){ filtered=filtered.filter(p=>p.name.toLowerCase().includes(search)); }
+  if(sort==='price-asc'){ filtered.sort((a,b)=>a.price-b.price); }
+  if(sort==='price-desc'){ filtered.sort((a,b)=>b.price-a.price); }
+  if(sort==='name-asc'){ filtered.sort((a,b)=>a.name.localeCompare(b.name)); }
+  if(sort==='name-desc'){ filtered.sort((a,b)=>b.name.localeCompare(a.name)); }
+  renderProducts(categoryList, filtered);
 }
 
 function populateCategoryFilter(){
-const categories=[...new Set(products.filter(p=>p.approved).map(p=>p.category))];
-const filter=document.getElementById('categoryFilter'); filter.innerHTML='<option value="All">All</option>';
-categories.forEach(c=>{ let opt=document.createElement('option'); opt.value=c; opt.textContent=c; filter.appendChild(opt); });
+  const categories=[...new Set(products.map(p=>p.category))];
+  const filter=document.getElementById('categoryFilter'); filter.innerHTML='<option value="All">All</option>';
+  categories.forEach(c=>{ const opt=document.createElement('option'); opt.value=c; opt.textContent=c; filter.appendChild(opt); });
 }
 
-function filterCategory(){
-let filtered=products.filter(p=>p.approved);
-const cat=document.getElementById('categoryFilter').value;
-const term=document.getElementById('searchInput').value.toLowerCase();
-if(cat!=='All'){ filtered=filtered.filter(p=>p.category===cat); }
-if(term){ filtered=filtered.filter(p=>p.name.toLowerCase().includes(term)); }
-renderProducts(categoryList,filtered);
-}
-
-// ====== Cart ======
-function addToCart(productId){
-if(!loggedCustomer){ alert("Login first!"); showPage('loginForm'); toggleAuthForm('login'); return; }
-const product=products.find(p=>p.id===productId); if(!product||product.stock<1){ alert("Out of stock"); return; }
-const item=cart.find(c=>c.id===productId);
-if(item){ if(item.quantity>=product.stock){ alert(`Max stock ${product.stock}`); return; } item.quantity++; }
-else{ cart.push({...product,quantity:1}); }
-localStorage.setItem("cart",JSON.stringify(cart)); renderCart(); alert(`${product.name} added!`);
-}
-
+// ===== CART =====
 function renderCart(){
-cartList.innerHTML=''; if(cart.length===0){ cartList.innerHTML="<p>Cart is empty</p>"; updateCartBadge(); return; }
-cart.forEach((p,i)=>{
-const div=document.createElement('div'); div.className='product';
-div.innerHTML=`<p>${p.name} x ${p.quantity} - $${(p.price*p.quantity).toFixed(2)}</p>
-<input type="number" value="${p.quantity}" min="1" onchange="updateQuantity(${i},this.value)">
-<button onclick="removeFromCart(${i})">Remove</button>`;
-cartList.appendChild(div);
-}); updateCartTotal(); updateCartBadge();
+  cartList.innerHTML=''; if(cart.length===0){ cartList.innerHTML="<p>Cart empty</p>"; return; }
+  cart.forEach((p,i)=>{
+    const div=document.createElement('div'); div.className='product';
+    const qty=p.quantity||1;
+    div.innerHTML=`<p>${p.name} - $<span class="price">${(p.price*qty).toFixed(2)}</span></p>
+                   <input type="number" value="${qty}" min="1" onchange="updateQuantity(${i},this.value)">
+                   <button onclick="removeFromCart(${i})">Remove</button>`;
+    cartList.appendChild(div);
+  });
+  updateCartTotal(); updateCartBadge();
 }
 
-function updateQuantity(i,val){
-const quantity=Number(val); if(quantity<1||isNaN(quantity)) return;
-const productInStock=products.find(p=>p.id===cart[i].id);
-if(productInStock && quantity>productInStock.stock){ alert(`Max stock ${productInStock.stock}`); cart[i].quantity=productInStock.stock; }
-else{ cart[i].quantity=quantity; }
-localStorage.setItem("cart",JSON.stringify(cart)); renderCart(); updateCartTotal();
+function addToCart(i){
+  if(!loggedCustomer){ alert("Login first!"); showPage('loginForm'); toggleAuthForm('login'); return; }
+  if(i===-1||!products[i]||products[i].stock<1){ alert("Out of stock"); return; }
+  const exist=cart.find(item=>item.id===products[i].id);
+  if(exist){ if((exist.quantity||1)>=products[i].stock){ alert(`Max stock reached`); return; } exist.quantity=(exist.quantity||1)+1; }
+  else{ cart.push({...products[i],quantity:1}); }
+  localStorage.setItem("cart",JSON.stringify(cart)); renderCart(); alert(`${products[i].name} added to cart!`);
 }
 
 function removeFromCart(i){ cart.splice(i,1); localStorage.setItem("cart",JSON.stringify(cart)); renderCart(); }
 
-function updateCartTotal(){ let total=0; cart.forEach(p=>{ total+=p.price*(p.quantity||1); }); document.getElementById('cartSummary').innerText=`Total: $${total.toFixed(2)}`; }
+function updateQuantity(i,val){ 
+  const quantity=Number(val); if(quantity<1 || isNaN(quantity)) return;
+  const productInCart=cart[i];
+  const stockProduct=products.find(p=>p.id===productInCart.id);
+  if(stockProduct && quantity>stockProduct.stock){ alert(`Max stock: ${stockProduct.stock}`); cart[i].quantity=stockProduct.stock; }
+  else{ cart[i].quantity=quantity; }
+  localStorage.setItem("cart",JSON.stringify(cart)); updateCartTotal();
+}
 
-function updateCartBadge(){ cartLink.innerText=`Cart (${cart.length})`; }
+function updateCartTotal(){ 
+  let total=0; cart.forEach(p=>{ total+=p.price*(p.quantity||1); });
+  document.getElementById('cartSummary').innerText=`Total: $${total.toFixed(2)}`;
+}
+
+function updateCartBadge(){ cartLink.setAttribute('data-count',cart.length); }
 
 function checkout(){
-if(cart.length===0){ alert("Cart empty!"); return; }
-let total=cart.reduce((sum,p)=>sum+p.price*(p.quantity||1),0);
-// Update stock & vendor promo count
-cart.forEach(item=>{
-const prodIndex=products.findIndex(p=>p.id===item.id); if(prodIndex!==-1){ products[prodIndex].stock-=item.quantity; }
-const vendor=vendors.find(v=>v.id===item.vendorId); if(vendor){ vendor.customers=vendor.customers?vendor.customers+1:1; }
-});
-localStorage.setItem("products",JSON.stringify(products));
-localStorage.setItem("vendors",JSON.stringify(vendors));
-orders.push({id:orders.length+1,customerName:loggedCustomer.username,products:cart,total:total.toFixed(2),status:'Pending'});
-localStorage.setItem("orders",JSON.stringify(orders));
-cart=[]; localStorage.setItem("cart",JSON.stringify(cart));
-alert(`Order placed! Total: $${total.toFixed(2)}`);
-showPage('home'); renderAllContent();
-}
-</script>
-</body>
-</html>
+  if(cart.length===0){ alert("Cart empty"); return; }
+  if(!loggedCustomer){ alert("Login to checkout"); return; }
+  let total=cart.reduce((sum,p)=>sum+p.price*(p.quantity||1),0);
+  // Promocode handling
+  const promoCode=document.getElementById('promoCodeInput').value.trim();
+  if(promoCode){
+    const vendor=vendors.find(v=>v.promocode===promoCode);
+    if(vendor){
+      promocodeUsage[vendor.id]=(promocodeUsage[vendor.id]||0)+1;
+      localStorage.setItem("promocodeUsage",JSON.stringify(promocodeUsage));
+    }
