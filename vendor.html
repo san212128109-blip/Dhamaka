@@ -22,6 +22,8 @@ th,td{padding:0.5em;text-align:center;}
 .page{display:none;}
 img.product-img{width:50px;height:50px;border-radius:5px; object-fit: cover;}
 #addProductContainer{max-width:600px;margin:1em auto;padding:1em;border:1px solid #28a745;border-radius:8px;background:#e2f0e6;}
+.status-pending{color: orange; font-weight: bold;}
+.status-approved{color: green; font-weight: bold;}
 </style>
 </head>
 <body>
@@ -35,7 +37,7 @@ img.product-img{width:50px;height:50px;border-radius:5px; object-fit: cover;}
 
 <div id="loginPage" class="page">
 <h2>Vendor Login</h2>
-<input type="text" id="vendorId" placeholder="Vendor ID">
+<input type="text" id="vendorId" placeholder="Vendor ID (e.g., vendor1)">
 <input type="password" id="vendorPass" placeholder="Password">
 <button class="add action-btn" onclick="vendorLogin()">Login</button>
 <p id="msg" style="color:red;"></p>
@@ -53,31 +55,35 @@ img.product-img{width:50px;height:50px;border-radius:5px; object-fit: cover;}
 </div>
 
 <div id="dashboardPage" class="page">
-<h2>Welcome, <span id="vendorName"></span></h2>
+<h2>Welcome, <span id="vendorName"></span> (Code: <span id="vendorPromoCode"></span>)</h2>
 <button onclick="logout()">Logout</button>
-<a href="index.html" target="_blank" style="margin-left: 15px; color: #28a745; font-weight: bold;">View Shop</a>
+<a href="index.html" target="_blank" style="margin-left: 15px; color: #28a745; font-weight: bold;">View Shop (Customer Panel)</a>
 
 <div id="addProductContainer">
-    <h3 id="formTitle">Add Product</h3>
-    <input type="hidden" id="editProductId">
-    <input type="text" id="prodName" placeholder="Product Name">
-    <input type="text" id="prodCategory" placeholder="Category">
-    <input type="number" id="prodPrice" placeholder="Price">
-    <input type="number" id="prodStock" placeholder="Stock Quantity">
-    <input type="url" id="prodImageURL" placeholder="Product Image URL">
-    
-    <div id="actionButtons">
-        <button class="add action-btn" id="addProductBtn" onclick="addProduct()">Add Product</button>
-        <button class="update action-btn" id="updateProductBtn" style="display:none;" onclick="updateProduct()">Update Product</button>
-        <button class="cancel action-btn" id="cancelEditBtn" style="display:none;" onclick="resetForm()">Cancel</button>
-    </div>
+    <h3 id="formTitle">Add Product</h3>
+    <input type="hidden" id="editProductId">
+    <input type="text" id="prodName" placeholder="Product Name">
+    <input type="text" id="prodCategory" placeholder="Category">
+    <input type="number" id="prodPrice" placeholder="Price" min="0" step="0.01">
+    <input type="number" id="prodStock" placeholder="Stock Quantity" min="0">
+    <input type="url" id="prodImageURL" placeholder="Product Image URL (Optional)">
+    
+    <select id="prodPromoCode" title="Assign Promo Code (Optional)">
+        <option value="">No Special Promo</option>
+        </select>
+
+    <div id="actionButtons">
+        <button class="add action-btn" id="addProductBtn" onclick="addProduct()">Add Product</button>
+        <button class="update action-btn" id="updateProductBtn" style="display:none;" onclick="updateProduct()">Update Product</button>
+        <button class="cancel action-btn" id="cancelEditBtn" style="display:none;" onclick="resetForm()">Cancel</button>
+    </div>
 </div>
 
 <h3>My Products</h3>
 <table id="productTable">
 <thead>
 <tr>
-<th>Name</th><th>Category</th><th>Price</th><th>Stock</th><th>Image</th><th>Status</th><th>Actions</th>
+<th>Name</th><th>Category</th><th>Price</th><th>Stock</th><th>Image</th><th>Status</th><th>Promo Code</th><th>Actions</th>
 </tr>
 </thead>
 <tbody></tbody>
@@ -87,9 +93,30 @@ img.product-img{width:50px;height:50px;border-radius:5px; object-fit: cover;}
 </div>
 
 <script>
+// ====== INITIALIZE LOCALSTORAGE DATA MODELS (For testing environment) ======
+function initializeLocalStorage() {
+    if (!localStorage.getItem('vendors')) {
+        localStorage.setItem('vendors', JSON.stringify([]));
+    }
+    if (!localStorage.getItem('products')) {
+        localStorage.setItem('products', JSON.stringify([]));
+    }
+    // Master Promo Code List (Admin managed)
+    if (!localStorage.getItem('masterPromocodes')) {
+        localStorage.setItem('masterPromocodes', JSON.stringify([
+            { code: 'FLASH10', discount: 10, type: 'percent', scope: 'global', minOrder: 100, expiry: '2026-01-01' },
+            { code: 'SAVE25', discount: 25, type: 'percent', scope: 'global', minOrder: 200, expiry: '2026-01-01' }
+        ]));
+    }
+}
+initializeLocalStorage();
+
+
 // ===== GLOBAL STATE =====
 let vendors = JSON.parse(localStorage.getItem("vendors")||'[]');
 let products = JSON.parse(localStorage.getItem("products")||'[]');
+let masterPromocodes = JSON.parse(localStorage.getItem("masterPromocodes")||'[]');
+
 let editingIndex = null;
 let currentVendor = JSON.parse(localStorage.getItem('currentVendor')||'null');
 
@@ -97,128 +124,245 @@ let currentVendor = JSON.parse(localStorage.getItem('currentVendor')||'null');
 if(currentVendor){ showPage('dashboard'); } else { showPage('login'); }
 
 function showPage(page){
-  document.querySelectorAll('.page').forEach(p=>p.style.display='none');
-  if(page==='dashboard'){
-    document.getElementById('vendorName').innerText=currentVendor.name;
-    renderProducts();
-  }
-  document.getElementById(page+'Page').style.display='block';
+    document.querySelectorAll('.page').forEach(p=>p.style.display='none');
+    if(page==='dashboard'){
+        if (currentVendor) {
+            document.getElementById('vendorName').innerText = currentVendor.name;
+            document.getElementById('vendorPromoCode').innerText = currentVendor.promocode;
+            populatePromoDropdown(); // প্রোমো কোড ড্রপডাউন লোড করা
+            renderProducts();
+        }
+    }
+    document.getElementById(page+'Page').style.display='block';
 }
 
 function showRegister(){ showPage('register'); }
 function showLogin(){ showPage('login'); }
 
-// ====== AUTH =====
+// ====== AUTH (VENDOR) =====
 function vendorRegister(){
-  let name=document.getElementById('regName').value.trim();
-  let whatsapp=document.getElementById('regWhatsapp').value.trim();
-  let pass=document.getElementById('regPass').value.trim();
-  if(!name || !whatsapp || !pass){ document.getElementById('regMsg').innerText='Fill all fields'; return; }
-  let id = 'vendor'+(vendors.length+1);
-  vendors.push({id,name,whatsapp,password:pass,status:'Pending',promocode:'PROMO'+(vendors.length+1)});
-  localStorage.setItem('vendors',JSON.stringify(vendors));
-  document.getElementById('regMsg').innerText='Registered! Wait for admin approval.';
+    let name=document.getElementById('regName').value.trim();
+    let whatsapp=document.getElementById('regWhatsapp').value.trim();
+    let pass=document.getElementById('regPass').value.trim();
+    if(!name || !whatsapp || !pass){ document.getElementById('regMsg').innerText='Fill all fields'; return; }
+    
+    // Check if WhatsApp is already registered
+    if (vendors.some(v => v.whatsapp === whatsapp)) {
+        document.getElementById('regMsg').innerText='This WhatsApp number is already registered.'; return;
+    }
+
+    let id = 'vendor'+(vendors.length+1);
+    // Assign a default unique vendor-specific promocode
+    let uniquePromoCode = 'VEND'+(vendors.length+1).toString().padStart(3, '0');
+
+    vendors.push({id,name,whatsapp,password:pass,status:'Pending', promocode: uniquePromoCode});
+    localStorage.setItem('vendors',JSON.stringify(vendors));
+
+    // Also add the vendor-specific promo code to master list
+    masterPromocodes.push({ code: uniquePromoCode, discount: 15, type: 'percent', scope: 'vendor', vendorId: id, minOrder: 50, expiry: '2026-12-31'});
+    localStorage.setItem('masterPromocodes',JSON.stringify(masterPromocodes));
+
+    document.getElementById('regMsg').innerText=`Registered! Your Vendor ID is ${id}. Status: Pending admin approval.`;
+    resetForm();
 }
 
 function vendorLogin(){
-  let id=document.getElementById('vendorId').value.trim();
-  let pass=document.getElementById('vendorPass').value.trim();
-  let v = vendors.find(v=>v.id===id && v.password===pass);
-  if(!v){ document.getElementById('msg').innerText='Invalid ID or password'; return; }
-  if(v.status!=='Approved'){ document.getElementById('msg').innerText='Not approved by admin yet'; return; }
-  currentVendor=v;
-  localStorage.setItem('currentVendor',JSON.stringify(v));
-  showPage('dashboard');
+    let id=document.getElementById('vendorId').value.trim();
+    let pass=document.getElementById('vendorPass').value.trim();
+    let v = vendors.find(v=>v.id===id && v.password===pass);
+    
+    document.getElementById('msg').innerText='';
+    if(!v){ document.getElementById('msg').innerText='Invalid Vendor ID or password'; return; }
+    
+    // Vendor Status Check
+    if(v.status!=='Approved'){ 
+        document.getElementById('msg').innerText=`Not approved by admin yet. Current Status: ${v.status}`; 
+        return; 
+    }
+    
+    currentVendor=v;
+    localStorage.setItem('currentVendor',JSON.stringify(v));
+    showPage('dashboard');
 }
 
-function logout(){ localStorage.removeItem('currentVendor'); currentVendor=null; showPage('login'); }
+function logout(){ 
+    localStorage.removeItem('currentVendor'); 
+    currentVendor=null; 
+    showPage('login'); 
+}
 
-// ====== PRODUCTS =====
+// ====== PROMO CODE UTILITY =====
+function populatePromoDropdown() {
+    const select = document.getElementById('prodPromoCode');
+    select.innerHTML = '<option value="">No Special Promo</option>';
+
+    // Show only global codes and the vendor's own unique code
+    const availablePromos = masterPromocodes.filter(p => p.scope === 'global' || (p.scope === 'vendor' && p.vendorId === currentVendor.id));
+
+    availablePromos.forEach(promo => {
+        const option = document.createElement('option');
+        option.value = promo.code;
+        option.innerText = `${promo.code} (${promo.discount}${promo.type === 'percent' ? '%' : '$'})`;
+        select.appendChild(option);
+    });
+}
+
+
+// ====== PRODUCTS (CRUD) =====
 function generateProductId(){
-  return products.length>0 ? Math.max(...products.map(p=>p.id))+1 : 1;
+    return products.length>0 ? Math.max(...products.map(p=>p.id))+1 : 1;
 }
 
 function resetForm(){
-  document.getElementById('prodName').value='';
-  document.getElementById('prodCategory').value='';
-  document.getElementById('prodPrice').value='';
-  document.getElementById('prodStock').value='';
-  document.getElementById('prodImageURL').value='';
-  editingIndex=null;
-  document.getElementById('formTitle').innerText='Add Product';
-  document.getElementById('addProductBtn').style.display='block';
-  document.getElementById('updateProductBtn').style.display='none';
-  document.getElementById('cancelEditBtn').style.display='none';
+    document.getElementById('prodName').value='';
+    document.getElementById('prodCategory').value='';
+    document.getElementById('prodPrice').value='';
+    document.getElementById('prodStock').value='';
+    document.getElementById('prodImageURL').value='';
+    document.getElementById('prodPromoCode').value=''; // Resetting promo code dropdown
+    
+    editingIndex=null;
+    document.getElementById('formTitle').innerText='Add Product';
+    document.getElementById('addProductBtn').style.display='block';
+    document.getElementById('updateProductBtn').style.display='none';
+    document.getElementById('cancelEditBtn').style.display='none';
 }
 
 function renderProducts(){
-  const tbody=document.querySelector('#productTable tbody');
-  tbody.innerHTML='';
-  const vendorProducts = products.filter(p=>p.vendorId===currentVendor.id);
-  if(vendorProducts.length===0){ tbody.innerHTML='<tr><td colspan="7">No products added</td></tr>'; return; }
-  vendorProducts.forEach((p)=>{
-    const idx=products.findIndex(pr=>pr.id===p.id);
-    let tr=document.createElement('tr');
-    tr.innerHTML=`<td>${p.name}</td>
-                  <td>${p.category}</td>
-                  <td>$${p.price.toFixed(2)}</td>
-                  <td>${p.stock}</td>
-                  <td><img class='product-img' src='${p.imageURL}'></td>
-                  <td>${p.status}</td>
-                  <td>
-                    <button class="update" onclick="editProduct(${idx})">Edit</button>
-                    <button class="delete" onclick="deleteProduct(${idx})">Delete</button>
-                  </td>`;
-    tbody.appendChild(tr);
-  });
+    const tbody=document.querySelector('#productTable tbody');
+    tbody.innerHTML='';
+    const vendorProducts = products.filter(p=>p.vendorId===currentVendor.id);
+
+    if(vendorProducts.length===0){ tbody.innerHTML='<tr><td colspan="8">No products added</td></tr>'; return; }
+
+    vendorProducts.forEach((p, idx)=>{
+        // Find global index for update/delete/edit
+        const globalIndex = products.findIndex(pr => pr.id === p.id);
+        
+        let statusClass = p.status === 'Approved' ? 'status-approved' : 'status-pending';
+
+        let tr=document.createElement('tr');
+        tr.innerHTML=`<td>${p.name}</td>
+                  <td>${p.category}</td>
+                  <td>$${p.price.toFixed(2)}</td>
+                  <td>${p.stock}</td>
+                  <td><img class='product-img' src='${p.imageURL || 'placeholder.png'}'></td>
+                  <td class="${statusClass}">${p.status}</td>
+                    <td>${p.promoCodeAssigned || 'None'}</td>
+                  <td>
+                    <button class="update" onclick="editProduct(${globalIndex})">Edit</button>
+                    <button class="delete" onclick="deleteProduct(${globalIndex})">Delete</button>
+                  </td>`;
+        tbody.appendChild(tr);
+    });
 }
 
 function addProduct(){
-  let name=document.getElementById('prodName').value.trim();
-  let category=document.getElementById('prodCategory').value.trim();
-  let price=parseFloat(document.getElementById('prodPrice').value);
-  let stock=parseInt(document.getElementById('prodStock').value);
-  let imageURL=document.getElementById('prodImageURL').value.trim();
-  if(!name || !category || isNaN(price) || isNaN(stock) || !imageURL){ alert("Fill all fields correctly"); return; }
-  products.push({id:generateProductId(),name,category,price,stock,imageURL,vendorId:currentVendor.id,status:'Pending'});
-  localStorage.setItem('products',JSON.stringify(products));
-  renderProducts(); resetForm();
+    let name=document.getElementById('prodName').value.trim();
+    let category=document.getElementById('prodCategory').value.trim();
+    let price=parseFloat(document.getElementById('prodPrice').value);
+    let stock=parseInt(document.getElementById('prodStock').value);
+    let imageURL=document.getElementById('prodImageURL').value.trim() || 'https://via.placeholder.com/150'; // Default image
+    let promoCodeAssigned = document.getElementById('prodPromoCode').value;
+
+    if(!name || !category || isNaN(price) || price <= 0 || isNaN(stock) || stock < 0){ 
+        alert("Please fill all fields correctly (Price > 0, Stock >= 0)"); 
+        return; 
+    }
+
+    products.push({
+        id: generateProductId(),
+        name,
+        category,
+        price,
+        stock,
+        imageURL,
+        vendorId: currentVendor.id,
+        status:'Pending', // Initial status is Pending
+        promoCodeAssigned 
+    });
+
+    localStorage.setItem('products',JSON.stringify(products));
+    renderProducts(); 
+    resetForm();
+    alert('Product added successfully. Waiting for admin approval.');
 }
 
 function editProduct(i){
-  editingIndex=i;
-  let p=products[i];
-  document.getElementById('prodName').value=p.name;
-  document.getElementById('prodCategory').value=p.category;
-  document.getElementById('prodPrice').value=p.price;
-  document.getElementById('prodStock').value=p.stock;
-  document.getElementById('prodImageURL').value=p.imageURL;
-  document.getElementById('formTitle').innerText=`Edit Product: ${p.name}`;
-  document.getElementById('addProductBtn').style.display='none';
-  document.getElementById('updateProductBtn').style.display='block';
-  document.getElementById('cancelEditBtn').style.display='inline-block';
+    editingIndex=i;
+    let p=products[i];
+    
+    // Check if the product belongs to the current vendor
+    if(p.vendorId!==currentVendor.id){ alert("Error: Product does not belong to you."); return; }
+    
+    document.getElementById('prodName').value=p.name;
+    document.getElementById('prodCategory').value=p.category;
+    document.getElementById('prodPrice').value=p.price;
+    document.getElementById('prodStock').value=p.stock;
+    document.getElementById('prodImageURL').value=p.imageURL;
+    document.getElementById('prodPromoCode').value=p.promoCodeAssigned || ''; 
+
+    document.getElementById('formTitle').innerText=`Edit Product: ${p.name}`;
+    document.getElementById('addProductBtn').style.display='none';
+    document.getElementById('updateProductBtn').style.display='block';
+    document.getElementById('cancelEditBtn').style.display='inline-block';
 }
 
 function updateProduct(){
-  if(editingIndex===null){ alert("No product selected"); return; }
-  let name=document.getElementById('prodName').value.trim();
-  let category=document.getElementById('prodCategory').value.trim();
-  let price=parseFloat(document.getElementById('prodPrice').value);
-  let stock=parseInt(document.getElementById('prodStock').value);
-  let imageURL=document.getElementById('prodImageURL').value.trim();
-  if(!name || !category || isNaN(price) || isNaN(stock) || !imageURL){ alert("Fill all fields"); return; }
-  let p=products[editingIndex];
-  if(p.vendorId!==currentVendor.id){ alert("Not your product"); return; }
-  p.name=name; p.category=category; p.price=price; p.stock=stock; p.imageURL=imageURL; p.status='Pending';
-  localStorage.setItem('products',JSON.stringify(products));
-  renderProducts(); resetForm();
+    if(editingIndex===null){ alert("No product selected"); return; }
+    
+    let name=document.getElementById('prodName').value.trim();
+    let category=document.getElementById('prodCategory').value.trim();
+    let price=parseFloat(document.getElementById('prodPrice').value);
+    let stock=parseInt(document.getElementById('prodStock').value);
+    let imageURL=document.getElementById('prodImageURL').value.trim() || 'https://via.placeholder.com/150';
+    let promoCodeAssigned = document.getElementById('prodPromoCode').value;
+
+    if(!name || !category || isNaN(price) || price <= 0 || isNaN(stock) || stock < 0){ 
+        alert("Please fill all fields correctly (Price > 0, Stock >= 0)"); 
+        return; 
+    }
+    
+    let p=products[editingIndex];
+    if(p.vendorId!==currentVendor.id){ alert("Security Error: Not your product"); return; }
+    
+    // Update data and reset status to 'Pending' for re-approval
+    p.name=name; 
+    p.category=category; 
+    p.price=price; 
+    p.stock=stock; 
+    p.imageURL=imageURL; 
+    p.promoCodeAssigned = promoCodeAssigned;
+    p.status='Pending'; // Reset status to Pending after modification
+    
+    localStorage.setItem('products',JSON.stringify(products));
+    renderProducts(); 
+    resetForm();
+    alert(`Product updated. Status reset to Pending for admin review.`);
 }
 
 function deleteProduct(i){
-  if(products[i].vendorId!==currentVendor.id){ alert("Not your product"); return; }
-  if(confirm(`Delete ${products[i].name}?`)){ products.splice(i,1); localStorage.setItem('products',JSON.stringify(products)); renderProducts(); resetForm(); }
+    if(products[i].vendorId!==currentVendor.id){ alert("Error: Not your product"); return; }
+    if(confirm(`Are you sure you want to delete ${products[i].name}?`)){ 
+        products.splice(i,1); 
+        localStorage.setItem('products',JSON.stringify(products)); 
+        renderProducts(); 
+        resetForm(); 
+    }
 }
 
+// Initial Call
+// Show the correct page on load
+document.addEventListener('DOMContentLoaded', () => {
+    if(currentVendor){
+        // Ensure Vendor list and Product list are refreshed before showing dashboard
+        vendors = JSON.parse(localStorage.getItem("vendors")||'[]');
+        products = JSON.parse(localStorage.getItem("products")||'[]');
+        showPage('dashboard');
+    } else {
+        showPage('login');
+    }
+});
 </script>
 </body>
 </html>
