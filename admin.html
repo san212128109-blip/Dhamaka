@@ -3,145 +3,325 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dhamaka Admin Panel</title>
+<title>Dhamaka Admin Dashboard</title>
 <style>
-body{font-family:Arial,sans-serif;background:#f0f2f5;color:#333;margin:0;padding:0;}
-header{background:#28a745;color:white;padding:1em;display:flex;justify-content:space-between;align-items:center;}
-header h1{margin:0;}
-nav a{margin-left:1em;color:white;text-decoration:none;font-weight:bold;}
-.container{padding:1em;}
-table{width:100%;border-collapse:collapse;margin-top:1em;}
-th,td{border:1px solid #ccc;padding:0.5em;text-align:center;}
-button{padding:0.5em 1em;margin:0.3em;border:none;border-radius:5px;cursor:pointer;}
-button.edit{background:#007bff;color:white;}
-button.delete{background:#dc3545;color:white;}
-button.approve{background:#28a745;color:white;}
-button.reject{background:#ffc107;color:black;}
-input,select{padding:0.4em;margin:0.3em;border-radius:4px;border:1px solid #ccc;}
-h2{margin-top:1em;text-align:center;}
-section{margin-top:2em;padding:1em;background:white;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.1);}
-.form-group input, .form-group select {width: 200px; display: inline-block;}
-.form-group {margin-bottom: 10px; display: flex; align-items: center; gap: 10px;}
+/* Base Styles */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #1e1e1e; /* Dark background */
+    color: #f0f0f0;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    min-height: 100vh;
+}
+/* Header */
+header {
+    background: #007bff; /* Blue for contrast */
+    color: white;
+    padding: 1em;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+header h1 { margin: 0; font-size: 1.5em; }
+header button {
+    background: #dc3545;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    color: white;
+    font-weight: bold;
+}
+
+/* Sidebar Navigation */
+.sidebar {
+    width: 250px;
+    background: #282828; /* Darker sidebar */
+    padding: 1em 0;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5);
+    flex-shrink: 0;
+}
+.sidebar a {
+    display: block;
+    padding: 12px 20px;
+    color: #f0f0f0;
+    text-decoration: none;
+    border-left: 4px solid transparent;
+    transition: all 0.3s;
+}
+.sidebar a:hover, .sidebar a.active {
+    background: #3a3a3a;
+    border-left: 4px solid #28a745;
+    color: #28a745;
+}
+.sidebar h3 {
+    color: #999;
+    padding: 0 20px;
+    margin-top: 1.5em;
+    font-size: 0.9em;
+    text-transform: uppercase;
+}
+/* Main Content Area */
+.main-content {
+    flex-grow: 1;
+    padding: 2em;
+    overflow-y: auto;
+}
+.page-section {
+    display: none;
+    animation: fadeIn 0.5s;
+}
+.page-section.active {
+    display: block;
+}
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Dashboard Cards (KPIs) */
+.dashboard-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 2em;
+}
+.card {
+    background: #2f2f2f;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    transition: transform 0.3s;
+}
+.card:hover { transform: translateY(-5px); }
+.card .value { font-size: 2.5em; font-weight: bold; color: #28a745; }
+.card .label { font-size: 1em; color: #aaa; margin-top: 5px; }
+
+/* Table Styles */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1em;
+    background: #2f2f2f;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+th, td {
+    border: 1px solid #3a3a3a;
+    padding: 0.8em;
+    text-align: center;
+    font-size: 0.9em;
+}
+th {
+    background: #3a3a3a;
+    color: #fff;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+input, select {
+    padding: 0.4em;
+    margin: 0.3em;
+    border-radius: 4px;
+    border: 1px solid #555;
+    background: #3a3a3a;
+    color: #f0f0f0;
+}
+
+/* Button Styles */
+button {
+    padding: 8px 12px;
+    margin: 4px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+button.edit { background: #007bff; color: white; }
+button.delete { background: #dc3545; color: white; }
+button.approve { background: #28a745; color: white; }
+button.reject { background: #ffc107; color: black; }
+.form-group {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: 15px;
+    background: #3a3a3a;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+.form-group label { color: #aaa; }
 </style>
 </head>
 <body>
 
 <header>
-<h1>Admin Panel</h1>
-<div>
-  <a href="index.html" target="_blank" style="margin-right: 15px; color: #ffc107;">View Shop</a>
-  <button onclick="logout()">Logout</button>
-</div>
+    <h1>Admin Dashboard</h1>
+    <div>
+        <a href="index.html" target="_blank" style="margin-right: 15px; color: #ffc107; text-decoration: none; font-weight: bold;">View Shop</a>
+        <button onclick="logout()">Logout</button>
+    </div>
 </header>
 
-<div class="container">
-
-<section>
-<h2>Vendor Approvals & Management</h2>
-<table id="vendorTable">
-<thead>
-<tr>
-<th>ID</th><th>Name</th><th>Status</th><th>Promocode</th><th>Actions</th>
-</tr>
-</thead>
-<tbody></tbody>
-</table>
-</section>
-
-<section>
-<h2>Product Approvals & Management</h2>
-<table id="productTable">
-<thead>
-<tr>
-<th>Status</th><th>Name</th><th>Vendor</th><th>Price</th><th>Stock</th><th>Category</th><th>Assigned Promo</th><th>Actions</th>
-</tr>
-</thead>
-<tbody></tbody>
-</table>
-</section>
-
-<section>
-<h2>Promocode Management</h2>
-<div id="promoForm">
-    <h3>Add/Edit Promocode</h3>
-    <input type="hidden" id="editPromoCode">
-    <div class="form-group">
-        <label>Code:</label><input type="text" id="promoCode" placeholder="E.g., SALE20">
-        <label>Discount:</label><input type="number" id="promoDiscount" placeholder="Value (e.g., 20)">
-        <label>Type:</label>
-        <select id="promoType">
-            <option value="percent">Percentage (%)</option>
-            <option value="fixed">Fixed Amount ($)</option>
-        </select>
-        <label>Min. Order:</label><input type="number" id="promoMinOrder" value="0" min="0">
-    </div>
-    <button class="approve" onclick="savePromocode()">Save Promocode</button>
-    <button class="reject" onclick="resetPromoForm()">Cancel</button>
+<div class="sidebar">
+    <a href="#" class="active" onclick="showSection('dashboard', this)">📊 Dashboard</a>
+    
+    <h3>Management</h3>
+    <a href="#" onclick="showSection('vendor-management', this)">👥 Vendors</a>
+    <a href="#" onclick="showSection('product-management', this)">📦 Products</a>
+    <a href="#" onclick="showSection('order-management', this)">🛒 Orders</a>
+    <a href="#" onclick="showSection('promo-management', this)">🏷️ Promocodes</a>
+    <a href="#" onclick="showSection('banner-management', this)">🖼️ Banners</a>
+    <a href="#" onclick="showSection('customer-management', this)">🧑 Customers</a>
 </div>
 
-<table id="promocodeTable">
-<thead>
-<tr>
-<th>Code</th><th>Discount</th><th>Type</th><th>Min. Order</th><th>Scope</th><th>Usage Count</th><th>Actions</th>
-</tr>
-</thead>
-<tbody></tbody>
-</table>
-</section>
+<div class="main-content">
+    
+    <div id="dashboard" class="page-section active">
+        <h2>Dashboard Overview</h2>
+        <div class="dashboard-cards">
+            <div class="card">
+                <div class="value" id="totalVendors">0</div>
+                <div class="label">Total Vendors</div>
+            </div>
+            <div class="card">
+                <div class="value" id="totalProducts">0</div>
+                <div class="label">Total Approved Products</div>
+            </div>
+            <div class="card">
+                <div class="value" id="totalOrders">0</div>
+                <div class="label">Total Orders</div>
+            </div>
+            <div class="card">
+                <div class="value" id="pendingApprovals">0</div>
+                <div class="label">Pending Approvals</div>
+            </div>
+        </div>
+        
+        <h3>Recent Pending Approvals</h3>
+        <table id="pendingTable">
+            <thead>
+                <tr><th>Type</th><th>Name</th><th>Date</th><th>Actions</th></tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+    
+    <div id="vendor-management" class="page-section">
+        <h2>Vendor Approvals & Management</h2>
+        <table id="vendorTable">
+            <thead>
+                <tr>
+                    <th>ID</th><th>Name</th><th>Status</th><th>Promocode</th><th>Actions</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
 
-<section>
-<h2>Banner Management (Carousel)</h2>
-<div id="bannerForm">
-    <h3>Add/Edit Banner</h3>
-    <input type="hidden" id="editBannerId">
-    <div class="form-group">
-        <label>Image URL:</label><input type="url" id="bannerImageURL" placeholder="Image URL">
-        <label>Link URL:</label><input type="url" id="bannerLinkURL" placeholder="Link (e.g., #categories)">
-    </div>
-    <button class="approve" onclick="saveBanner()">Save Banner</button>
-</div>
+    <div id="product-management" class="page-section">
+        <h2>Product Approvals & Management</h2>
+        <table id="productTable">
+            <thead>
+                <tr>
+                    <th>Status</th><th>Name</th><th>Vendor</th><th>Price</th><th>Stock</th><th>Category</th><th>Assigned Promo</th><th>Actions</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
 
-<table id="bannerTable">
-<thead>
-<tr>
-<th>Preview</th><th>Image URL</th><th>Link URL</th><th>Actions</th>
-</tr>
-</thead>
-<tbody></tbody>
-</table>
-</section>
+    <div id="order-management" class="page-section">
+        <h2>Order Management</h2>
+        <table id="orderTable">
+            <thead>
+                <tr>
+                    <th>Order ID</th><th>Customer</th><th>Total</th><th>Promocode</th><th>Status</th><th>Actions</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
 
-<section>
-<h2>Order Management</h2>
-<table id="orderTable">
-<thead>
-<tr>
-<th>Order ID</th><th>Customer</th><th>Total</th><th>Promocode</th><th>Status</th><th>Actions</th>
-</tr>
-</thead>
-<tbody></tbody>
-</table>
-</section>
+    <div id="promo-management" class="page-section">
+        <h2>Promocode Management</h2>
+        <div id="promoForm">
+            <h3>Add/Edit Promocode</h3>
+            <input type="hidden" id="editPromoCode">
+            <div class="form-group">
+                <label>Code:</label><input type="text" id="promoCode" placeholder="E.g., SALE20">
+                <label>Discount:</label><input type="number" id="promoDiscount" placeholder="Value (e.g., 20)">
+                <label>Type:</label>
+                <select id="promoType">
+                    <option value="percent">Percentage (%)</option>
+                    <option value="fixed">Fixed Amount ($)</option>
+                </select>
+                <label>Min. Order:</label><input type="number" id="promoMinOrder" value="0" min="0">
+            </div>
+            <button class="approve" onclick="savePromocode()">Save Promocode</button>
+            <button class="reject" onclick="resetPromoForm()">Cancel</button>
+        </div>
 
-<section>
-<h2>Customers</h2>
-<table id="customerTable">
-<thead>
-<tr>
-<th>Username</th><th>WhatsApp</th><th>Address</th><th>Actions</th>
-</tr>
-</thead>
-<tbody></tbody>
-</table>
-</section>
+        <table id="promocodeTable">
+            <thead>
+                <tr>
+                    <th>Code</th><th>Discount</th><th>Type</th><th>Min. Order</th><th>Scope</th><th>Usage Count</th><th>Actions</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <div id="banner-management" class="page-section">
+        <h2>Banner Management (Carousel)</h2>
+        <div id="bannerForm">
+            <h3>Add/Edit Banner</h3>
+            <input type="hidden" id="editBannerId">
+            <div class="form-group">
+                <label>Image URL:</label><input type="url" id="bannerImageURL" placeholder="Image URL" style="width: 400px;">
+                <label>Link URL:</label><input type="url" id="bannerLinkURL" placeholder="Link (e.g., #categories)" style="width: 400px;">
+            </div>
+            <button class="approve" onclick="saveBanner()">Save Banner</button>
+        </div>
+
+        <table id="bannerTable">
+            <thead>
+                <tr>
+                    <th>Preview</th><th>Image URL</th><th>Link URL</th><th>Actions</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+    
+    <div id="customer-management" class="page-section">
+        <h2>Customers</h2>
+        <table id="customerTable">
+            <thead>
+                <tr>
+                    <th>Username</th><th>WhatsApp</th><th>Address</th><th>Actions</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
 
 </div>
 
 <script>
 // ======= ADMIN CREDENTIALS (for prompt login) =======
-const ADMIN_CRED = {id:"Nafis",password:"nafis128"};
+const ADMIN_CRED = {id:"admin",password:"admin123"};
 
-// ======= DATA LOAD =======
+// ======= DATA LOAD (Ensure all data models are loaded) =======
 let vendors = JSON.parse(localStorage.getItem("vendors")||'[]');
 let customers = JSON.parse(localStorage.getItem("customers")||'[]');
 let products = JSON.parse(localStorage.getItem("products")||'[]');
@@ -162,6 +342,20 @@ if(!loggedAdmin){
   } else { alert("Invalid Admin Credentials! Redirecting to shop."); window.location.href="index.html"; }
 }
 
+// ======= NAVIGATION AND UI CONTROL =======
+function showSection(sectionId, element) {
+    document.querySelectorAll('.page-section').forEach(sec => sec.classList.remove('active'));
+    document.getElementById(sectionId).classList.add('active');
+    
+    document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
+    if (element) {
+        element.classList.add('active');
+    }
+    
+    // Re-render data for the visible section
+    initRender();
+}
+
 // ======= LOGOUT =======
 function logout(){
   localStorage.removeItem("loggedAdmin");
@@ -169,7 +363,76 @@ function logout(){
   window.location.href="index.html";
 }
 
-// ======= UTILITIES =======
+// ======= DASHBOARD RENDER =======
+function renderDashboard() {
+    // 1. Calculate KPIs
+    const approvedProducts = products.filter(p => p.status === 'Approved').length;
+    const pendingProducts = products.filter(p => p.status === 'Pending').length;
+    const pendingVendors = vendors.filter(v => v.status === 'Pending').length;
+    
+    // 2. Update Cards
+    document.getElementById('totalVendors').innerText = vendors.length;
+    document.getElementById('totalProducts').innerText = approvedProducts;
+    document.getElementById('totalOrders').innerText = orders.length;
+    document.getElementById('pendingApprovals').innerText = pendingProducts + pendingVendors;
+
+    // 3. Render Recent Pending Approvals Table
+    const pendingTableBody = document.querySelector("#pendingTable tbody");
+    pendingTableBody.innerHTML = '';
+
+    // Combine and sort pending items (products and vendors)
+    const recentPending = [
+        ...vendors.filter(v => v.status === 'Pending').map(v => ({
+            type: 'Vendor',
+            name: v.name,
+            date: 'N/A', // Assuming registration date is not stored
+            actions: `<button class="approve" onclick="approveVendorById('${v.id}')">Approve</button> <button class="reject" onclick="rejectVendorById('${v.id}')">Reject</button>`,
+            sortId: v.id 
+        })),
+        ...products.filter(p => p.status === 'Pending').map(p => ({
+            type: 'Product',
+            name: p.name,
+            date: 'N/A',
+            actions: `<button class="approve" onclick="approveProductById('${p.id}')">Approve</button> <button class="reject" onclick="rejectProductById('${p.id}')">Reject</button>`,
+            sortId: p.id
+        }))
+    ];
+
+    recentPending.sort((a, b) => a.type.localeCompare(b.type) || a.sortId - b.sortId);
+
+    recentPending.slice(0, 5).forEach(item => { // Show max 5 recent pending items
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${item.type}</td>
+            <td>${item.name}</td>
+            <td>${item.date}</td>
+            <td>${item.actions}</td>
+        `;
+        pendingTableBody.appendChild(tr);
+    });
+
+    // Helper functions for dashboard actions
+    window.approveVendorById = (id) => {
+        const index = vendors.findIndex(v => v.id === id);
+        if (index !== -1) { approveVendor(index); }
+    };
+    window.rejectVendorById = (id) => {
+        const index = vendors.findIndex(v => v.id === id);
+        if (index !== -1) { rejectVendor(index); }
+    };
+    window.approveProductById = (id) => {
+        const index = products.findIndex(p => p.id === id);
+        if (index !== -1) { approveProduct(index); }
+    };
+    window.rejectProductById = (id) => {
+        const index = products.findIndex(p => p.id === id);
+        if (index !== -1) { rejectProduct(index); }
+    };
+}
+
+
+// ======= UTILITIES, CRUD FUNCTIONS (Keep updated) =======
+
 function saveAllData(){
   localStorage.setItem("vendors",JSON.stringify(vendors));
   localStorage.setItem("customers",JSON.stringify(customers));
@@ -183,16 +446,17 @@ function getVendorName(vendorId){
   return vendors.find(v=>v.id===vendorId)?.name || "Unknown Vendor";
 }
 
-// ======= VENDOR TABLE =======
+// VENDOR CRUD 
 function renderVendors(){
   const tbody = document.querySelector("#vendorTable tbody");
   tbody.innerHTML="";
   vendors.forEach((v,i)=>{
     const tr=document.createElement("tr");
+    const statusColor = v.status === 'Approved' ? '#28a745' : (v.status === 'Rejected' ? '#dc3545' : 'orange');
     tr.innerHTML=`
       <td>${v.id}</td>
       <td>${v.name} (${v.whatsapp})</td>
-      <td><span style="font-weight:bold; color:${v.status==='Approved'?'#28a745':'#ffc107'}">${v.status}</span></td>
+      <td><span style="font-weight:bold; color:${statusColor}">${v.status}</span></td>
       <td>${v.promocode}</td>
       <td>
         ${v.status!=='Approved'?`<button class="approve" onclick="approveVendor(${i})">Approve</button>`:""}
@@ -207,25 +471,25 @@ function renderVendors(){
 function approveVendor(i){
   vendors[i].status="Approved";
   saveAllData();
-  renderVendors();
+  initRender(); 
 }
 
 function rejectVendor(i){
   vendors[i].status="Rejected";
   saveAllData();
-  renderVendors();
+  initRender(); 
 }
 
 function deleteVendor(i){
   if(confirm(`Delete vendor ${vendors[i].name}? This will NOT delete their products.`)){
     vendors.splice(i,1);
     saveAllData();
-    renderVendors();
+    initRender();
   }
 }
 
 
-// ======= PRODUCT TABLE =======
+// PRODUCT CRUD 
 function renderProductsTable(){
   const tbody = document.querySelector("#productTable tbody");
   tbody.innerHTML="";
@@ -255,25 +519,24 @@ function renderProductsTable(){
 function approveProduct(i){
   products[i].status="Approved";
   saveAllData();
-  renderProductsTable();
+  initRender();
 }
 
 function rejectProduct(i){
   products[i].status="Rejected";
   saveAllData();
-  renderProductsTable();
+  initRender();
 }
 
 function deleteProduct(i){
   if(confirm(`Delete product ${products[i].name}?`)){
     products.splice(i,1);
     saveAllData();
-    renderProductsTable();
+    initRender();
   }
 }
 
-// ======= PROMOCODE MANAGEMENT =======
-
+// PROMOCODE CRUD 
 function resetPromoForm() {
   document.getElementById('editPromoCode').value = '';
   document.getElementById('promoCode').value = '';
@@ -299,18 +562,16 @@ function savePromocode(){
     discount,
     type,
     minOrder,
-    scope: 'global', // Admin created promos are global
-    expiry: '2026-12-31' // Default expiry
+    scope: 'global',
+    expiry: '2026-12-31'
   };
 
   if (editCode) {
-    // Update existing
     const index = masterPromocodes.findIndex(p => p.code === editCode);
     if (index !== -1) {
       masterPromocodes[index] = { ...masterPromocodes[index], ...newPromo };
     }
   } else {
-    // Add new
     if (masterPromocodes.some(p => p.code === code)) {
       alert("Promocode already exists.");
       return;
@@ -319,7 +580,7 @@ function savePromocode(){
   }
 
   saveAllData();
-  renderPromocodes();
+  initRender();
   resetPromoForm();
 }
 
@@ -340,7 +601,7 @@ function deletePromocode(code){
   if(confirm(`Delete promocode ${code}?`)){
     masterPromocodes = masterPromocodes.filter(p => p.code !== code);
     saveAllData();
-    renderPromocodes();
+    initRender();
   }
 }
 
@@ -367,8 +628,7 @@ function renderPromocodes(){
   });
 }
 
-// ======= BANNER MANAGEMENT =======
-
+// BANNER CRUD 
 function saveBanner(){
   const imageURL = document.getElementById('bannerImageURL').value.trim();
   const linkURL = document.getElementById('bannerLinkURL').value.trim();
@@ -380,20 +640,18 @@ function saveBanner(){
   }
 
   if (editId) {
-    // Update existing
     const index = banners.findIndex(b => b.id === editId);
     if (index !== -1) {
       banners[index].imageURL = imageURL;
       banners[index].link = linkURL || '#';
     }
   } else {
-    // Add new
     const newId = banners.length > 0 ? Math.max(...banners.map(b => b.id)) + 1 : 1;
     banners.push({ id: newId, imageURL, link: linkURL || '#' });
   }
 
   saveAllData();
-  renderBanners();
+  initRender();
   document.getElementById('editBannerId').value = '';
   document.getElementById('bannerImageURL').value = '';
   document.getElementById('bannerLinkURL').value = '';
@@ -412,7 +670,7 @@ function deleteBanner(id){
   if(confirm(`Delete banner ${id}?`)){
     banners = banners.filter(b => b.id !== id);
     saveAllData();
-    renderBanners();
+    initRender();
   }
 }
 
@@ -424,7 +682,7 @@ function renderBanners(){
     tr.innerHTML=`
       <td><img src="${b.imageURL}" style="width:100px; height:50px; object-fit:cover;"></td>
       <td>${b.imageURL}</td>
-      <td><a href="${b.link}" target="_blank">${b.link}</a></td>
+      <td><a href="${b.link}" target="_blank" style="color:#007bff;">${b.link}</a></td>
       <td>
         <button class="edit" onclick="editBanner(${b.id})">Edit</button>
         <button class="delete" onclick="deleteBanner(${b.id})">Delete</button>
@@ -435,7 +693,7 @@ function renderBanners(){
 }
 
 
-// ======= ORDER TABLE =======
+// ORDER CRUD 
 function renderOrders(){
   const tbody = document.querySelector("#orderTable tbody");
   tbody.innerHTML="";
@@ -464,11 +722,11 @@ function renderOrders(){
 function updateOrderStatus(i,status){
   orders[i].status=status;
   saveAllData();
-  renderOrders();
+  initRender();
 }
 
 
-// ======= CUSTOMER TABLE =======
+// CUSTOMER CRUD 
 function renderCustomers(){
   const tbody = document.querySelector("#customerTable tbody");
   tbody.innerHTML="";
@@ -488,13 +746,24 @@ function deleteCustomer(i){
   if(confirm(`Delete customer ${customers[i].username}?`)){
     customers.splice(i,1);
     saveAllData();
-    renderCustomers();
+    initRender();
   }
 }
 
 
 // ======= INITIAL RENDER ALL SECTIONS =======
 function initRender() {
+    // Reload data models before rendering
+    vendors = JSON.parse(localStorage.getItem("vendors")||'[]');
+    products = JSON.parse(localStorage.getItem("products")||'[]');
+    orders = JSON.parse(localStorage.getItem("orders")||'[]');
+    masterPromocodes = JSON.parse(localStorage.getItem("masterPromocodes")||'[]');
+    banners = JSON.parse(localStorage.getItem("banners")||'[]');
+    promocodeUsage = JSON.parse(localStorage.getItem("promocodeUsage")||'{}');
+    customers = JSON.parse(localStorage.getItem("customers")||'[]');
+
+
+  renderDashboard(); // Always render dashboard first
   renderVendors();
   renderCustomers();
   renderProductsTable();
