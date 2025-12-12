@@ -1,481 +1,162 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Admin Panel - Dhamaka</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dhamaka Admin Panel - Future Ready</title>
 <style>
-  *{box-sizing:border-box}
-  body{font-family:Arial,Helvetica,sans-serif;margin:0;background:#f4f6f8;color:#111}
-  header{background:#28a745;color:#fff;padding:1rem;display:flex;align-items:center;justify-content:space-between}
-  header h1{margin:0;font-size:1.2rem}
-  header .right{display:flex;gap:.5rem;align-items:center}
-  button{cursor:pointer;border:0;padding:.5rem .75rem;border-radius:6px;background:#28a745;color:#fff}
-  button.secondary{background:#6c757d}
-  .container{padding:1rem;max-width:1200px;margin:0 auto}
-  /* half layout (Daraz style) */
-  .admin-half-layout{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-  .panel{background:#fff;padding:16px;border-radius:10px;box-shadow:0 6px 18px rgba(0,0,0,.06)}
-  h2{margin-top:0}
-  .small{font-size:.9rem;color:#555}
-  table{width:100%;border-collapse:collapse}
-  th,td{padding:.5rem;border:1px solid #eee;text-align:left}
-  .actions button{margin-right:6px}
-  @media(max-width:900px){.admin-half-layout{grid-template-columns:1fr}}
-  input,select{padding:.45rem;border-radius:6px;border:1px solid #ddd;width:100%;margin:.4rem 0}
-  .row{display:flex;gap:8px}
-  .col{flex:1}
-  .badge{display:inline-block;padding:3px 7px;border-radius:12px;background:#ffc107;color:#111;font-weight:600}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:Arial,sans-serif;background:#f8f9fa;color:#333;transition:0.3s;}
+body.dark{background:#121212;color:#ddd;}
+header{background:#28a745;color:white;padding:1em;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10;flex-wrap:wrap;}
+header h1{margin:0;font-size:1.5em;}
+nav a{color:white;margin-left:1em;text-decoration:none;font-weight:bold;transition:0.3s;}
+nav a:hover{text-decoration:underline;color:#ffc107;}
+nav button{margin-left:1em;cursor:pointer;}
+.page{display:none;padding:1em;}
+h2, h3 {text-align: center; margin-bottom: 0.5em;}
+.container{display:flex;flex-wrap:wrap;gap:1em;justify-content:center;}
+.list{border:1px solid #28a745;border-radius:12px;padding:1em;width:300px;text-align:center;background:#fff;box-shadow:2px2px10px rgba(0,0,0,0.1);transition:0.3s;overflow:hidden;}
+.list:hover{transform:scale(1.05);box-shadow:4px4px15px rgba(0,0,0,0.2);}
+.list img{width:100px;height:100px;object-fit:cover;margin-bottom:10px;border-radius:8px;}
+button{background:#28a745;color:white;border:none;padding:0.5em 1em;border-radius:5px;cursor:pointer;margin-top:0.5em;transition:0.3s;}
+button:hover{background:#218838;}
+input,select{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;border:1px solid #ccc;}
+.order-status-pending {color: orange; font-weight: bold;}
+.order-status-shipped {color: blue; font-weight: bold;}
+.order-status-delivered {color: green; font-weight: bold;}
+.edit-input {width: 45%; margin: 0.2em 2%; padding: 0.3em;}
+.half-layout{display:flex;flex-wrap:wrap;gap:1em;}
+.half-layout .list{flex:1 1 45%;}
 </style>
 </head>
 <body>
 <header>
-  <h1>Admin • Dhamaka</h1>
-  <div class="right">
-    <span class="small">Super Admin</span>
-    <button onclick="logout()">Logout</button>
-  </div>
+<h1>Dhamaka Admin Panel</h1>
+<nav>
+<a href="#dashboard" onclick="showPage('dashboard')">Dashboard</a>
+<a href="#products" onclick="showPage('products')">Products</a>
+<a href="#vendors" onclick="showPage('vendors')">Vendors</a>
+<a href="#customers" onclick="showPage('customers')">Customers</a>
+<a href="#orders" onclick="showPage('orders')">Orders</a>
+<button onclick="toggleDarkMode()">🌙</button>
+</nav>
 </header>
 
-<div class="container">
-  <div class="admin-half-layout">
-    <!-- LEFT: Controls / Forms -->
-    <div class="panel" id="leftPanel">
-      <h2>Quick Actions</h2>
+<div id="loginPage" class="page">
+<h2>Admin Login</h2>
+<input type="password" id="adminPassword" placeholder="Enter Password">
+<button onclick="adminLogin()">Login</button>
+<p id="loginMsg" style="color:red"></p>
+</div>
 
-      <div style="margin-bottom:12px">
-        <button onclick="showSection('manageProducts')">Manage Products</button>
-        <button class="secondary" onclick="showSection('manageVendors')">Manage Vendors</button>
-        <button class="secondary" onclick="showSection('manageCustomers')">Manage Customers</button>
-        <button class="secondary" onclick="showSection('manageOrders')">Manage Orders</button>
-      </div>
+<div id="dashboard" class="page">
+<h2>Dashboard</h2>
+<p>Welcome, Admin!</p>
+<div style="max-width:400px;margin:1em auto;">
+<label>Background Color: <input type="color" id="bgColor" onchange="applyTheme()"></label>
+<label>Text Color: <input type="color" id="textColor" onchange="applyTheme()"></label>
+<label>Button Color: <input type="color" id="btnColor" onchange="applyTheme()"></label>
+<label>Button Text Color: <input type="color" id="btnTextColor" onchange="applyTheme()"></label>
+</div>
+</div>
 
-      <!-- Add / Edit Product Form -->
-      <div id="productFormWrap">
-        <h3 id="pfTitle">Add New Product</h3>
-        <input id="pName" placeholder="Product Name">
-        <div class="row">
-          <input id="pCategory" class="col" placeholder="Category">
-          <input id="pBadge" class="col" placeholder="Badge (optional)">
-        </div>
-        <div class="row">
-          <input id="pPrice" class="col" placeholder="Price (e.g. 49.99)">
-          <input id="pStock" class="col" placeholder="Stock (e.g. 10)">
-        </div>
-        <input id="pImage" placeholder="Image URL (or base64)">
-        <div style="margin-top:8px">
-          <button id="addPBtn" onclick="addOrUpdateProduct()">Add Product</button>
-          <button class="secondary" onclick="resetProductForm()">Reset</button>
-        </div>
-        <p class="small">Tip: Products created here will set vendorId as 'admin' unless you choose otherwise below.</p>
+<div id="products" class="page">
+<h2>Products</h2>
+<div class="container" id="productList"></div>
+</div>
 
-        <h4 style="margin-top:12px">Optional: Assign Vendor</h4>
-        <select id="assignVendor"><option value="">-- keep as Admin --</option></select>
-      </div>
+<div id="vendors" class="page">
+<h2>Vendors</h2>
+<div class="container" id="vendorList"></div>
+</div>
 
-      <hr style="margin:12px 0">
+<div id="customers" class="page">
+<h2>Customers</h2>
+<div class="container" id="customerList"></div>
+</div>
 
-      <!-- Vendor quick create -->
-      <h3>Create Vendor</h3>
-      <input id="vName" placeholder="Vendor display name">
-      <div class="row">
-        <input id="vId" class="col" placeholder="Vendor ID (unique)">
-        <input id="vPass" class="col" placeholder="Password">
-      </div>
-      <div style="margin-top:8px">
-        <button onclick="createVendor()">Create Vendor</button>
-      </div>
-
-      <hr style="margin:12px 0">
-
-      <h3>Quick Customer create</h3>
-      <div class="row">
-        <input id="cName" class="col" placeholder="Customer name">
-        <input id="cUsername" class="col" placeholder="Username">
-      </div>
-      <input id="cContact" placeholder="WhatsApp/Contact">
-      <div style="margin-top:8px"><button onclick="createCustomer()">Create Customer</button></div>
-
-    </div>
-
-    <!-- RIGHT: Live lists / management -->
-    <div class="panel" id="rightPanel">
-      <h2 id="rpTitle">Manage Products</h2>
-
-      <!-- Tabs / Sections -->
-      <div id="manageProducts" class="manage-section">
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <div><strong>All products</strong> <span id="productCount" class="small"></span></div>
-          <div><input id="searchBox" placeholder="Search..." oninput="renderProducts()"></div>
-        </div>
-        <div id="adminProductList" style="margin-top:12px"></div>
-      </div>
-
-      <div id="manageVendors" class="manage-section" style="display:none">
-        <h3>Vendors</h3>
-        <div id="vendorTableWrap"></div>
-      </div>
-
-      <div id="manageCustomers" class="manage-section" style="display:none">
-        <h3>Customers</h3>
-        <div id="customerTableWrap"></div>
-      </div>
-
-      <div id="manageOrders" class="manage-section" style="display:none">
-        <h3>Orders</h3>
-        <div id="orderTableWrap"></div>
-      </div>
-
-    </div>
-
-  </div>
+<div id="orders" class="page">
+<h2>Orders</h2>
+<div class="container" id="orderList"></div>
 </div>
 
 <script>
-/*
-  Admin full-control script (localStorage-based)
-  - products: localStorage 'products'
-  - vendors: localStorage 'vendors'
-  - customers: localStorage 'customers'
-  - orders: localStorage 'orders'
-*/
+let adminLoggedIn=false;
+let products=JSON.parse(localStorage.getItem('products')||'[]');
+let vendors=JSON.parse(localStorage.getItem('vendors')||'[]');
+let customers=JSON.parse(localStorage.getItem('customers')||'[]');
+let orders=JSON.parse(localStorage.getItem('orders')||'[]');
 
-// load initial stores if empty
-function ensureInitialData(){
-  if(!localStorage.getItem('vendors')){
-    const v = [{id:'vendor1',password:'1234',name:'Vendor One',active:true},
-               {id:'vendor2',password:'1234',name:'Vendor Two',active:true}];
-    localStorage.setItem('vendors', JSON.stringify(v));
-  }
-  if(!localStorage.getItem('customers')){
-    const c = [{username:'alice',name:'Alice',whatsapp:'0123456'},
-               {username:'bob',name:'Bob',whatsapp:'0987654'}];
-    localStorage.setItem('customers', JSON.stringify(c));
-  }
-  if(!localStorage.getItem('products')){
-    const p = [
-      {id:1,name:'Sample Phone',category:'Electronics',price:199.99,stock:10,image:'https://picsum.photos/200',vendorId:'vendor1',vendorName:'Vendor One'},
-      {id:2,name:'T-Shirt',category:'Apparel',price:19.99,stock:50,image:'https://picsum.photos/201',vendorId:'vendor2',vendorName:'Vendor Two'},
-    ];
-    localStorage.setItem('products', JSON.stringify(p));
-  }
-  if(!localStorage.getItem('orders')) localStorage.setItem('orders', JSON.stringify([]));
-}
-ensureInitialData();
-
-// helpers to get arrays
-function getProducts(){return JSON.parse(localStorage.getItem('products')||'[]')}
-function getVendors(){return JSON.parse(localStorage.getItem('vendors')||'[]')}
-function getCustomers(){return JSON.parse(localStorage.getItem('customers')||'[]')}
-function getOrders(){return JSON.parse(localStorage.getItem('orders')||'[]')}
-
-// UI helpers
-function showSection(id){
-  document.querySelectorAll('.manage-section').forEach(el=>el.style.display='none');
-  document.getElementById(id).style.display='block';
-  document.getElementById('rpTitle').innerText = {manageProducts:'Manage Products',manageVendors:'Manage Vendors',manageCustomers:'Manage Customers',manageOrders:'Manage Orders'}[id]||'Manage';
-  renderProducts();
-  renderVendors();
-  renderCustomers();
-  renderOrders();
+function showPage(page){
+  if(!adminLoggedIn && page!=='loginPage'){alert('Login required');return;}
+  document.querySelectorAll('.page').forEach(p=>p.style.display='none');
+  document.getElementById(page).style.display='block';
+  if(page!=='loginPage'){renderAll();}
 }
 
-// product form actions
-let editProductIndex = null;
-function resetProductForm(){
-  document.getElementById('pName').value=''; document.getElementById('pCategory').value='';
-  document.getElementById('pBadge').value=''; document.getElementById('pPrice').value='';
-  document.getElementById('pStock').value=''; document.getElementById('pImage').value='';
-  document.getElementById('assignVendor').innerHTML = '<option value="">-- keep as Admin --</option>';
-  populateVendorAssign();
-  editProductIndex = null;
-  document.getElementById('pfTitle').innerText='Add New Product';
-  document.getElementById('addPBtn').innerText='Add Product';
-}
-function populateVendorAssign(){
-  const vendors = getVendors();
-  const sel = document.getElementById('assignVendor');
-  sel.innerHTML = '<option value="">-- keep as Admin --</option>';
-  vendors.forEach(v=> sel.innerHTML += `<option value="${v.id}">${v.name} (${v.id})</option>`);
-}
-populateVendorAssign();
-
-function addOrUpdateProduct(){
-  let products = getProducts();
-  const name = document.getElementById('pName').value.trim();
-  const cat = document.getElementById('pCategory').value.trim();
-  const badge = document.getElementById('pBadge').value.trim();
-  const price = parseFloat(document.getElementById('pPrice').value);
-  const stock = parseInt(document.getElementById('pStock').value);
-  const img = document.getElementById('pImage').value.trim();
-  const assignVendor = document.getElementById('assignVendor').value;
-  if(!name || !cat || isNaN(price) || isNaN(stock)){ alert('Please fill name/category/price/stock correctly'); return;}
-  if(editProductIndex === null){
-    const newId = products.length? Math.max(...products.map(p=>p.id))+1 : 1;
-    const vendorId = assignVendor || 'admin';
-    const vendorName = vendorId === 'admin' ? 'Admin' : (getVendors().find(v=>v.id===vendorId)?.name || vendorId);
-    products.push({id:newId,name,category:cat,badge,price,stock,image:img||'',vendorId, vendorName});
-    localStorage.setItem('products', JSON.stringify(products));
-    alert('Product added');
-  } else {
-    const p = products[editProductIndex];
-    p.name=name; p.category=cat; p.badge=badge; p.price=price; p.stock=stock; p.image=img||p.image;
-    if(assignVendor) { p.vendorId = assignVendor; p.vendorName = getVendors().find(v=>v.id===assignVendor)?.name || assignVendor; }
-    localStorage.setItem('products', JSON.stringify(products));
-    alert('Product updated');
-    editProductIndex = null;
-  }
-  resetProductForm();
-  renderProducts();
+function adminLogin(){
+  if(document.getElementById('adminPassword').value==='NAFIS128'){
+    adminLoggedIn=true;
+    showPage('dashboard');
+  }else{document.getElementById('loginMsg').innerText='Wrong Password';}
 }
 
-// render all products
+function toggleDarkMode(){document.body.classList.toggle('dark');}
+function applyTheme(){
+  document.body.style.background=document.getElementById('bgColor').value;
+  document.body.style.color=document.getElementById('textColor').value;
+  document.querySelectorAll('button').forEach(b=>{b.style.background=document.getElementById('btnColor').value;b.style.color=document.getElementById('btnTextColor').value;});
+}
+
+function renderAll(){renderProducts();renderVendors();renderCustomers();renderOrders();}
+
 function renderProducts(){
-  const products = getProducts();
-  const search = document.getElementById('searchBox')?.value?.toLowerCase() || '';
-  const listWrap = document.getElementById('adminProductList');
-  const filtered = products.filter(p => !search || p.name.toLowerCase().includes(search) || p.category.toLowerCase().includes(search) || (p.vendorName||'').toLowerCase().includes(search));
-  document.getElementById('productCount').innerText = `(${filtered.length})`;
-  let html = '<table style="width:100%;border-collapse:collapse"><thead><tr><th>Image</th><th>Name</th><th>Category</th><th>Vendor</th><th>Price</th><th>Stock</th><th>Actions</th></tr></thead><tbody>';
-  filtered.forEach((p, idx) => {
-    html += `<tr>
-      <td style="width:80px"><img src="${p.image||'https://via.placeholder.com/80'}" style="width:60px;height:40px;object-fit:cover;border-radius:6px"></td>
-      <td>${p.name}</td>
-      <td>${p.category}${p.badge?` <span class="badge">${p.badge}</span>`:''}</td>
-      <td>${p.vendorName||p.vendorId||'Admin'}</td>
-      <td>$${Number(p.price).toFixed(2)}</td>
-      <td>${p.stock}</td>
-      <td class="actions">
-        <button onclick="adminEditProduct(${p.id})">Edit</button>
-        <button class="secondary" onclick="duplicateProduct(${p.id})">Duplicate</button>
-        <button style="background:#dc3545" onclick="adminDeleteProduct(${p.id})">Delete</button>
-      </td>
-    </tr>`;
+  let list=document.getElementById('productList');list.innerHTML='';
+  if(products.length===0){list.innerHTML='<p>No products</p>';return;}
+  products.forEach(p=>{
+    let div=document.createElement('div');div.className='list';
+    div.innerHTML=`<h3>${p.name}</h3><p>Category: ${p.category}</p><p>Vendor: ${p.vendorId}</p><p>Price: $${p.price}</p><p>Stock: ${p.stock}</p><img src='${p.imageURL}' alt='${p.name}'><button onclick='deleteProduct(${p.id})'>Delete</button>`;
+    list.appendChild(div);
   });
-  html += '</tbody></table>';
-  listWrap.innerHTML = html;
 }
 
-// admin edit by id
-function adminEditProduct(id){
-  const products = getProducts();
-  const idx = products.findIndex(p=>p.id===id);
-  if(idx===-1) return alert('Product not found');
-  editProductIndex = idx;
-  const p = products[idx];
-  document.getElementById('pName').value = p.name;
-  document.getElementById('pCategory').value = p.category;
-  document.getElementById('pBadge').value = p.badge||'';
-  document.getElementById('pPrice').value = p.price;
-  document.getElementById('pStock').value = p.stock;
-  document.getElementById('pImage').value = p.image||'';
-  document.getElementById('pfTitle').innerText = 'Edit Product';
-  document.getElementById('addPBtn').innerText = 'Save Changes';
-  populateVendorAssign();
-}
-
-// duplicate
-function duplicateProduct(id){
-  let products = getProducts();
-  const src = products.find(p=>p.id===id);
-  if(!src) return;
-  const newId = products.length? Math.max(...products.map(p=>p.id))+1 : 1;
-  const copy = {...src, id:newId, name: src.name + ' (Copy)'};
-  products.push(copy);
-  localStorage.setItem('products', JSON.stringify(products));
-  renderProducts();
-  alert('Product duplicated');
-}
-
-// delete by id
-function adminDeleteProduct(id){
-  let products = getProducts();
-  const idx = products.findIndex(p=>p.id===id);
-  if(idx===-1) return;
-  if(!confirm(`Delete product "${products[idx].name}"?`)) return;
-  products.splice(idx,1);
-  localStorage.setItem('products', JSON.stringify(products));
-  renderProducts();
-}
-
-// VENDOR management
 function renderVendors(){
-  const vendors = getVendors();
-  const wrap = document.getElementById('vendorTableWrap');
-  let html = '<table><thead><tr><th>ID</th><th>Name</th><th>Active</th><th>Actions</th></tr></thead><tbody>';
-  vendors.forEach((v,i)=>{
-    html += `<tr>
-      <td>${v.id}</td>
-      <td>${v.name}</td>
-      <td>${v.active? 'Yes':'No'}</td>
-      <td>
-        <button onclick="toggleVendor(${i})">${v.active? 'Deactivate':'Activate'}</button>
-        <button class="secondary" onclick="adminEditVendor(${i})">Edit</button>
-        <button style="background:#dc3545" onclick="deleteVendor(${i})">Delete</button>
-        <button onclick="viewVendorShopFromAdmin('${v.id}')">View Shop</button>
-      </td>
-    </tr>`;
+  let list=document.getElementById('vendorList');list.innerHTML='';
+  if(vendors.length===0){list.innerHTML='<p>No vendors</p>';return;}
+  vendors.forEach(v=>{
+    let div=document.createElement('div');div.className='list';
+    div.innerHTML=`<h3>${v.name}</h3><p>ID: ${v.id}</p><p>Status: ${v.status}</p><button onclick='deleteVendor("${v.id}")'>Delete</button>`;
+    list.appendChild(div);
   });
-  html += '</tbody></table>';
-  wrap.innerHTML = html;
-  // update assign vendor select as well
-  populateVendorAssign();
 }
 
-function createVendor(){
-  const id = document.getElementById('vId').value.trim();
-  const name = document.getElementById('vName').value.trim();
-  const pass = document.getElementById('vPass').value.trim();
-  if(!id||!name||!pass){ alert('Provide id/name/pass'); return; }
-  const vendors = getVendors();
-  if(vendors.some(v=>v.id===id)){ alert('Vendor ID exists'); return; }
-  vendors.push({id,name,password:pass,active:true});
-  localStorage.setItem('vendors', JSON.stringify(vendors));
-  document.getElementById('vId').value=''; document.getElementById('vName').value=''; document.getElementById('vPass').value='';
-  renderVendors();
-}
-
-function toggleVendor(i){
-  const vendors = getVendors();
-  vendors[i].active = !vendors[i].active;
-  localStorage.setItem('vendors', JSON.stringify(vendors));
-  renderVendors();
-}
-function adminEditVendor(i){
-  const vendors = getVendors();
-  const v = vendors[i];
-  const newName = prompt('Vendor name', v.name);
-  if(newName !== null){ v.name = newName; localStorage.setItem('vendors', JSON.stringify(vendors)); renderVendors(); }
-}
-function deleteVendor(i){
-  if(!confirm('Delete vendor?')) return;
-  const vendors = getVendors();
-  vendors.splice(i,1);
-  localStorage.setItem('vendors', JSON.stringify(vendors));
-  renderVendors();
-}
-function viewVendorShopFromAdmin(vendorId){
-  localStorage.setItem('selectedVendor', vendorId);
-  window.open('index.html','_blank');
-}
-
-// CUSTOMER management
 function renderCustomers(){
-  const customers = getCustomers();
-  const wrap = document.getElementById('customerTableWrap');
-  let html = '<table><thead><tr><th>Username</th><th>Name</th><th>Contact</th><th>Actions</th></tr></thead><tbody>';
-  customers.forEach((c,i)=>{
-    html += `<tr>
-      <td>${c.username}</td>
-      <td>${c.name}</td>
-      <td>${c.whatsapp||''}</td>
-      <td>
-        <button onclick="resetCustomerPass(${i})">Reset Pass</button>
-        <button class="secondary" onclick="adminEditCustomer(${i})">Edit</button>
-        <button style="background:#dc3545" onclick="deleteCustomer(${i})">Delete</button>
-      </td>
-    </tr>`;
+  let list=document.getElementById('customerList');list.innerHTML='';
+  if(customers.length===0){list.innerHTML='<p>No customers</p>';return;}
+  customers.forEach(c=>{
+    let div=document.createElement('div');div.className='list';
+    div.innerHTML=`<h3>${c.name}</h3><p>ID: ${c.id}</p><p>Email: ${c.email}</p><button onclick='deleteCustomer("${c.id}")'>Delete</button>`;
+    list.appendChild(div);
   });
-  html += '</tbody></table>';
-  wrap.innerHTML = html;
-}
-function createCustomer(){
-  const username = document.getElementById('cUsername').value.trim();
-  const name = document.getElementById('cName').value.trim();
-  const whatsapp = document.getElementById('cContact').value.trim();
-  if(!username||!name){ alert('username & name required'); return;}
-  let customers = getCustomers();
-  if(customers.some(c=>c.username===username)){ alert('username exists'); return;}
-  customers.push({username,name,whatsapp,password:'1234'});
-  localStorage.setItem('customers', JSON.stringify(customers));
-  renderCustomers();
-}
-function resetCustomerPass(i){
-  let customers = getCustomers();
-  customers[i].password = '12345';
-  localStorage.setItem('customers', JSON.stringify(customers));
-  alert('Customer password reset to 12345');
-}
-function adminEditCustomer(i){
-  let customers = getCustomers();
-  const newName = prompt('Customer name', customers[i].name);
-  if(newName!==null){ customers[i].name = newName; localStorage.setItem('customers', JSON.stringify(customers)); renderCustomers(); }
-}
-function deleteCustomer(i){
-  if(!confirm('Delete customer?')) return;
-  let customers = getCustomers();
-  customers.splice(i,1);
-  localStorage.setItem('customers', JSON.stringify(customers));
-  renderCustomers();
 }
 
-// ORDERS management
 function renderOrders(){
-  const orders = getOrders();
-  const wrap = document.getElementById('orderTableWrap');
-  if(!orders.length){ wrap.innerHTML = '<p>No orders yet</p>'; return; }
-  let html = '<div style="display:flex;flex-direction:column;gap:8px">';
-  orders.slice().reverse().forEach((o,i)=>{
-    html += `<div style="padding:10px;border:1px solid #eee;border-radius:8px;background:#fafafa">
-      <div><strong>Order ID:</strong> ${o.id}  <span class="small">(${o.date})</span></div>
-      <div><strong>Customer:</strong> ${o.customerName} (${o.customerWhatsapp})</div>
-      <div><strong>Items:</strong> ${o.products.map(p=>`${p.name} x${p.quantity}`).join(', ')}</div>
-      <div><strong>Total:</strong> $${o.total}</div>
-      <div style="margin-top:6px">
-        <select onchange="updateOrderStatus(${o.id}, this.value)">
-          <option value="${o.status}">${o.status}</option>
-          <option value="Pending">Pending</option>
-          <option value="Shipped">Shipped</option>
-          <option value="Delivered">Delivered</option>
-        </select>
-        <button style="margin-left:8px" onclick="deleteOrder(${o.id})">Delete</button>
-      </div>
-    </div>`;
+  let list=document.getElementById('orderList');list.innerHTML='';
+  if(orders.length===0){list.innerHTML='<p>No orders</p>';return;}
+  orders.forEach(o=>{
+    let div=document.createElement('div');div.className='list';
+    let productsStr=o.products.map(p=>`${p.name} (x${p.quantity})`).join(', ');
+    div.innerHTML=`<p>Order ID: ${o.id}</p><p>Customer: ${o.customerName}</p><p>Products: ${productsStr}</p><p>Total: $${o.total}</p><p>Status: ${o.status}</p>`;
+    list.appendChild(div);
   });
-  html += '</div>';
-  wrap.innerHTML = html;
-}
-function updateOrderStatus(orderId, newStatus){
-  let orders = getOrders();
-  const idx = orders.findIndex(o=>o.id===orderId);
-  if(idx===-1) return;
-  orders[idx].status = newStatus;
-  localStorage.setItem('orders', JSON.stringify(orders));
-  renderOrders();
-  alert('Order status updated');
-}
-function deleteOrder(orderId){
-  if(!confirm('Delete order?')) return;
-  let orders = getOrders();
-  const idx = orders.findIndex(o=>o.id===orderId);
-  if(idx===-1) return;
-  orders.splice(idx,1);
-  localStorage.setItem('orders', JSON.stringify(orders));
-  renderOrders();
 }
 
-// small admin helper functions
-function adminDeleteProductByIndex(index){
-  let products = getProducts();
-  products.splice(index,1);
-  localStorage.setItem('products', JSON.stringify(products));
-  renderProducts();
-}
-function logout(){
-  alert('Logged out (not persistent in this demo)');
-  // for real apps, implement session kill
-}
+function deleteProduct(id){products=products.filter(p=>p.id!==id);localStorage.setItem('products',JSON.stringify(products));renderProducts();}
+function deleteVendor(id){vendors=vendors.filter(v=>v.id!==id);localStorage.setItem('vendors',JSON.stringify(vendors));renderVendors();}
+function deleteCustomer(id){customers=customers.filter(c=>c.id!==id);localStorage.setItem('customers',JSON.stringify(customers));renderCustomers();}
 
-// initialization
-renderProducts();
-renderVendors();
-renderCustomers();
-renderOrders();
-populateVendorAssign();
-
-function adminEditProductById(id){
-  adminEditProduct(id);
-}
+showPage('loginPage');
 </script>
 </body>
 </html>
