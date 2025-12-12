@@ -14,7 +14,6 @@ body {
     padding: 0;
     min-height: 100vh;
 }
-/* Header */
 header {
     background: #007bff; /* Blue for contrast */
     color: white;
@@ -38,8 +37,6 @@ header button {
     color: white;
     font-weight: bold;
 }
-
-/* Hamburger Icon Styling */
 .hamburger {
     background: none;
     border: none;
@@ -50,8 +47,6 @@ header button {
     display: block; 
     line-height: 0.5;
 }
-
-/* Sidebar Navigation */
 .sidebar {
     width: 250px;
     background: #282828; 
@@ -61,34 +56,21 @@ header button {
     transition: margin-left 0.3s ease-in-out;
     margin-left: 0; 
 }
-
-/* State when sidebar is hidden */
 .sidebar.hidden {
     margin-left: -250px;
 }
-
-/* Main Content Container - NOW THIS CONTAINS THE FLEX LOGIC */
 .main-content-container {
     display: flex;
     flex-grow: 1;
     overflow-x: hidden; 
-    min-height: calc(100vh - 60px); /* Adjust height based on header height */
+    min-height: calc(100vh - 60px);
 }
-
-/* Main Content Area */
 .main-content {
     flex-grow: 1;
     padding: 2em;
     overflow-y: auto;
     transition: width 0.3s ease-in-out;
 }
-
-/* When sidebar is hidden, main content uses full width */
-.sidebar.hidden + .main-content {
-    width: 100%; 
-}
-
-/* Sidebar Links/Headers (Rest of the CSS is the same) */
 .sidebar a {
     display: block;
     padding: 12px 20px;
@@ -109,8 +91,6 @@ header button {
     font-size: 0.9em;
     text-transform: uppercase;
 }
-
-/* Dashboard Cards (KPIs) */
 .dashboard-cards {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -197,6 +177,11 @@ button.reject { background: #ffc107; color: black; }
     from { opacity: 0; }
     to { opacity: 1; }
 }
+
+/* Status Colors */
+.status-pending { color: orange; font-weight: bold; }
+.status-approved { color: #28a745; font-weight: bold; }
+.status-rejected { color: #dc3545; font-weight: bold; }
 </style>
 </head>
 <body>
@@ -262,7 +247,7 @@ button.reject { background: #ffc107; color: black; }
             <table id="vendorTable">
                 <thead>
                     <tr>
-                        <th>ID</th><th>Name</th><th>Status</th><th>Promocode</th><th>Actions</th>
+                        <th>ID</th><th>Name (Contact)</th><th>Status</th><th>Promocode</th><th>Actions</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -328,8 +313,8 @@ button.reject { background: #ffc107; color: black; }
                 <h3>Add/Edit Banner</h3>
                 <input type="hidden" id="editBannerId">
                 <div class="form-group">
-                    <label>Image URL:</label><input type="url" id="bannerImageURL" placeholder="Image URL" style="width: 400px;">
-                    <label>Link URL:</label><input type="url" id="bannerLinkURL" placeholder="Link (e.g., #categories)" style="width: 400px;">
+                    <label>Image URL:</label><input type="url" id="bannerImageURL" placeholder="Image URL (Public link)" style="width: 400px;">
+                    <label>Link URL:</label><input type="url" id="bannerLinkURL" placeholder="Link (e.g., #categories or full URL)" style="width: 400px;">
                 </div>
                 <button class="approve" onclick="saveBanner()">Save Banner</button>
             </div>
@@ -362,35 +347,55 @@ button.reject { background: #ffc107; color: black; }
 // ======= ADMIN CREDENTIALS (for prompt login) =======
 const ADMIN_CRED = {id:"admin",password:"admin123"};
 
-// ======= DATA LOAD (Ensure all data models are loaded) =======
-let vendors = JSON.parse(localStorage.getItem("vendors")||'[]');
-let customers = JSON.parse(localStorage.getItem("customers")||'[]');
-let products = JSON.parse(localStorage.getItem("products")||'[]');
-let orders = JSON.parse(localStorage.getItem("orders")||'[]');
-let masterPromocodes = JSON.parse(localStorage.getItem("masterPromocodes")||'[]');
-let banners = JSON.parse(localStorage.getItem("banners")||'[]');
-let promocodeUsage = JSON.parse(localStorage.getItem("promocodeUsage")||'{}');
+// ======= GLOBAL DATA STATE =======
+let vendors = [];
+let customers = [];
+let products = [];
+let orders = [];
+let masterPromocodes = [];
+let banners = [];
+let promocodeUsage = {};
 
 
-// ======= SIDEBAR TOGGLE FUNCTION =======
+// ======= DATA LOAD & INIT =======
+function loadData() {
+    vendors = JSON.parse(localStorage.getItem("vendors")||'[]');
+    customers = JSON.parse(localStorage.getItem("customers")||'[]');
+    products = JSON.parse(localStorage.getItem("products")||'[]');
+    orders = JSON.parse(localStorage.getItem("orders")||'[]');
+    masterPromocodes = JSON.parse(localStorage.getItem("masterPromocodes")||'[]');
+    banners = JSON.parse(localStorage.getItem("banners")||'[]');
+    promocodeUsage = JSON.parse(localStorage.getItem("promocodeUsage")||'{}');
+}
+
+function saveAllData(){
+    localStorage.setItem("vendors",JSON.stringify(vendors));
+    localStorage.setItem("customers",JSON.stringify(customers));
+    localStorage.setItem("products",JSON.stringify(products));
+    localStorage.setItem("orders",JSON.stringify(orders));
+    localStorage.setItem("masterPromocodes",JSON.stringify(masterPromocodes));
+    localStorage.setItem("banners",JSON.stringify(banners));
+    localStorage.setItem("promocodeUsage",JSON.stringify(promocodeUsage));
+}
+
+
+// ======= ADMIN LOGIN CHECK (Prompt based for simple projects) =======
+let loggedAdmin = JSON.parse(localStorage.getItem("loggedAdmin")||'null');
+if(!loggedAdmin){
+    let username = prompt("Enter Admin ID:", ADMIN_CRED.id);
+    let password = prompt("Enter Admin Password:", ADMIN_CRED.password);
+    if(username===ADMIN_CRED.id && password===ADMIN_CRED.password){
+        loggedAdmin = ADMIN_CRED;
+        localStorage.setItem("loggedAdmin",JSON.stringify(loggedAdmin));
+    } else { alert("Invalid Admin Credentials! Redirecting to shop."); window.location.href="index.html"; }
+}
+
+// ======= NAVIGATION AND UI CONTROL =======
 function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
     sidebar.classList.toggle('hidden');
 }
 
-
-// ======= ADMIN LOGIN CHECK =======
-let loggedAdmin = JSON.parse(localStorage.getItem("loggedAdmin")||'null');
-if(!loggedAdmin){
-  let username = prompt("Enter Admin ID:", ADMIN_CRED.id);
-  let password = prompt("Enter Admin Password:", ADMIN_CRED.password);
-  if(username===ADMIN_CRED.id && password===ADMIN_CRED.password){
-    loggedAdmin = ADMIN_CRED;
-    localStorage.setItem("loggedAdmin",JSON.stringify(loggedAdmin));
-  } else { alert("Invalid Admin Credentials! Redirecting to shop."); window.location.href="index.html"; }
-}
-
-// ======= NAVIGATION AND UI CONTROL =======
 function showSection(sectionId, element) {
     document.querySelectorAll('.page-section').forEach(sec => sec.classList.remove('active'));
     document.getElementById(sectionId).classList.add('active');
@@ -400,18 +405,23 @@ function showSection(sectionId, element) {
         element.classList.add('active');
     }
     
-    // Re-render data for the visible section
-    initRender();
+    // Render the specific section data
+    initRender(); 
 }
 
-// ======= LOGOUT =======
 function logout(){
-  localStorage.removeItem("loggedAdmin");
-  alert("Admin logged out");
-  window.location.href="index.html";
+    localStorage.removeItem("loggedAdmin");
+    alert("Admin logged out");
+    window.location.href="index.html";
 }
 
-// ======= DASHBOARD RENDER (KPIs and Pending Items) =======
+// ======= HELPER FUNCTIONS =======
+function getVendorName(vendorId){
+    return vendors.find(v=>v.id===vendorId)?.name || "Unknown Vendor";
+}
+
+// ======= RENDER FUNCTIONS =======
+
 function renderDashboard() {
     // 1. Calculate KPIs
     const approvedProducts = products.filter(p => p.status === 'Approved').length;
@@ -432,27 +442,23 @@ function renderDashboard() {
         ...vendors.filter(v => v.status === 'Pending').map(v => ({
             type: 'Vendor',
             name: v.name,
-            date: 'N/A', 
             actions: `<button class="approve" onclick="approveVendorById('${v.id}')">Approve</button> <button class="reject" onclick="rejectVendorById('${v.id}')">Reject</button>`,
             sortId: v.id 
         })),
         ...products.filter(p => p.status === 'Pending').map(p => ({
             type: 'Product',
             name: p.name,
-            date: 'N/A',
-            actions: `<button class="approve" onclick="approveProductById('${p.id}')">Approve</button> <button class="reject" onclick="rejectProductById('${p.id}')">Reject</button>`,
+            actions: `<button class="approve" onclick="approveProductById(${p.id})">Approve</button> <button class="reject" onclick="rejectProductById(${p.id})">Reject</button>`,
             sortId: p.id
         }))
     ];
-
-    recentPending.sort((a, b) => a.type.localeCompare(b.type) || a.sortId - b.sortId);
 
     recentPending.slice(0, 5).forEach(item => { 
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>${item.type}</td>
             <td>${item.name}</td>
-            <td>${item.date}</td>
+            <td>N/A</td> 
             <td>${item.actions}</td>
         `;
         pendingTableBody.appendChild(tr);
@@ -478,32 +484,17 @@ function renderDashboard() {
 }
 
 
-// ======= UTILITIES, CRUD FUNCTIONS (Keep updated) =======
-
-function saveAllData(){
-    localStorage.setItem("vendors",JSON.stringify(vendors));
-    localStorage.setItem("customers",JSON.stringify(customers));
-    localStorage.setItem("products",JSON.stringify(products));
-    localStorage.setItem("orders",JSON.stringify(orders));
-    localStorage.setItem("masterPromocodes",JSON.stringify(masterPromocodes));
-    localStorage.setItem("banners",JSON.stringify(banners));
-}
-
-function getVendorName(vendorId){
-    return vendors.find(v=>v.id===vendorId)?.name || "Unknown Vendor";
-}
-
-// VENDOR CRUD 
+// VENDOR MANAGEMENT
 function renderVendors(){
     const tbody = document.querySelector("#vendorTable tbody");
     tbody.innerHTML="";
     vendors.forEach((v,i)=>{
         const tr=document.createElement("tr");
-        const statusColor = v.status === 'Approved' ? '#28a745' : (v.status === 'Rejected' ? '#dc3545' : 'orange');
+        const statusClass = v.status ? 'status-' + v.status.toLowerCase() : 'status-pending';
         tr.innerHTML=`
             <td>${v.id}</td>
-            <td>${v.name} (${v.whatsapp})</td>
-            <td><span style="font-weight:bold; color:${statusColor}">${v.status}</span></td>
+            <td>${v.name} (<a href="https://wa.me/${v.whatsapp}" target="_blank">${v.whatsapp}</a>)</td>
+            <td><span class="${statusClass}">${v.status}</span></td>
             <td>${v.promocode}</td>
             <td>
                 ${v.status!=='Approved'?`<button class="approve" onclick="approveVendor(${i})">Approve</button>`:""}
@@ -536,17 +527,17 @@ function deleteVendor(i){
 }
 
 
-// PRODUCT CRUD 
+// PRODUCT MANAGEMENT
 function renderProductsTable(){
     const tbody = document.querySelector("#productTable tbody");
     tbody.innerHTML="";
     products.forEach((p,i)=>{
         const vendorName = getVendorName(p.vendorId);
         const tr=document.createElement("tr");
-        const statusColor = p.status === 'Approved' ? '#28a745' : (p.status === 'Rejected' ? '#dc3545' : 'orange');
+        const statusClass = p.status ? 'status-' + p.status.toLowerCase() : 'status-pending';
 
         tr.innerHTML=`
-            <td><span style="font-weight:bold; color:${statusColor}">${p.status}</span></td>
+            <td><span class="${statusClass}">${p.status}</span></td>
             <td>${p.name}</td>
             <td>${vendorName}</td>
             <td>$${p.price.toFixed(2)}</td>
@@ -583,7 +574,8 @@ function deleteProduct(i){
     }
 }
 
-// PROMOCODE CRUD 
+
+// PROMOCODE MANAGEMENT (Same as your previous code)
 function resetPromoForm() {
     document.getElementById('editPromoCode').value = '';
     document.getElementById('promoCode').value = '';
@@ -616,7 +608,8 @@ function savePromocode(){
     if (editCode) {
         const index = masterPromocodes.findIndex(p => p.code === editCode);
         if (index !== -1) {
-            masterPromocodes[index] = { ...masterPromocodes[index], ...newPromo };
+            // Ensure vendor-specific scope is not overwritten
+            masterPromocodes[index] = { ...masterPromocodes[index], ...newPromo, scope: masterPromocodes[index].scope };
         }
     } else {
         if (masterPromocodes.some(p => p.code === code)) {
@@ -652,7 +645,6 @@ function deletePromocode(code){
     }
 }
 
-
 function renderPromocodes(){
     const tbody = document.querySelector("#promocodeTable tbody");
     tbody.innerHTML="";
@@ -676,7 +668,8 @@ function renderPromocodes(){
     });
 }
 
-// 🖼️ BANNER CRUD (ফাংশনগুলি যা ব্যানার ম্যানেজ করবে) 🖼️
+
+// BANNER MANAGEMENT (Carousel)
 function saveBanner(){
     const imageURL = document.getElementById('bannerImageURL').value.trim();
     const linkURL = document.getElementById('bannerLinkURL').value.trim();
@@ -741,12 +734,12 @@ function renderBanners(){
 }
 
 
-// ORDER CRUD 
+// ORDER MANAGEMENT
 function renderOrders(){
     const tbody = document.querySelector("#orderTable tbody");
     tbody.innerHTML="";
     orders.forEach((o,i)=>{
-        const statusColor = o.status === 'Completed' ? '#28a745' : (o.status === 'Cancelled' ? '#dc3545' : 'orange');
+        const statusClass = o.status ? 'status-' + o.status.toLowerCase() : 'status-pending';
 
         tr=document.createElement("tr");
         tr.innerHTML=`
@@ -754,12 +747,13 @@ function renderOrders(){
             <td>${o.customer}</td>
             <td>$${o.total}</td>
             <td>${o.promocode}</td>
-            <td><span style="font-weight:bold; color:${statusColor}">${o.status}</span></td>
+            <td><span class="${statusClass}">${o.status}</span></td>
             <td>
                 <select onchange="updateOrderStatus(${i},this.value)">
                     <option value="Pending" ${o.status==="Pending"?"selected":""}>Pending</option>
                     <option value="Completed" ${o.status==="Completed"?"selected":""}>Completed</option>
                     <option value="Cancelled" ${o.status==="Cancelled"?"selected":""}>Cancelled</option>
+                    <option value="Shipped" ${o.status==="Shipped"?"selected":""}>Shipped</option>
                 </select>
             </td>
         `;
@@ -774,7 +768,7 @@ function updateOrderStatus(i,status){
 }
 
 
-// CUSTOMER CRUD 
+// CUSTOMER MANAGEMENT
 function renderCustomers(){
     const tbody = document.querySelector("#customerTable tbody");
     tbody.innerHTML="";
@@ -799,25 +793,17 @@ function deleteCustomer(i){
 }
 
 
-// ======= INITIAL RENDER ALL SECTIONS =======
+// ======= INITIALIZATION =======
 function initRender() {
-    // Reload data models before rendering
-    vendors = JSON.parse(localStorage.getItem("vendors")||'[]');
-    products = JSON.parse(localStorage.getItem("products")||'[]');
-    orders = JSON.parse(localStorage.getItem("orders")||'[]');
-    masterPromocodes = JSON.parse(localStorage.getItem("masterPromocodes")||'[]');
-    banners = JSON.parse(localStorage.getItem("banners")||'[]');
-    promocodeUsage = JSON.parse(localStorage.getItem("promocodeUsage")||'{}');
-    customers = JSON.parse(localStorage.getItem("customers")||'[]');
-
-
-    renderDashboard(); // Always render dashboard first
+    loadData(); // Ensure data models are reloaded
+    
+    renderDashboard(); 
     renderVendors();
     renderCustomers();
     renderProductsTable();
     renderOrders();
     renderPromocodes();
-    renderBanners(); // 🖼️ এটি ব্যানার টেবিল তৈরি করবে
+    renderBanners(); 
 }
 
 initRender();
