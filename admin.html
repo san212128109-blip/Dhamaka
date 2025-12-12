@@ -27,6 +27,8 @@ header {
     position: sticky;
     top: 0;
     z-index: 100;
+    /* Added to span the width */
+    width: 100%; 
 }
 header h1 { margin: 0; font-size: 1.5em; }
 header button {
@@ -39,6 +41,18 @@ header button {
     font-weight: bold;
 }
 
+/* Hamburger Icon Styling */
+.hamburger {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 2em;
+    cursor: pointer;
+    margin-right: 15px;
+    display: block; /* Always visible */
+    line-height: 0.5;
+}
+
 /* Sidebar Navigation */
 .sidebar {
     width: 250px;
@@ -46,33 +60,36 @@ header button {
     padding: 1em 0;
     box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5);
     flex-shrink: 0;
+    /* Transition and Positioning for toggle effect */
+    transition: margin-left 0.3s ease-in-out;
+    margin-left: 0; /* Default: Visible */
 }
-.sidebar a {
-    display: block;
-    padding: 12px 20px;
-    color: #f0f0f0;
-    text-decoration: none;
-    border-left: 4px solid transparent;
-    transition: all 0.3s;
+
+/* State when sidebar is hidden */
+.sidebar.hidden {
+    margin-left: -250px;
 }
-.sidebar a:hover, .sidebar a.active {
-    background: #3a3a3a;
-    border-left: 4px solid #28a745;
-    color: #28a745;
-}
-.sidebar h3 {
-    color: #999;
-    padding: 0 20px;
-    margin-top: 1.5em;
-    font-size: 0.9em;
-    text-transform: uppercase;
-}
+
 /* Main Content Area */
+.main-content-container {
+    display: flex;
+    flex-grow: 1;
+    overflow-x: hidden; /* Prevent horizontal scroll when sidebar is hidden */
+}
+
 .main-content {
     flex-grow: 1;
     padding: 2em;
     overflow-y: auto;
+    /* Ensure content expands when sidebar hides */
+    transition: margin-left 0.3s ease-in-out;
 }
+/* When sidebar is hidden, main content uses full width */
+.sidebar.hidden + .main-content {
+    width: 100%; 
+    margin-left: 0;
+}
+
 .page-section {
     display: none;
     animation: fadeIn 0.5s;
@@ -85,7 +102,7 @@ header button {
     to { opacity: 1; }
 }
 
-/* Dashboard Cards (KPIs) */
+/* Dashboard Cards (KPIs) - Same as before */
 .dashboard-cards {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -104,7 +121,7 @@ header button {
 .card .value { font-size: 2.5em; font-weight: bold; color: #28a745; }
 .card .label { font-size: 1em; color: #aaa; margin-top: 5px; }
 
-/* Table Styles */
+/* Other styles (Tables, Buttons, Forms) are kept the same for brevity */
 table {
     width: 100%;
     border-collapse: collapse;
@@ -134,8 +151,6 @@ input, select {
     background: #3a3a3a;
     color: #f0f0f0;
 }
-
-/* Button Styles */
 button {
     padding: 8px 12px;
     margin: 4px;
@@ -165,156 +180,161 @@ button.reject { background: #ffc107; color: black; }
 <body>
 
 <header>
-    <h1>Admin Dashboard</h1>
+    <div style="display: flex; align-items: center;">
+        <button class="hamburger" onclick="toggleSidebar()">☰</button>
+        <h1>Admin Dashboard</h1>
+    </div>
     <div>
         <a href="index.html" target="_blank" style="margin-right: 15px; color: #ffc107; text-decoration: none; font-weight: bold;">View Shop</a>
         <button onclick="logout()">Logout</button>
     </div>
 </header>
 
-<div class="sidebar">
-    <a href="#" class="active" onclick="showSection('dashboard', this)">📊 Dashboard</a>
-    
-    <h3>Management</h3>
-    <a href="#" onclick="showSection('vendor-management', this)">👥 Vendors</a>
-    <a href="#" onclick="showSection('product-management', this)">📦 Products</a>
-    <a href="#" onclick="showSection('order-management', this)">🛒 Orders</a>
-    <a href="#" onclick="showSection('promo-management', this)">🏷️ Promocodes</a>
-    <a href="#" onclick="showSection('banner-management', this)">🖼️ Banners</a>
-    <a href="#" onclick="showSection('customer-management', this)">🧑 Customers</a>
-</div>
+<div class="main-content-container"> 
+    <div id="sidebar" class="sidebar">
+        <a href="#" class="active" onclick="showSection('dashboard', this)">📊 Dashboard</a>
+        
+        <h3>Management</h3>
+        <a href="#" onclick="showSection('vendor-management', this)">👥 Vendors</a>
+        <a href="#" onclick="showSection('product-management', this)">📦 Products</a>
+        <a href="#" onclick="showSection('order-management', this)">🛒 Orders</a>
+        <a href="#" onclick="showSection('promo-management', this)">🏷️ Promocodes</a>
+        <a href="#" onclick="showSection('banner-management', this)">🖼️ Banners</a>
+        <a href="#" onclick="showSection('customer-management', this)">🧑 Customers</a>
+    </div>
 
-<div class="main-content">
-    
-    <div id="dashboard" class="page-section active">
-        <h2>Dashboard Overview</h2>
-        <div class="dashboard-cards">
-            <div class="card">
-                <div class="value" id="totalVendors">0</div>
-                <div class="label">Total Vendors</div>
+    <div class="main-content">
+        
+        <div id="dashboard" class="page-section active">
+            <h2>Dashboard Overview</h2>
+            <div class="dashboard-cards">
+                <div class="card">
+                    <div class="value" id="totalVendors">0</div>
+                    <div class="label">Total Vendors</div>
+                </div>
+                <div class="card">
+                    <div class="value" id="totalProducts">0</div>
+                    <div class="label">Total Approved Products</div>
+                </div>
+                <div class="card">
+                    <div class="value" id="totalOrders">0</div>
+                    <div class="label">Total Orders</div>
+                </div>
+                <div class="card">
+                    <div class="value" id="pendingApprovals">0</div>
+                    <div class="label">Pending Approvals</div>
+                </div>
             </div>
-            <div class="card">
-                <div class="value" id="totalProducts">0</div>
-                <div class="label">Total Approved Products</div>
-            </div>
-            <div class="card">
-                <div class="value" id="totalOrders">0</div>
-                <div class="label">Total Orders</div>
-            </div>
-            <div class="card">
-                <div class="value" id="pendingApprovals">0</div>
-                <div class="label">Pending Approvals</div>
-            </div>
+            
+            <h3>Recent Pending Approvals</h3>
+            <table id="pendingTable">
+                <thead>
+                    <tr><th>Type</th><th>Name</th><th>Date</th><th>Actions</th></tr>
+                </thead>
+                <tbody></tbody>
+            </table>
         </div>
         
-        <h3>Recent Pending Approvals</h3>
-        <table id="pendingTable">
-            <thead>
-                <tr><th>Type</th><th>Name</th><th>Date</th><th>Actions</th></tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-    </div>
-    
-    <div id="vendor-management" class="page-section">
-        <h2>Vendor Approvals & Management</h2>
-        <table id="vendorTable">
-            <thead>
-                <tr>
-                    <th>ID</th><th>Name</th><th>Status</th><th>Promocode</th><th>Actions</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-    </div>
-
-    <div id="product-management" class="page-section">
-        <h2>Product Approvals & Management</h2>
-        <table id="productTable">
-            <thead>
-                <tr>
-                    <th>Status</th><th>Name</th><th>Vendor</th><th>Price</th><th>Stock</th><th>Category</th><th>Assigned Promo</th><th>Actions</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-    </div>
-
-    <div id="order-management" class="page-section">
-        <h2>Order Management</h2>
-        <table id="orderTable">
-            <thead>
-                <tr>
-                    <th>Order ID</th><th>Customer</th><th>Total</th><th>Promocode</th><th>Status</th><th>Actions</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-    </div>
-
-    <div id="promo-management" class="page-section">
-        <h2>Promocode Management</h2>
-        <div id="promoForm">
-            <h3>Add/Edit Promocode</h3>
-            <input type="hidden" id="editPromoCode">
-            <div class="form-group">
-                <label>Code:</label><input type="text" id="promoCode" placeholder="E.g., SALE20">
-                <label>Discount:</label><input type="number" id="promoDiscount" placeholder="Value (e.g., 20)">
-                <label>Type:</label>
-                <select id="promoType">
-                    <option value="percent">Percentage (%)</option>
-                    <option value="fixed">Fixed Amount ($)</option>
-                </select>
-                <label>Min. Order:</label><input type="number" id="promoMinOrder" value="0" min="0">
-            </div>
-            <button class="approve" onclick="savePromocode()">Save Promocode</button>
-            <button class="reject" onclick="resetPromoForm()">Cancel</button>
+        <div id="vendor-management" class="page-section">
+            <h2>Vendor Approvals & Management</h2>
+            <table id="vendorTable">
+                <thead>
+                    <tr>
+                        <th>ID</th><th>Name</th><th>Status</th><th>Promocode</th><th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
         </div>
 
-        <table id="promocodeTable">
-            <thead>
-                <tr>
-                    <th>Code</th><th>Discount</th><th>Type</th><th>Min. Order</th><th>Scope</th><th>Usage Count</th><th>Actions</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-    </div>
-
-    <div id="banner-management" class="page-section">
-        <h2>Banner Management (Carousel)</h2>
-        <div id="bannerForm">
-            <h3>Add/Edit Banner</h3>
-            <input type="hidden" id="editBannerId">
-            <div class="form-group">
-                <label>Image URL:</label><input type="url" id="bannerImageURL" placeholder="Image URL" style="width: 400px;">
-                <label>Link URL:</label><input type="url" id="bannerLinkURL" placeholder="Link (e.g., #categories)" style="width: 400px;">
-            </div>
-            <button class="approve" onclick="saveBanner()">Save Banner</button>
+        <div id="product-management" class="page-section">
+            <h2>Product Approvals & Management</h2>
+            <table id="productTable">
+                <thead>
+                    <tr>
+                        <th>Status</th><th>Name</th><th>Vendor</th><th>Price</th><th>Stock</th><th>Category</th><th>Assigned Promo</th><th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
         </div>
 
-        <table id="bannerTable">
-            <thead>
-                <tr>
-                    <th>Preview</th><th>Image URL</th><th>Link URL</th><th>Actions</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-    </div>
-    
-    <div id="customer-management" class="page-section">
-        <h2>Customers</h2>
-        <table id="customerTable">
-            <thead>
-                <tr>
-                    <th>Username</th><th>WhatsApp</th><th>Address</th><th>Actions</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-    </div>
+        <div id="order-management" class="page-section">
+            <h2>Order Management</h2>
+            <table id="orderTable">
+                <thead>
+                    <tr>
+                        <th>Order ID</th><th>Customer</th><th>Total</th><th>Promocode</th><th>Status</th><th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
 
+        <div id="promo-management" class="page-section">
+            <h2>Promocode Management</h2>
+            <div id="promoForm">
+                <h3>Add/Edit Promocode</h3>
+                <input type="hidden" id="editPromoCode">
+                <div class="form-group">
+                    <label>Code:</label><input type="text" id="promoCode" placeholder="E.g., SALE20">
+                    <label>Discount:</label><input type="number" id="promoDiscount" placeholder="Value (e.g., 20)">
+                    <label>Type:</label>
+                    <select id="promoType">
+                        <option value="percent">Percentage (%)</option>
+                        <option value="fixed">Fixed Amount ($)</option>
+                    </select>
+                    <label>Min. Order:</label><input type="number" id="promoMinOrder" value="0" min="0">
+                </div>
+                <button class="approve" onclick="savePromocode()">Save Promocode</button>
+                <button class="reject" onclick="resetPromoForm()">Cancel</button>
+            </div>
+
+            <table id="promocodeTable">
+                <thead>
+                    <tr>
+                        <th>Code</th><th>Discount</th><th>Type</th><th>Min. Order</th><th>Scope</th><th>Usage Count</th><th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div id="banner-management" class="page-section">
+            <h2>Banner Management (Carousel)</h2>
+            <div id="bannerForm">
+                <h3>Add/Edit Banner</h3>
+                <input type="hidden" id="editBannerId">
+                <div class="form-group">
+                    <label>Image URL:</label><input type="url" id="bannerImageURL" placeholder="Image URL" style="width: 400px;">
+                    <label>Link URL:</label><input type="url" id="bannerLinkURL" placeholder="Link (e.g., #categories)" style="width: 400px;">
+                </div>
+                <button class="approve" onclick="saveBanner()">Save Banner</button>
+            </div>
+
+            <table id="bannerTable">
+                <thead>
+                    <tr>
+                        <th>Preview</th><th>Image URL</th><th>Link URL</th><th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        
+        <div id="customer-management" class="page-section">
+            <h2>Customers</h2>
+            <table id="customerTable">
+                <thead>
+                    <tr>
+                        <th>Username</th><th>WhatsApp</th><th>Address</th><th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+    </div>
 </div>
 
 <script>
@@ -329,6 +349,13 @@ let orders = JSON.parse(localStorage.getItem("orders")||'[]');
 let masterPromocodes = JSON.parse(localStorage.getItem("masterPromocodes")||'[]');
 let banners = JSON.parse(localStorage.getItem("banners")||'[]');
 let promocodeUsage = JSON.parse(localStorage.getItem("promocodeUsage")||'{}');
+
+
+// ======= SIDEBAR TOGGLE FUNCTION =======
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    sidebar.classList.toggle('hidden');
+}
 
 
 // ======= ADMIN LOGIN CHECK =======
@@ -363,7 +390,7 @@ function logout(){
   window.location.href="index.html";
 }
 
-// ======= DASHBOARD RENDER =======
+// ======= DASHBOARD RENDER (KPIs and Pending Items) =======
 function renderDashboard() {
     // 1. Calculate KPIs
     const approvedProducts = products.filter(p => p.status === 'Approved').length;
@@ -380,12 +407,11 @@ function renderDashboard() {
     const pendingTableBody = document.querySelector("#pendingTable tbody");
     pendingTableBody.innerHTML = '';
 
-    // Combine and sort pending items (products and vendors)
     const recentPending = [
         ...vendors.filter(v => v.status === 'Pending').map(v => ({
             type: 'Vendor',
             name: v.name,
-            date: 'N/A', // Assuming registration date is not stored
+            date: 'N/A', 
             actions: `<button class="approve" onclick="approveVendorById('${v.id}')">Approve</button> <button class="reject" onclick="rejectVendorById('${v.id}')">Reject</button>`,
             sortId: v.id 
         })),
@@ -400,7 +426,7 @@ function renderDashboard() {
 
     recentPending.sort((a, b) => a.type.localeCompare(b.type) || a.sortId - b.sortId);
 
-    recentPending.slice(0, 5).forEach(item => { // Show max 5 recent pending items
+    recentPending.slice(0, 5).forEach(item => { 
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>${item.type}</td>
