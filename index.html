@@ -663,5 +663,34 @@ function openWhatsApp(){
 }
 
 </script>
+    <script>
+// ==== INITIALIZE LOCALSTORAGE DATA MODELS (Updated for Local Banners) ====
+function initializeLocalStorage() {
+    // Default Banners (Using Local Paths: images/bannerX.jpg)
+    if (!localStorage.getItem('banners')) {
+        localStorage.setItem('banners', JSON.stringify([
+            // নিশ্চিত করুন যে এই ফাইলগুলি 'images' ফোল্ডারে আছে
+            { id: 1, imageURL: 'images/banner1.jpg', link: '#categories' }, 
+            { id: 2, imageURL: 'images/banner2.jpg', link: '#categories' }, 
+            { id: 3, imageURL: 'images/banner3.jpg', link: '#loginForm' }
+        ]));
+    }
+    // Default Reviews
+    if (!localStorage.getItem('reviews')) {
+        localStorage.setItem('reviews', JSON.stringify([
+            { id: 1, customerName: 'Guest User', rating: 5, text: 'Great products and fast delivery!', date: new Date().toLocaleDateString() }
+        ]));
+    }
+    // Default Customers
+    if (!localStorage.getItem('customers')) {
+        localStorage.setItem('customers', JSON.stringify([{username: 'test', whatsapp: '01XXXXXXXXX', address: 'Test address', password: '123'}]));
+    }
+    // Default Promo Code Usage (for Admin Panel)
+    if (!localStorage.getItem('promocodeUsage')) {
+        localStorage.setItem('promocodeUsage', JSON.stringify({}));
+    }
+}
+initializeLocalStorage();
+</script>
 </body>
 </html>
