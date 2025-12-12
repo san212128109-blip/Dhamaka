@@ -19,7 +19,9 @@ button.approve{background:#28a745;color:white;}
 button.reject{background:#ffc107;color:black;}
 input,select{padding:0.4em;margin:0.3em;border-radius:4px;border:1px solid #ccc;}
 h2{margin-top:1em;text-align:center;}
-section{margin-top:2em;}
+section{margin-top:2em;padding:1em;background:white;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.1);}
+.form-group input, .form-group select {width: 200px; display: inline-block;}
+.form-group {margin-bottom: 10px; display: flex; align-items: center; gap: 10px;}
 </style>
 </head>
 <body>
@@ -27,18 +29,94 @@ section{margin-top:2em;}
 <header>
 <h1>Admin Panel</h1>
 <div>
-  <button onclick="logout()">Logout</button>
+  <a href="index.html" target="_blank" style="margin-right: 15px; color: #ffc107;">View Shop</a>
+  <button onclick="logout()">Logout</button>
 </div>
 </header>
 
 <div class="container">
 
 <section>
-<h2>Vendors</h2>
+<h2>Vendor Approvals & Management</h2>
 <table id="vendorTable">
 <thead>
 <tr>
-<th>ID</th><th>Name</th><th>WhatsApp</th><th>Status</th><th>Color</th><th>Promocode</th><th>Actions</th>
+<th>ID</th><th>Name</th><th>Status</th><th>Promocode</th><th>Actions</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+</section>
+
+<section>
+<h2>Product Approvals & Management</h2>
+<table id="productTable">
+<thead>
+<tr>
+<th>Status</th><th>Name</th><th>Vendor</th><th>Price</th><th>Stock</th><th>Category</th><th>Assigned Promo</th><th>Actions</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+</section>
+
+<section>
+<h2>Promocode Management</h2>
+<div id="promoForm">
+    <h3>Add/Edit Promocode</h3>
+    <input type="hidden" id="editPromoCode">
+    <div class="form-group">
+        <label>Code:</label><input type="text" id="promoCode" placeholder="E.g., SALE20">
+        <label>Discount:</label><input type="number" id="promoDiscount" placeholder="Value (e.g., 20)">
+        <label>Type:</label>
+        <select id="promoType">
+            <option value="percent">Percentage (%)</option>
+            <option value="fixed">Fixed Amount ($)</option>
+        </select>
+        <label>Min. Order:</label><input type="number" id="promoMinOrder" value="0" min="0">
+    </div>
+    <button class="approve" onclick="savePromocode()">Save Promocode</button>
+    <button class="reject" onclick="resetPromoForm()">Cancel</button>
+</div>
+
+<table id="promocodeTable">
+<thead>
+<tr>
+<th>Code</th><th>Discount</th><th>Type</th><th>Min. Order</th><th>Scope</th><th>Usage Count</th><th>Actions</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+</section>
+
+<section>
+<h2>Banner Management (Carousel)</h2>
+<div id="bannerForm">
+    <h3>Add/Edit Banner</h3>
+    <input type="hidden" id="editBannerId">
+    <div class="form-group">
+        <label>Image URL:</label><input type="url" id="bannerImageURL" placeholder="Image URL">
+        <label>Link URL:</label><input type="url" id="bannerLinkURL" placeholder="Link (e.g., #categories)">
+    </div>
+    <button class="approve" onclick="saveBanner()">Save Banner</button>
+</div>
+
+<table id="bannerTable">
+<thead>
+<tr>
+<th>Preview</th><th>Image URL</th><th>Link URL</th><th>Actions</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+</section>
+
+<section>
+<h2>Order Management</h2>
+<table id="orderTable">
+<thead>
+<tr>
+<th>Order ID</th><th>Customer</th><th>Total</th><th>Promocode</th><th>Status</th><th>Actions</th>
 </tr>
 </thead>
 <tbody></tbody>
@@ -50,229 +128,382 @@ section{margin-top:2em;}
 <table id="customerTable">
 <thead>
 <tr>
-<th>Username</th><th>WhatsApp</th><th>Address</th><th>Color</th><th>Actions</th>
+<th>Username</th><th>WhatsApp</th><th>Address</th><th>Actions</th>
 </tr>
 </thead>
 <tbody></tbody>
 </table>
 </section>
 
-<section>
-<h2>Products</h2>
-<table id="productTable">
-<thead>
-<tr>
-<th>Name</th><th>Vendor</th><th>Price</th><th>Stock</th><th>Category</th><th>Badge</th><th>Actions</th>
-</tr>
-</thead>
-<tbody></tbody>
-</table>
-</section>
-
-<section>
-<h2>Orders</h2>
-<table id="orderTable">
-<thead>
-<tr>
-<th>Order ID</th><th>Customer</th><th>Vendor Items</th><th>Total</th><th>Status</th><th>Actions</th>
-</tr>
-</thead>
-<tbody></tbody>
-</table>
-</section>
+</div>
 
 <script>
-// ======= INITIAL DATA =======
+// ======= ADMIN CREDENTIALS (for prompt login) =======
+const ADMIN_CRED = {id:"Nafis",password:"nafis128"};
+
+// ======= DATA LOAD =======
 let vendors = JSON.parse(localStorage.getItem("vendors")||'[]');
 let customers = JSON.parse(localStorage.getItem("customers")||'[]');
 let products = JSON.parse(localStorage.getItem("products")||'[]');
 let orders = JSON.parse(localStorage.getItem("orders")||'[]');
+let masterPromocodes = JSON.parse(localStorage.getItem("masterPromocodes")||'[]');
+let banners = JSON.parse(localStorage.getItem("banners")||'[]');
+let promocodeUsage = JSON.parse(localStorage.getItem("promocodeUsage")||'{}');
 
-// ======= ADMIN LOGIN (default) =======
-let admin = {id:"admin",password:"admin123"};
 
+// ======= ADMIN LOGIN CHECK =======
 let loggedAdmin = JSON.parse(localStorage.getItem("loggedAdmin")||'null');
 if(!loggedAdmin){
-  let username = prompt("Enter Admin ID:");
-  let password = prompt("Enter Admin Password:");
-  if(username===admin.id && password===admin.password){
-    loggedAdmin = admin;
-    localStorage.setItem("loggedAdmin",JSON.stringify(loggedAdmin));
-  } else { alert("Invalid Admin Credentials!"); window.location.href="index.html"; }
+  let username = prompt("Enter Admin ID:", ADMIN_CRED.id);
+  let password = prompt("Enter Admin Password:", ADMIN_CRED.password);
+  if(username===ADMIN_CRED.id && password===ADMIN_CRED.password){
+    loggedAdmin = ADMIN_CRED;
+    localStorage.setItem("loggedAdmin",JSON.stringify(loggedAdmin));
+  } else { alert("Invalid Admin Credentials! Redirecting to shop."); window.location.href="index.html"; }
 }
 
 // ======= LOGOUT =======
 function logout(){
-  localStorage.removeItem("loggedAdmin");
-  alert("Admin logged out");
-  window.location.href="index.html";
+  localStorage.removeItem("loggedAdmin");
+  alert("Admin logged out");
+  window.location.href="index.html";
+}
+
+// ======= UTILITIES =======
+function saveAllData(){
+  localStorage.setItem("vendors",JSON.stringify(vendors));
+  localStorage.setItem("customers",JSON.stringify(customers));
+  localStorage.setItem("products",JSON.stringify(products));
+  localStorage.setItem("orders",JSON.stringify(orders));
+  localStorage.setItem("masterPromocodes",JSON.stringify(masterPromocodes));
+  localStorage.setItem("banners",JSON.stringify(banners));
+}
+
+function getVendorName(vendorId){
+  return vendors.find(v=>v.id===vendorId)?.name || "Unknown Vendor";
 }
 
 // ======= VENDOR TABLE =======
 function renderVendors(){
-  const tbody = document.querySelector("#vendorTable tbody");
-  tbody.innerHTML="";
-  vendors.forEach((v,i)=>{
-    const tr=document.createElement("tr");
-    tr.innerHTML=`
-      <td>${v.id}</td>
-      <td><input value="${v.name}" onchange="updateVendor(${i},'name',this.value)"></td>
-      <td><input value="${v.whatsapp}" onchange="updateVendor(${i},'whatsapp',this.value)"></td>
-      <td>${v.status}</td>
-      <td><input type="color" value="${v.color||'#28a745'}" onchange="updateVendor(${i},'color',this.value)"></td>
-      <td><input value="${v.promocode||''}" onchange="updateVendor(${i},'promocode',this.value)"></td>
-      <td>
-        ${v.status!=='Approved'?`<button class="approve" onclick="approveVendor(${i})">Approve</button>
-        <button class="reject" onclick="rejectVendor(${i})">Reject</button>`:""}
-        <button class="delete" onclick="deleteVendor(${i})">Delete</button>
-      </td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
-
-function updateVendor(i,key,value){
-  vendors[i][key]=value;
-  localStorage.setItem("vendors",JSON.stringify(vendors));
+  const tbody = document.querySelector("#vendorTable tbody");
+  tbody.innerHTML="";
+  vendors.forEach((v,i)=>{
+    const tr=document.createElement("tr");
+    tr.innerHTML=`
+      <td>${v.id}</td>
+      <td>${v.name} (${v.whatsapp})</td>
+      <td><span style="font-weight:bold; color:${v.status==='Approved'?'#28a745':'#ffc107'}">${v.status}</span></td>
+      <td>${v.promocode}</td>
+      <td>
+        ${v.status!=='Approved'?`<button class="approve" onclick="approveVendor(${i})">Approve</button>`:""}
+        ${v.status!=='Rejected'?`<button class="reject" onclick="rejectVendor(${i})">Reject</button>`:""}
+        <button class="delete" onclick="deleteVendor(${i})">Delete</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
 }
 
 function approveVendor(i){
-  vendors[i].status="Approved";
-  localStorage.setItem("vendors",JSON.stringify(vendors));
-  renderVendors();
+  vendors[i].status="Approved";
+  saveAllData();
+  renderVendors();
 }
 
 function rejectVendor(i){
-  vendors[i].status="Rejected";
-  localStorage.setItem("vendors",JSON.stringify(vendors));
-  renderVendors();
+  vendors[i].status="Rejected";
+  saveAllData();
+  renderVendors();
 }
 
 function deleteVendor(i){
-  if(confirm(`Delete vendor ${vendors[i].name}?`)){
-    vendors.splice(i,1);
-    localStorage.setItem("vendors",JSON.stringify(vendors));
-    renderVendors();
-  }
+  if(confirm(`Delete vendor ${vendors[i].name}? This will NOT delete their products.`)){
+    vendors.splice(i,1);
+    saveAllData();
+    renderVendors();
+  }
 }
 
-// ======= CUSTOMER TABLE =======
-function renderCustomers(){
-  const tbody = document.querySelector("#customerTable tbody");
-  tbody.innerHTML="";
-  customers.forEach((c,i)=>{
-    const tr=document.createElement("tr");
-    tr.innerHTML=`
-      <td><input value="${c.username}" onchange="updateCustomer(${i},'username',this.value)"></td>
-      <td><input value="${c.whatsapp}" onchange="updateCustomer(${i},'whatsapp',this.value)"></td>
-      <td><input value="${c.address}" onchange="updateCustomer(${i},'address',this.value)"></td>
-      <td><input type="color" value="${c.color||'#28a745'}" onchange="updateCustomer(${i},'color',this.value)"></td>
-      <td><button class="delete" onclick="deleteCustomer(${i})">Delete</button></td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
-
-function updateCustomer(i,key,value){
-  customers[i][key]=value;
-  localStorage.setItem("customers",JSON.stringify(customers));
-}
-
-function deleteCustomer(i){
-  if(confirm(`Delete customer ${customers[i].username}?`)){
-    customers.splice(i,1);
-    localStorage.setItem("customers",JSON.stringify(customers));
-    renderCustomers();
-  }
-}
 
 // ======= PRODUCT TABLE =======
 function renderProductsTable(){
-  const tbody = document.querySelector("#productTable tbody");
-  tbody.innerHTML="";
-  products.forEach((p,i)=>{
-    const vendorName = vendors.find(v=>v.id===p.vendorId)?.name || "Unknown";
-    const tr=document.createElement("tr");
-    tr.innerHTML=`
-      <td><input value="${p.name}" onchange="updateProduct(${i},'name',this.value)"></td>
-      <td>${vendorName}</td>
-      <td><input type="number" value="${p.price}" onchange="updateProduct(${i},'price',parseFloat(this.value))"></td>
-      <td><input type="number" value="${p.stock}" onchange="updateProduct(${i},'stock',parseInt(this.value))"></td>
-      <td><input value="${p.category}" onchange="updateProduct(${i},'category',this.value)"></td>
-      <td><input value="${p.badge}" onchange="updateProduct(${i},'badge',this.value)"></td>
-      <td>
-        ${p.status!=='Approved'?`<button class="approve" onclick="approveProduct(${i})">Approve</button>
-        <button class="reject" onclick="rejectProduct(${i})">Reject</button>`:""}
-        <button class="delete" onclick="deleteProduct(${i})">Delete</button>
-      </td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
+  const tbody = document.querySelector("#productTable tbody");
+  tbody.innerHTML="";
+  products.forEach((p,i)=>{
+    const vendorName = getVendorName(p.vendorId);
+    const tr=document.createElement("tr");
+    const statusColor = p.status === 'Approved' ? '#28a745' : (p.status === 'Rejected' ? '#dc3545' : 'orange');
 
-function updateProduct(i,key,value){
-  products[i][key]=value;
-  localStorage.setItem("products",JSON.stringify(products));
+    tr.innerHTML=`
+      <td><span style="font-weight:bold; color:${statusColor}">${p.status}</span></td>
+      <td>${p.name}</td>
+      <td>${vendorName}</td>
+      <td>$${p.price.toFixed(2)}</td>
+      <td>${p.stock}</td>
+      <td>${p.category}</td>
+      <td>${p.promoCodeAssigned || 'None'}</td>
+      <td>
+        ${p.status!=='Approved'?`<button class="approve" onclick="approveProduct(${i})">Approve</button>`:""}
+        ${p.status!=='Rejected'?`<button class="reject" onclick="rejectProduct(${i})">Reject</button>`:""}
+        <button class="delete" onclick="deleteProduct(${i})">Delete</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
 }
 
 function approveProduct(i){
-  products[i].status="Approved";
-  localStorage.setItem("products",JSON.stringify(products));
-  renderProductsTable();
+  products[i].status="Approved";
+  saveAllData();
+  renderProductsTable();
 }
 
 function rejectProduct(i){
-  products[i].status="Rejected";
-  localStorage.setItem("products",JSON.stringify(products));
-  renderProductsTable();
+  products[i].status="Rejected";
+  saveAllData();
+  renderProductsTable();
 }
 
 function deleteProduct(i){
-  if(confirm(`Delete product ${products[i].name}?`)){
-    products.splice(i,1);
-    localStorage.setItem("products",JSON.stringify(products));
-    renderProductsTable();
-  }
+  if(confirm(`Delete product ${products[i].name}?`)){
+    products.splice(i,1);
+    saveAllData();
+    renderProductsTable();
+  }
 }
 
-// ======= ORDERS TABLE =======
+// ======= PROMOCODE MANAGEMENT =======
+
+function resetPromoForm() {
+  document.getElementById('editPromoCode').value = '';
+  document.getElementById('promoCode').value = '';
+  document.getElementById('promoDiscount').value = '';
+  document.getElementById('promoType').value = 'percent';
+  document.getElementById('promoMinOrder').value = 0;
+}
+
+function savePromocode(){
+  const code = document.getElementById('promoCode').value.trim().toUpperCase();
+  const discount = parseFloat(document.getElementById('promoDiscount').value);
+  const type = document.getElementById('promoType').value;
+  const minOrder = parseFloat(document.getElementById('promoMinOrder').value);
+  const editCode = document.getElementById('editPromoCode').value;
+
+  if (!code || isNaN(discount) || discount <= 0 || isNaN(minOrder) || minOrder < 0) {
+    alert("Fill all fields correctly.");
+    return;
+  }
+
+  const newPromo = {
+    code,
+    discount,
+    type,
+    minOrder,
+    scope: 'global', // Admin created promos are global
+    expiry: '2026-12-31' // Default expiry
+  };
+
+  if (editCode) {
+    // Update existing
+    const index = masterPromocodes.findIndex(p => p.code === editCode);
+    if (index !== -1) {
+      masterPromocodes[index] = { ...masterPromocodes[index], ...newPromo };
+    }
+  } else {
+    // Add new
+    if (masterPromocodes.some(p => p.code === code)) {
+      alert("Promocode already exists.");
+      return;
+    }
+    masterPromocodes.push(newPromo);
+  }
+
+  saveAllData();
+  renderPromocodes();
+  resetPromoForm();
+}
+
+function editPromocode(code){
+  const promo = masterPromocodes.find(p => p.code === code);
+  if (promo && promo.scope === 'global') {
+    document.getElementById('editPromoCode').value = promo.code;
+    document.getElementById('promoCode').value = promo.code;
+    document.getElementById('promoDiscount').value = promo.discount;
+    document.getElementById('promoType').value = promo.type;
+    document.getElementById('promoMinOrder').value = promo.minOrder;
+  } else if (promo && promo.scope === 'vendor') {
+    alert("Vendor-specific promo codes cannot be edited by Admin here.");
+  }
+}
+
+function deletePromocode(code){
+  if(confirm(`Delete promocode ${code}?`)){
+    masterPromocodes = masterPromocodes.filter(p => p.code !== code);
+    saveAllData();
+    renderPromocodes();
+  }
+}
+
+
+function renderPromocodes(){
+  const tbody = document.querySelector("#promocodeTable tbody");
+  tbody.innerHTML="";
+  masterPromocodes.forEach(p=>{
+    const usageCount = promocodeUsage[p.code] || 0;
+    const tr=document.createElement("tr");
+    const scopeInfo = p.scope === 'vendor' ? `Vendor: ${p.vendorId}` : 'Global';
+    tr.innerHTML=`
+      <td>${p.code}</td>
+      <td>${p.discount} ${p.type === 'percent' ? '%' : '$ Fixed'}</td>
+      <td>$${p.minOrder.toFixed(2)}</td>
+      <td>${scopeInfo}</td>
+      <td>${usageCount}</td>
+      <td>
+        <button class="edit" onclick="editPromocode('${p.code}')" ${p.scope === 'vendor' ? 'disabled' : ''}>Edit</button>
+        <button class="delete" onclick="deletePromocode('${p.code}')">Delete</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// ======= BANNER MANAGEMENT =======
+
+function saveBanner(){
+  const imageURL = document.getElementById('bannerImageURL').value.trim();
+  const linkURL = document.getElementById('bannerLinkURL').value.trim();
+  const editId = parseInt(document.getElementById('editBannerId').value);
+
+  if (!imageURL) {
+    alert("Image URL is required.");
+    return;
+  }
+
+  if (editId) {
+    // Update existing
+    const index = banners.findIndex(b => b.id === editId);
+    if (index !== -1) {
+      banners[index].imageURL = imageURL;
+      banners[index].link = linkURL || '#';
+    }
+  } else {
+    // Add new
+    const newId = banners.length > 0 ? Math.max(...banners.map(b => b.id)) + 1 : 1;
+    banners.push({ id: newId, imageURL, link: linkURL || '#' });
+  }
+
+  saveAllData();
+  renderBanners();
+  document.getElementById('editBannerId').value = '';
+  document.getElementById('bannerImageURL').value = '';
+  document.getElementById('bannerLinkURL').value = '';
+}
+
+function editBanner(id){
+  const banner = banners.find(b => b.id === id);
+  if (banner) {
+    document.getElementById('editBannerId').value = banner.id;
+    document.getElementById('bannerImageURL').value = banner.imageURL;
+    document.getElementById('bannerLinkURL').value = banner.link;
+  }
+}
+
+function deleteBanner(id){
+  if(confirm(`Delete banner ${id}?`)){
+    banners = banners.filter(b => b.id !== id);
+    saveAllData();
+    renderBanners();
+  }
+}
+
+function renderBanners(){
+  const tbody = document.querySelector("#bannerTable tbody");
+  tbody.innerHTML="";
+  banners.forEach(b=>{
+    const tr=document.createElement("tr");
+    tr.innerHTML=`
+      <td><img src="${b.imageURL}" style="width:100px; height:50px; object-fit:cover;"></td>
+      <td>${b.imageURL}</td>
+      <td><a href="${b.link}" target="_blank">${b.link}</a></td>
+      <td>
+        <button class="edit" onclick="editBanner(${b.id})">Edit</button>
+        <button class="delete" onclick="deleteBanner(${b.id})">Delete</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+
+// ======= ORDER TABLE =======
 function renderOrders(){
-  const tbody = document.querySelector("#orderTable tbody");
-  tbody.innerHTML="";
-  orders.forEach((o,i)=>{
-    const vendorItems = o.products.map(p=>{
-      const vendorName = vendors.find(v=>v.id===p.vendorId)?.name || "Unknown";
-      return `${p.name} (${vendorName}) x${p.quantity}`;
-    }).join(", ");
-    const tr=document.createElement("tr");
-    tr.innerHTML=`
-      <td>${o.id}</td>
-      <td>${o.customerName}</td>
-      <td>${vendorItems}</td>
-      <td>$${o.total}</td>
-      <td>${o.status}</td>
-      <td>
-        <select onchange="updateOrderStatus(${i},this.value)">
-          <option value="Pending" ${o.status==="Pending"?"selected":""}>Pending</option>
-          <option value="Completed" ${o.status==="Completed"?"selected":""}>Completed</option>
-          <option value="Cancelled" ${o.status==="Cancelled"?"selected":""}>Cancelled</option>
-        </select>
-      </td>
-    `;
-    tbody.appendChild(tr);
-  });
+  const tbody = document.querySelector("#orderTable tbody");
+  tbody.innerHTML="";
+  orders.forEach((o,i)=>{
+    const statusColor = o.status === 'Completed' ? '#28a745' : (o.status === 'Cancelled' ? '#dc3545' : 'orange');
+
+    tr=document.createElement("tr");
+    tr.innerHTML=`
+      <td>#${o.id} (${o.date ? new Date(o.date).toLocaleDateString() : 'N/A'})</td>
+      <td>${o.customer}</td>
+      <td>$${o.total}</td>
+      <td>${o.promocode}</td>
+      <td><span style="font-weight:bold; color:${statusColor}">${o.status}</span></td>
+      <td>
+        <select onchange="updateOrderStatus(${i},this.value)">
+          <option value="Pending" ${o.status==="Pending"?"selected":""}>Pending</option>
+          <option value="Completed" ${o.status==="Completed"?"selected":""}>Completed</option>
+          <option value="Cancelled" ${o.status==="Cancelled"?"selected":""}>Cancelled</option>
+        </select>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
 }
 
 function updateOrderStatus(i,status){
-  orders[i].status=status;
-  localStorage.setItem("orders",JSON.stringify(orders));
+  orders[i].status=status;
+  saveAllData();
+  renderOrders();
 }
 
-// ======= INITIAL RENDER =======
-renderVendors();
-renderCustomers();
-renderProductsTable();
-renderOrders();
+
+// ======= CUSTOMER TABLE =======
+function renderCustomers(){
+  const tbody = document.querySelector("#customerTable tbody");
+  tbody.innerHTML="";
+  customers.forEach((c,i)=>{
+    const tr=document.createElement("tr");
+    tr.innerHTML=`
+      <td>${c.username}</td>
+      <td>${c.whatsapp}</td>
+      <td>${c.address}</td>
+      <td><button class="delete" onclick="deleteCustomer(${i})">Delete</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function deleteCustomer(i){
+  if(confirm(`Delete customer ${customers[i].username}?`)){
+    customers.splice(i,1);
+    saveAllData();
+    renderCustomers();
+  }
+}
+
+
+// ======= INITIAL RENDER ALL SECTIONS =======
+function initRender() {
+  renderVendors();
+  renderCustomers();
+  renderProductsTable();
+  renderOrders();
+  renderPromocodes();
+  renderBanners();
+}
+
+initRender();
 
 </script>
 </body>
