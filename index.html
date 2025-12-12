@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dhamaka Daily Items - Shop</title>
+<title>Dhamaka Daily Items - Shop (Updated)</title>
 <style>
 /* CSS: General Styling */
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -14,18 +14,18 @@ header h1{margin:0;font-size:1.5em;}
 nav{display:flex;align-items:center;flex-wrap:wrap;}
 nav a{color:white;margin-left:1em;text-decoration:none;font-weight:bold;transition:0.3s;position:relative;}
 nav a:hover{text-decoration:underline;color:#ffc107;}
-/* Cart Badge Style */
-nav #cartLink::after{content:attr(data-count);position:absolute;top:-10px;right:-10px;background:red;color:white;width:20px;height:20px;text-align:center;line-height:20px;border-radius:50%;font-size:0.8em;display:inline-block;}
+/* Cart & Wishlist Badge Style */
+nav #cartLink::after, nav #wishlistLink::after{content:attr(data-count);position:absolute;top:-10px;right:-10px;background:red;color:white;width:20px;height:20px;text-align:center;line-height:20px;border-radius:50%;font-size:0.8em;display:inline-block;}
 nav button{margin-left:1em;cursor:pointer;}
 .page{display:none;padding:1em;}
 h1,h2,h3{text-align:center;margin-bottom:0.5em;}
 .product-list,.cart-list{display:flex;flex-wrap:wrap;gap:1em;justify-content:center;margin-top:1em;}
-.product{border:1px solid #28a745;border-radius:12px;padding:1em;width:200px;text-align:center;background:#fff;box-shadow:2px2px10px rgba(0,0,0,0.1);transition:0.3s;position:relative;overflow:hidden;}
-.product:hover{transform:scale(1.05);box-shadow:4px4px15px rgba(0,0,0,0.2);}
-.product img{transition: transform 0.3s;}
-.product:hover img{transform:scale(1.2);}
+.product{border:1px solid #28a745;border-radius:12px;padding:1em;width:220px;text-align:center;background:#fff;box-shadow:2px2px10px rgba(0,0,0,0.1);transition:0.3s;position:relative;overflow:hidden;}
+.product:hover{transform:scale(1.03);box-shadow:4px4px15px rgba(0,0,0,0.2);}
+.product img{transition: transform 0.3s;cursor:pointer;border-radius:8px;}
+.product:hover img{transform:scale(1.05);}
 .badge{position:absolute;top:10px;left:10px;background:#ffc107;color:#000;padding:2px 6px;border-radius:4px;font-size:0.8em;animation:bounce 1s infinite alternate;}
-@keyframes bounce{0%{transform:translateY(0);}100%{transform:translateY(-5px);}}
+@keyframes bounce{0%{transform:translateY(0);}100%{transform:translateY(-5px);} }
 button{background:#28a745;color:white;border:none;padding:0.5em 1em;border-radius:5px;cursor:pointer;margin-top:0.5em;transition:0.3s;}
 button:hover{background:#218838;}
 input,select,textarea{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;border:1px solid #ccc;}
@@ -34,23 +34,30 @@ input,select,textarea{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;b
 .carousel img{min-width:100%;border-radius:12px;transition:transform 0.5s; object-fit: cover; height: 300px;} /* height added for carousel */
 .star{color:gold;font-size:1em;cursor:pointer;}
 .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);justify-content:center;align-items:center;animation:fadeIn 0.3s;}
-.modal-content{background:#fff;padding:1em;border-radius:12px;width:90%;max-width:400px;text-align:center;}
+.modal-content{background:#fff;padding:1em;border-radius:12px;width:90%;max-width:600px;text-align:center;}
 .modal button{width:45%;margin:0.5em;}
 @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
-#support{position:fixed;bottom:20px;right:20px;background:#25D366;color:white;padding:10px 15px;border-radius:50px;cursor:pointer;box-shadow:2px2px10px rgba(0,0,0,0.2);}
+#support{position:fixed;bottom:20px;right:20px;background:#25D366;color:white;padding:10px 15px;border-radius:50px;cursor:pointer;box-shadow:2px2px10px rgba(0,0,0,0.2);} 
 .product-image-container img {width: 150px; height: 150px; object-fit: cover; border-radius: 8px;} 
 @media(max-width:600px){ .product{width:45%; } header{flex-direction:column;align-items:flex-start;} nav a{margin:0.3em 0;} }
 
 /* Home Page Specific Styling */
 #home {padding-top: 20px;}
 .product-list {padding: 20px 0; border-top: 1px solid #28a745;}
-#reviewSectionContainer {max-width: 900px; margin: 30px auto; padding: 20px; background: #f8f9fa; border-radius: 15px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);}
+#reviewSectionContainer {max-width: 900px; margin: 30px auto; padding: 20px; background: #f8f9fa; border-radius: 15px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);} 
 .review-item {border-bottom: 1px dashed #ccc; padding: 10px 0; text-align: left;}
 .review-item:last-child {border-bottom: none;}
 .review-customer {font-size: 0.9em; color: #6c757d;}
 .review-customer b {color: #000;}
 /* Login/Register Toggle Button Style */
 #loginToggleBtn, #registerToggleBtn {width: 45%; background-color: #6c757d;} 
+
+/* Wishlist Heart */
+.heart-btn{position:absolute;top:10px;right:10px;background:transparent;border:none;font-size:1.2em;cursor:pointer;}
+.heart-active{color:#e63946;text-shadow:0 0 6px rgba(230,57,70,0.4);} 
+
+/* small helper */
+.small {font-size:0.9em;padding:0.2em 0.4em;border-radius:6px}
 </style>
 </head>
 <body>
@@ -60,6 +67,7 @@ input,select,textarea{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;b
 <nav>
 <a href="#home" onclick="showPage('home')">Home</a>
 <a href="#categories" onclick="showPage('categories')">Categories</a>
+<a id="wishlistLink" href="#wishlist" data-count="0" onclick="showPage('wishlist')">Wishlist</a>
 <a id="cartLink" href="#cart" data-count="0" onclick="showPage('cart')">Cart</a>
 <button onclick="toggleDarkMode()">🌙</button>
 <button id="logoutBtn" style="display:none;" onclick="logout()">Logout</button>
@@ -88,7 +96,15 @@ input,select,textarea{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;b
         <option value="name-asc">Name A→Z</option>
         <option value="name-desc">Name Z→A</option>
     </select>
+    <div style="text-align:center;margin:10px 0;">
+        <button id="addProductBtn" onclick="openAddProductModal()" style="display:none;">+ Add Product (Admin)</button>
+    </div>
     <div class="product-list" id="categoryList"></div>
+</div>
+
+<div id="wishlist" class="page">
+    <h2>Your Wishlist</h2>
+    <div class="product-list" id="wishlistList"></div>
 </div>
 
 <div id="cart" class="page">
@@ -135,8 +151,33 @@ input,select,textarea{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;b
     <div id="reviewForm">
         <h3>Submit Your Review</h3>
         <input type="text" id="reviewName" placeholder="Your Name">
+        <div style="text-align:center;margin:5px 0;">Rating: <span id="reviewStars">★★★★★</span></div>
         <textarea id="reviewText" placeholder="Your review"></textarea>
         <button onclick="submitReview()">Submit</button>
+    </div>
+</div>
+
+<!-- Image / Product Modal -->
+<div id="imageModal" class="modal">
+    <div class="modal-content" id="imageModalContent">
+        <img id="modalImg" src="" alt="" style="max-width:100%;border-radius:8px;">
+        <p id="modalCaption"></p>
+        <button onclick="closeImageModal()">Close</button>
+    </div>
+</div>
+
+<!-- Add Product Modal (Admin) -->
+<div id="addProductModal" class="modal">
+    <div class="modal-content">
+        <h3>Add New Product</h3>
+        <input id="newName" placeholder="Name">
+        <input id="newPrice" placeholder="Price">
+        <input id="newCategory" placeholder="Category">
+        <input id="newStock" placeholder="Stock">
+        <input id="newBadge" placeholder="Badge (optional)">
+        <input type="file" id="newImageFile" accept="image/*">
+        <p style="font-size:0.85em;color:#666;">You can choose an image file; it will be stored locally (base64) in localStorage.</p>
+        <div style="text-align:center;margin-top:8px;"><button onclick="addProduct()">Add</button><button onclick="closeAddProductModal()">Cancel</button></div>
     </div>
 </div>
 
@@ -144,27 +185,32 @@ input,select,textarea{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;b
 
 <script>
 // ====== DATA STORAGE ======
-// প্রাথমিক পণ্য ডেটা (যদি localStorage খালি থাকে)
 let initialProducts = [
-    // নির্ভরযোগ্য ডেমো লিঙ্ক ব্যবহার করা হয়েছে
-    { id: 1, name: "Luxury Smartphone X", price: 799.99, category: "Electronics", stock: 15, rating: 5, badge: "New", image: "https://picsum.photos/id/237/150/150" }, 
-    { id: 2, name: "Cotton T-Shirt (Blue)", price: 19.99, category: "Apparel", stock: 50, rating: 4, badge: "Sale", image: "https://picsum.photos/id/20/150/150" }, 
-    { id: 3, name: "Modular Sofa Set", price: 1299.00, category: "Furniture", stock: 5, rating: 5, badge: "Popular", image: "https://picsum.photos/id/160/150/150" }, 
-    { id: 4, name: "Gaming Mouse Pad", price: 29.50, category: "Electronics", stock: 100, rating: 4, badge: "Best Seller", image: "https://picsum.photos/id/10/150/150" }, 
-    { id: 5, name: "Designer Leather Wallet", price: 49.99, category: "Apparel", stock: 30, rating: 5, badge: "Premium", image: "https://picsum.photos/id/1015/150/150" }, 
-    { id: 6, name: "LED Desk Lamp", price: 35.00, category: "Furniture", stock: 60, rating: 3, badge: "", image: "https://picsum.photos/id/12/150/150" } 
+    { id: 1, name: "Luxury Smartphone X", price: 799.99, category: "Electronics", stock: 15, rating: 5, badge: "New", image: "https://picsum.photos/id/237/400/400" }, 
+    { id: 2, name: "Cotton T-Shirt (Blue)", price: 19.99, category: "Apparel", stock: 50, rating: 4, badge: "Sale", image: "https://picsum.photos/id/20/400/400" }, 
+    { id: 3, name: "Modular Sofa Set", price: 1299.00, category: "Furniture", stock: 5, rating: 5, badge: "Popular", image: "https://picsum.photos/id/160/400/400" }, 
+    { id: 4, name: "Gaming Mouse Pad", price: 29.50, category: "Electronics", stock: 100, rating: 4, badge: "Best Seller", image: "https://picsum.photos/id/10/400/400" }, 
+    { id: 5, name: "Designer Leather Wallet", price: 49.99, category: "Apparel", stock: 30, rating: 5, badge: "Premium", image: "https://picsum.photos/id/1015/400/400" }, 
+    { id: 6, name: "LED Desk Lamp", price: 35.00, category: "Furniture", stock: 60, rating: 3, badge: "", image: "https://picsum.photos/id/12/400/400" } 
 ];
-// লোকাল স্টোরেজে Products সেভ করা
+
 if (!localStorage.getItem("products") || JSON.parse(localStorage.getItem("products")).length === 0) {
     localStorage.setItem("products", JSON.stringify(initialProducts));
 }
 
 let products = JSON.parse(localStorage.getItem("products")||'[]');
 let cart = JSON.parse(localStorage.getItem("cart")||"[]");
+let wishlist = JSON.parse(localStorage.getItem("wishlist")||"[]");
 let reviews = JSON.parse(localStorage.getItem("reviews")||'[]');
 let customers = JSON.parse(localStorage.getItem("customers")||'[]');
 let orders = JSON.parse(localStorage.getItem("orders")||'[]'); 
 let loggedCustomer = JSON.parse(localStorage.getItem("loggedCustomer")||'null');
+
+// Pre-create an admin user for convenience (only if none exists)
+if(!customers.some(c=>c.username==='admin')){
+    customers.push({username:'admin', whatsapp:'0000000000', address:'Admin HQ', password:'admin'});
+    localStorage.setItem('customers', JSON.stringify(customers));
+}
 
 // ====== AUTO LOGIN & INITIAL VIEW ======
 if(loggedCustomer){
@@ -175,12 +221,12 @@ if(loggedCustomer){
 }
 
 // ====== PAGE CONTROL & DARK MODE ======
-function showPage(page){ document.querySelectorAll('.page').forEach(p=>p.style.display='none'); document.getElementById(page).style.display='block'; renderAllPageContent(); }
+function showPage(page){ document.querySelectorAll('.page').forEach(p=>p.style.display='none'); document.getElementById(page).style.display='block'; renderAllPageContent(); window.scrollTo(0,0); }
 function toggleDarkMode(){ document.body.classList.toggle('dark'); }
 
-// Function to call all necessary renders when changing pages
 function renderAllPageContent() {
-    products = JSON.parse(localStorage.getItem("products")||'[]'); // Reload products in case admin/vendor changed them
+    products = JSON.parse(localStorage.getItem("products")||'[]'); // Reload products
+    wishlist = JSON.parse(localStorage.getItem("wishlist")||'[]');
     populateCategoryFilter(); // Recalculate categories
     renderProducts(homeList, products.slice(0, 6)); // Update home list
     filterCategory(); // Update category list
@@ -188,6 +234,11 @@ function renderAllPageContent() {
     renderReviews(); // Update reviews
     renderCarousel(); // Update carousel
     updateCartBadge();
+    updateWishlistBadge();
+
+    // Show add product button for admin
+    const addBtn = document.getElementById('addProductBtn');
+    if(loggedCustomer && loggedCustomer.username === 'admin') addBtn.style.display='inline-block'; else addBtn.style.display='none';
 }
 
 // ====== NEW: Auth Form Toggle ======
@@ -270,69 +321,66 @@ function logout(){
     toggleAuthForm('login'); // Ensure it returns to login tab
 }
 
-// ====== PRODUCTS RENDERING (Image fix applied) ======
+// ====== PRODUCTS RENDERING (Image handling + wishlist + avg rating) ======
 const homeList = document.getElementById("homeList");
 const categoryList = document.getElementById("categoryList");
 const cartList = document.getElementById("cartList");
 const cartLink = document.getElementById("cartLink");
+const wishlistLink = document.getElementById("wishlistLink");
 const reviewList = document.getElementById("reviewList");
 const carousel = document.getElementById("carousel");
+
+function getAverageRating(productId){
+    const related = reviews.filter(r=>r.productId===productId);
+    if(related.length===0) return 0;
+    const sum = related.reduce((s,r)=>s + (r.rating||0),0);
+    return +(sum/related.length).toFixed(1);
+}
 
 function renderProducts(list, arr){
     list.innerHTML='';
     if(arr.length===0){ list.innerHTML="<p>No products.</p>"; return; }
     arr.forEach((p,i)=>{
-        // Product index in the global `products` array is needed for `addToCart`
         const productIndexInMainArray = products.findIndex(prod => prod.id === p.id); 
         const div=document.createElement('div'); div.className='product';
-        let stars=''; for(let s=1;s<=5;s++){ stars += s<=p.rating ? '★':'☆'; }
+        let stars=''; for(let s=1;s<=5;s++){ stars += s<=Math.round(p.rating || getAverageRating(p.id)) ? '★':'☆'; }
         let badgeHTML=p.badge?`<div class="badge">${p.badge}</div>`:'';
-        
-        // Use p.imageURL (from vendor/admin) if available, otherwise p.image, or fallback
-        const imageUrl = (p.imageURL && p.imageURL.startsWith('http')) ? p.imageURL : 
-                         (p.image && p.image.startsWith('http') ? p.image : "https://via.placeholder.com/150?text=No+Image");
+        const isWish = wishlist.some(w=>w.id===p.id);
+        const heartClass = isWish ? 'heart-active' : '';
+        // image sources priority: imageData (base64) -> imageURL -> image -> placeholder
+        const imageUrl = p.imageData ? p.imageData : (p.imageURL && p.imageURL.startsWith('http') ? p.imageURL : (p.image && p.image.startsWith('http') ? p.image : "https://via.placeholder.com/400?text=No+Image"));
 
-        div.innerHTML=`${badgeHTML}<div class="product-image-container"><img src="${imageUrl}" alt="${p.name}"></div>
+        div.innerHTML=`${badgeHTML}<button class="heart-btn ${heartClass}" title="Toggle Wishlist" onclick="toggleWishlist(${p.id}, event)">❤</button>
+        <div class="product-image-container"><img src="${imageUrl}" alt="${p.name}" loading="lazy" onerror="this.onerror=null;this.src='https://via.placeholder.com/400?text=Image+Unavailable';" onclick="openImageModal('${imageUrl}','${p.name}')"></div>
         <h3>${p.name}</h3>
-        <p>Category: ${p.category}</p><p>$${p.price.toFixed(2)}</p><p>Stock: ${p.stock}</p><p>${stars}</p>
+        <p>Category: ${p.category}</p><p>$${p.price.toFixed(2)}</p><p>Stock: ${p.stock}</p><p>${stars} <span class="small">(${getAverageRating(p.id) || (p.rating||0)})</span></p>
         <button onclick="addToCart(${productIndexInMainArray})" ${p.stock <= 0 ? 'disabled style="background-color: #ff6347;"' : ''}>${p.stock > 0 ? 'Add to Cart' : 'Out of Stock'}</button>`; 
         list.appendChild(div);
     });
     updateCartBadge();
 }
 
-function updateCartBadge(){ cartLink.setAttribute('data-count',cart.length); }
+function updateWishlistBadge(){ wishlistLink.setAttribute('data-count', wishlist.length); }
 
 function renderCarousel(){ 
     carousel.innerHTML=''; 
-    
-    // Ensure the carousel only uses products with valid image links
-    const carouselProducts = products.filter(p => p.imageURL || (p.image && p.image.startsWith('http'))).slice(0,3);
-
+    const carouselProducts = products.filter(p => p.imageData || (p.imageURL && p.imageURL.startsWith('http')) || (p.image && p.image.startsWith('http'))).slice(0,3);
     if (carouselProducts.length === 0) {
         carousel.innerHTML = '<p style="text-align: center; width: 100%; padding: 50px;">No images available for carousel.</p>';
         return;
     }
-    
     carouselProducts.forEach(p=>{
-        const imageUrl = p.imageURL && p.imageURL.startsWith('http') ? p.imageURL : p.image;
+        const imageUrl = p.imageData ? p.imageData : (p.imageURL && p.imageURL.startsWith('http') ? p.imageURL : p.image);
         const img=document.createElement('img'); 
         img.src=imageUrl; 
         img.alt=p.name; 
         carousel.appendChild(img);
     }); 
-    
-    // Simple carousel logic
     let carouselIdx=0;
     const intervalId = setInterval(()=>{ 
         const imgs=carousel.querySelectorAll('img'); 
-        if (imgs.length === 0) {
-             clearInterval(intervalId); 
-             return;
-        }
-        imgs.forEach((img)=>{ 
-            img.style.transform=`translateX(-${carouselIdx*100}%)`; 
-        }); 
+        if (imgs.length === 0) { clearInterval(intervalId); return; }
+        imgs.forEach((img)=>{ img.style.transform=`translateX(-${carouselIdx*100}%)`; }); 
         carouselIdx=(carouselIdx+1)%(imgs.length || 1); 
     },3000);
 }
@@ -367,16 +415,9 @@ function filterCategory() {
 function populateCategoryFilter() {
     const categories = [...new Set(products.map(p => p.category))];
     const filter = document.getElementById('categoryFilter');
-    // Clear existing options except 'All'
     filter.innerHTML = '<option value="All">All</option>';
-    categories.forEach(cat => {
-        const option = document.createElement('option');
-        option.value = cat;
-        option.textContent = cat;
-        filter.appendChild(option);
-    });
+    categories.forEach(cat => { const option = document.createElement('option'); option.value = cat; option.textContent = cat; filter.appendChild(option); });
 }
-
 
 // ====== CART & CHECKOUT ======
 function renderCart(){
@@ -396,140 +437,89 @@ function renderCart(){
 
 function addToCart(i){ 
     if(!loggedCustomer){ alert("Please login first!"); showPage('loginForm'); toggleAuthForm('login'); return; }
-    
-    // Check if product index is valid and product has stock
-    if (i === -1 || !products[i] || products[i].stock < 1) {
-        alert("Product out of stock or unavailable.");
-        return;
-    }
-    
+    if (i === -1 || !products[i] || products[i].stock < 1) { alert("Product out of stock or unavailable."); return; }
     const existingItem = cart.find(item => item.id === products[i].id);
-    
     if(existingItem){
-        if ((existingItem.quantity || 1) >= products[i].stock) {
-            alert(`Maximum stock limit reached for ${products[i].name} (${products[i].stock}).`);
-            return;
-        }
+        if ((existingItem.quantity || 1) >= products[i].stock) { alert(`Maximum stock limit reached for ${products[i].name} (${products[i].stock}).`); return; }
         existingItem.quantity = (existingItem.quantity || 1) + 1;
-    } else {
-        cart.push({...products[i], quantity: 1}); 
-    }
-    
-    localStorage.setItem("cart",JSON.stringify(cart)); 
-    renderCart(); 
-    alert(`${products[i].name} added to cart!`);
+    } else { cart.push({...products[i], quantity: 1}); }
+    localStorage.setItem("cart",JSON.stringify(cart)); renderCart(); alert(`${products[i].name} added to cart!`);
 }
 
-function removeFromCart(i){ 
-    cart.splice(i,1); 
-    localStorage.setItem("cart",JSON.stringify(cart)); 
-    renderCart(); 
-}
+function removeFromCart(i){ cart.splice(i,1); localStorage.setItem("cart",JSON.stringify(cart)); renderCart(); }
 
-function updateQuantity(i, val){ 
-    const quantity = Number(val);
-    if (quantity < 1 || isNaN(quantity)) return;
-    
-    const productInCart = cart[i];
-    // Find the product's current stock from the main array
-    const productInStock = products.find(p => p.id === productInCart.id);
+function updateQuantity(i, val){ const quantity = Number(val); if (quantity < 1 || isNaN(quantity)) return; const productInCart = cart[i]; const productInStock = products.find(p => p.id === productInCart.id);
+    if (productInStock && quantity > productInStock.stock) { alert(`Cannot add more than available stock: ${productInStock.stock}`); cart[i].quantity = productInStock.stock; const inputElement = document.querySelector(`#cartList .product:nth-child(${i + 1}) input`); if (inputElement) inputElement.value = productInStock.stock; } else { cart[i].quantity = quantity; }
+    localStorage.setItem("cart",JSON.stringify(cart)); updateCartTotal(); }
 
-    if (productInStock && quantity > productInStock.stock) {
-        alert(`Cannot add more than available stock: ${productInStock.stock}`);
-        cart[i].quantity = productInStock.stock; // Set to max stock
-        // Update input field manually
-        const inputElement = document.querySelector(`#cartList .product:nth-child(${i + 1}) input`);
-        if (inputElement) inputElement.value = productInStock.stock;
-    } else {
-        cart[i].quantity = quantity; 
-    }
-    
-    localStorage.setItem("cart",JSON.stringify(cart)); 
-    updateCartTotal(); 
-}
+function updateCartTotal(){ let total=0; cart.forEach(p=>{ total+=Number(p.price) * (p.quantity || 1); }); document.getElementById('cartSummary').innerText=`Total: $${total.toFixed(2)}`; }
 
-function updateCartTotal(){ 
-    let total=0; 
-    cart.forEach(p=>{ total+=Number(p.price) * (p.quantity || 1); }); 
-    document.getElementById('cartSummary').innerText=`Total: $${total.toFixed(2)}`; 
-}
-
-function checkout(){ 
-    if(cart.length===0){ alert("Cart empty!"); return; } 
-    if(!loggedCustomer) { alert("Please login to checkout!"); return; }
-
+function checkout(){ if(cart.length===0){ alert("Cart empty!"); return; } if(!loggedCustomer) { alert("Please login to checkout!"); return; }
     const total = cart.reduce((sum, p) => sum + (p.price * (p.quantity || 1)), 0);
-
-    const newOrder = {
-        id: orders.length + 1,
-        customerName: loggedCustomer.username,
-        customerWhatsapp: loggedCustomer.whatsapp,
-        customerAddress: loggedCustomer.address,
-        products: cart.map(p => ({name: p.name, price: p.price, quantity: p.quantity || 1, id: p.id})),
-        total: total.toFixed(2),
-        date: new Date().toLocaleString(),
-        status: "Pending"
-    };
-
-    orders.push(newOrder);
-    localStorage.setItem("orders",JSON.stringify(orders));
-
-    // Update stock in main products array after order
+    const newOrder = { id: orders.length + 1, customerName: loggedCustomer.username, customerWhatsapp: loggedCustomer.whatsapp, customerAddress: loggedCustomer.address, products: cart.map(p => ({name: p.name, price: p.price, quantity: p.quantity || 1, id: p.id})), total: total.toFixed(2), date: new Date().toLocaleString(), status: "Pending" };
+    orders.push(newOrder); localStorage.setItem("orders",JSON.stringify(orders));
     let updatedProducts = JSON.parse(localStorage.getItem("products")||'[]');
-    cart.forEach(cartItem => {
-        const productIndex = updatedProducts.findIndex(p => p.id === cartItem.id);
-        if (productIndex !== -1) {
-            updatedProducts[productIndex].stock -= (cartItem.quantity || 1);
-        }
-    });
-    localStorage.setItem("products", JSON.stringify(updatedProducts));
-    products = updatedProducts; // Update local scope variable
+    cart.forEach(cartItem => { const productIndex = updatedProducts.findIndex(p => p.id === cartItem.id); if (productIndex !== -1) { updatedProducts[productIndex].stock -= (cartItem.quantity || 1); } });
+    localStorage.setItem("products", JSON.stringify(updatedProducts)); products = updatedProducts; cart=[]; localStorage.setItem("cart",JSON.stringify(cart)); alert(`Order placed successfully! Total: $${newOrder.total}. Check your WhatsApp for confirmation.`); showPage('home'); }
 
-    cart=[]; 
-    localStorage.setItem("cart",JSON.stringify(cart)); 
-    alert(`Order placed successfully! Total: $${newOrder.total}. Check your WhatsApp for confirmation.`); 
-    showPage('home');
-}
+// ====== WISHLIST ======
+function toggleWishlist(productId, evt){ evt.stopPropagation(); if(!loggedCustomer){ alert('Please login to use wishlist'); showPage('loginForm'); toggleAuthForm('login'); return; }
+    const idx = wishlist.findIndex(w=>w.id===productId);
+    if(idx===-1){ const p = products.find(x=>x.id===productId); if(p){ wishlist.push({id:p.id,name:p.name,price:p.price,image:p.image || p.imageData}); } }
+    else wishlist.splice(idx,1);
+    localStorage.setItem('wishlist', JSON.stringify(wishlist)); updateWishlistBadge(); renderWishlist(); renderProducts(categoryList, products); renderProducts(homeList, products.slice(0,6)); }
 
-// ====== REVIEWS & SUPPORT ======
+function renderWishlist(){ const list = document.getElementById('wishlistList'); list.innerHTML=''; if(wishlist.length===0){ list.innerHTML='<p>Your wishlist is empty.</p>'; return; } wishlist.forEach(w=>{ const div = document.createElement('div'); div.className='product'; const img = w.image || 'https://via.placeholder.com/400?text=No+Image'; div.innerHTML=`<div class="product-image-container"><img src="${img}" alt="${w.name}" loading="lazy" onerror="this.onerror=null;this.src='https://via.placeholder.com/400?text=Image+Unavailable';" onclick="openImageModal('${img}','${w.name}')"></div><h3>${w.name}</h3><p>$${w.price}</p><button onclick="addFromWishlist(${w.id})">Add to Cart</button><button onclick="removeFromWishlist(${w.id})">Remove</button>`; list.appendChild(div); }); }
+
+function addFromWishlist(id){ const product = products.find(p=>p.id===id); if(!product){ alert('Product unavailable'); return; } const idx = products.findIndex(p=>p.id===id); addToCart(idx); }
+function removeFromWishlist(id){ const idx = wishlist.findIndex(w=>w.id===id); if(idx!==-1){ wishlist.splice(idx,1); localStorage.setItem('wishlist', JSON.stringify(wishlist)); updateWishlistBadge(); renderWishlist(); renderProducts(categoryList, products); } }
+
+// ====== REVIEWS & SUPPORT (Enhanced) ======
+// Star rating control
+const reviewStarsEl = document.getElementById('reviewStars');
+let selectedReviewRating = 5; // default
+reviewStarsEl.addEventListener('click', (e)=>{
+    const idx = Array.from(reviewStarsEl.textContent).join('').length; // not used
+});
+// make stars clickable
+(function makeStarsClickable(){ const el = reviewStarsEl; el.innerHTML = '★★★★★'; el.style.cursor='pointer'; el.addEventListener('mousemove', function(ev){ const rect = el.getBoundingClientRect(); const x = ev.clientX - rect.left; const width = rect.width; const percent = Math.max(0, Math.min(1, x/width)); const hover = Math.ceil(percent*5); el.textContent = '★★★★★'.split('').map((s,i)=> i<hover?'★':'☆').join(''); }); el.addEventListener('click', function(ev){ const rect = el.getBoundingClientRect(); const x = ev.clientX - rect.left; const percent = Math.max(0, Math.min(1, x/rect.width)); selectedReviewRating = Math.ceil(percent*5); if(selectedReviewRating===0) selectedReviewRating=1; el.textContent = '★★★★★'.split('').map((s,i)=> i<selectedReviewRating?'★':'☆').join(''); }); el.addEventListener('mouseleave', function(){ el.textContent = '★★★★★'.split('').map((s,i)=> i<selectedReviewRating?'★':'☆').join(''); }); })();
+
 function submitReview(){
     let name=document.getElementById("reviewName").value.trim();
     let text=document.getElementById("reviewText").value.trim();
     if(!name || !text){ alert("Enter name & review"); return; }
-    reviews.push({name: name, text: text, customer: loggedCustomer ? loggedCustomer.username : 'Guest'});
-    localStorage.setItem("reviews",JSON.stringify(reviews));
-    renderReviews();
-    document.getElementById("reviewName").value='';
-    document.getElementById("reviewText").value='';
+    if(!loggedCustomer){ alert('Please login to submit a review'); showPage('loginForm'); toggleAuthForm('login'); return; }
+    reviews.push({id: Date.now(), name: name, text: text, customer: loggedCustomer.username, rating: selectedReviewRating, productId: null, date: new Date().toLocaleString()});
+    localStorage.setItem("reviews",JSON.stringify(reviews)); renderReviews(); document.getElementById("reviewName").value=''; document.getElementById("reviewText").value='';
 }
 
-function renderReviews(){
-    reviewList.innerHTML='';
-    reviews = JSON.parse(localStorage.getItem("reviews")||'[]'); // Reload
-    if(reviews.length===0){ reviewList.innerHTML="<p>No reviews yet. Be the first!</p>"; return; }
-    
-    // Show only last 5 reviews
-    const latestReviews = reviews.slice(-5).reverse(); 
-    
-    latestReviews.forEach(r=>{
-        let div=document.createElement('div');
-        div.className='review-item';
-        div.innerHTML=`
-            <p><strong>${r.name}:</strong> ${r.text}</p>
-            <p class="review-customer">Reviewed by: <b>${r.customer}</b></p>
-        `;
-        reviewList.appendChild(div);
-    });
+function renderReviews(){ reviewList.innerHTML=''; reviews = JSON.parse(localStorage.getItem("reviews")||'[]'); if(reviews.length===0){ reviewList.innerHTML="<p>No reviews yet. Be the first!</p>"; return; }
+    // Show only last 10 reviews
+    const latestReviews = reviews.slice(-10).reverse(); 
+    latestReviews.forEach(r=>{ let div=document.createElement('div'); div.className='review-item'; let deleteBtn = (loggedCustomer && loggedCustomer.username===r.customer) ? `<button onclick="deleteReview(${r.id})">Delete</button>` : '';
+        div.innerHTML=`<p><strong>${r.name}:</strong> ${r.text}</p><p>Rating: ${'★'.repeat(r.rating||0)}${'☆'.repeat(5-(r.rating||0))} <span class="small">by <b>${r.customer}</b> on ${r.date}</span></p>${deleteBtn}`; reviewList.appendChild(div); });
 }
+
+function deleteReview(id){ const idx = reviews.findIndex(r=>r.id===id); if(idx!==-1){ if(!loggedCustomer || loggedCustomer.username !== reviews[idx].customer){ alert('You can only delete your own review'); return; } reviews.splice(idx,1); localStorage.setItem('reviews', JSON.stringify(reviews)); renderReviews(); } }
+
 function openWhatsApp(){ window.open("https://wa.me/8801913821910","_blank"); }
+
+function openImageModal(src, caption){ document.getElementById('modalImg').src = src; document.getElementById('modalCaption').innerText = caption || ''; document.getElementById('imageModal').style.display='flex'; }
+function closeImageModal(){ document.getElementById('imageModal').style.display='none'; }
+
+// ====== ADD PRODUCT (Admin) with image file -> base64 ======
+function openAddProductModal(){ document.getElementById('addProductModal').style.display='flex'; }
+function closeAddProductModal(){ document.getElementById('addProductModal').style.display='none'; }
+
+function addProduct(){ const name = document.getElementById('newName').value.trim(); const price = parseFloat(document.getElementById('newPrice').value); const category = document.getElementById('newCategory').value.trim() || 'Misc'; const stock = parseInt(document.getElementById('newStock').value) || 0; const badge = document.getElementById('newBadge').value.trim(); const file = document.getElementById('newImageFile').files[0]; if(!name || isNaN(price)){ alert('Please add at least name and price'); return; }
+    const newId = (products.reduce((m,p)=>Math.max(m,p.id),0) + 1);
+    if(file){ const reader = new FileReader(); reader.onload = function(e){ const dataUrl = e.target.result; const newP = {id:newId,name,price,category,stock, badge, imageData: dataUrl}; products.push(newP); localStorage.setItem('products', JSON.stringify(products)); closeAddProductModal(); renderAllPageContent(); alert('Product added'); }; reader.readAsDataURL(file); }
+    else{ const newP = {id:newId,name,price,category,stock, badge, image: 'https://via.placeholder.com/400?text=No+Image'}; products.push(newP); localStorage.setItem('products', JSON.stringify(products)); closeAddProductModal(); renderAllPageContent(); alert('Product added'); }
+}
 
 // ====== INITIAL RENDER ======
 renderAllPageContent();
-
-// Ensure the login form is shown first if not logged in
-if (!loggedCustomer) {
-    toggleAuthForm('login'); 
-}
+if (!loggedCustomer) toggleAuthForm('login');
 </script>
 </body>
-</html> 
+</html>
