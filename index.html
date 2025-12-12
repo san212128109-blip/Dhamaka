@@ -5,28 +5,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dhamaka Daily Items - Shop</title>
 <style>
-/* ======= General Styling ======= */
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:Arial,sans-serif;background:#f0f0f0;color:#212529;transition:0.3s;}
-body.dark{background:#121212;color:#ddd;}
-header{background:#28a745;color:white;padding:1em;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;position:sticky;top:0;z-index:10;}
+body{font-family:Arial,sans-serif;background:#f8f9fa;color:#212529;}
+header{background:#28a745;color:white;padding:1em;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;}
 header h1{font-size:1.5em;}
-nav{display:flex;align-items:center;flex-wrap:wrap;}
-nav a{color:white;margin-left:1em;text-decoration:none;font-weight:bold;transition:0.3s;position:relative;}
-nav a:hover{text-decoration:underline;color:#ffc107;}
-nav button{margin-left:1em;cursor:pointer;}
+nav a, nav button{color:white;margin-left:1em;text-decoration:none;font-weight:bold;cursor:pointer;}
 .page{display:none;padding:1em;}
-.product-list,.cart-list{display:flex;flex-wrap:wrap;gap:1em;justify-content:center;margin-top:1em;}
-.product{border:1px solid #28a745;border-radius:12px;padding:1em;width:200px;text-align:center;background:#fff;box-shadow:2px2px10px rgba(0,0,0,0.1);transition:0.3s;position:relative;}
-.product:hover{transform:scale(1.05);box-shadow:4px4px15px rgba(0,0,0,0.2);}
+.product-list{display:flex;flex-wrap:wrap;gap:1em;justify-content:center;margin-top:1em;}
+.product{border:1px solid #28a745;border-radius:12px;padding:1em;width:200px;text-align:center;background:#fff;box-shadow:2px2px10px rgba(0,0,0,0.1);}
 .product img{width:150px;height:150px;object-fit:cover;border-radius:8px;}
-.badge{position:absolute;top:10px;left:10px;background:#ffc107;color:#000;padding:2px 6px;border-radius:4px;font-size:0.8em;}
-button{background:#28a745;color:white;border:none;padding:0.5em 1em;border-radius:5px;cursor:pointer;margin-top:0.5em;transition:0.3s;}
-button:hover{background:#218838;}
-input,select,textarea{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;border:1px solid #ccc;}
+button{background:#28a745;color:white;border:none;padding:0.5em 1em;border-radius:5px;cursor:pointer;margin-top:0.5em;}
+button:disabled{background:#ccc;cursor:not-allowed;}
 #cartSummary{text-align:center;margin-top:1em;font-weight:bold;}
-#support{position:fixed;bottom:20px;right:20px;background:#25D366;color:white;padding:10px 15px;border-radius:50px;cursor:pointer;box-shadow:2px2px10px rgba(0,0,0,0.2);}
-h2{text-align:center;margin-bottom:0.5em;}
 </style>
 </head>
 <body>
@@ -34,17 +24,15 @@ h2{text-align:center;margin-bottom:0.5em;}
 <header>
 <h1>Dhamaka Daily Items</h1>
 <nav>
-<a href="#home" onclick="showPage('home')">Home</a>
-<a href="#categories" onclick="showPage('categories')">Categories</a>
-<a id="cartLink" href="#cart" data-count="0" onclick="showPage('cart')">Cart</a>
-<button onclick="toggleDarkMode()">🌙</button>
+<a onclick="showPage('home')">Home</a>
+<a onclick="showPage('categories')">Categories</a>
+<a id="cartLink" onclick="showPage('cart')">Cart (0)</a>
 <button id="logoutBtn" style="display:none;" onclick="logout()">Logout</button>
 </nav>
 </header>
 
-<!-- Pages -->
 <div id="home" class="page">
-<h2>🔥 Top Deals</h2>
+<h2>🔥 Featured Products</h2>
 <div class="product-list" id="homeList"></div>
 </div>
 
@@ -52,42 +40,31 @@ h2{text-align:center;margin-bottom:0.5em;}
 <h2>All Products</h2>
 <select id="categoryFilter" onchange="filterCategory()"><option value="All">All</option></select>
 <input type="text" id="searchInput" placeholder="Search Products..." oninput="filterCategory()">
-<select id="sortSelect" onchange="filterCategory()">
-<option value="">Sort By</option>
-<option value="price-asc">Price Low→High</option>
-<option value="price-desc">Price High→Low</option>
-<option value="name-asc">Name A→Z</option>
-<option value="name-desc">Name Z→A</option>
-</select>
 <div class="product-list" id="categoryList"></div>
 </div>
 
 <div id="cart" class="page">
 <h2>Your Cart</h2>
-<div class="cart-list" id="cartList"></div>
+<div class="product-list" id="cartList"></div>
 <div id="cartSummary"></div>
-<input type="text" id="promoInput" placeholder="Enter Promo Code">
-<button onclick="applyPromo()">Apply Promo Code</button>
 <button onclick="checkout()">Checkout</button>
 </div>
 
 <div id="loginForm" class="page">
 <h2>Customer Area</h2>
 <div style="text-align:center;margin-bottom:1em;">
-<button onclick="toggleAuthForm('login')" id="loginToggleBtn">Login</button>
-<button onclick="toggleAuthForm('register')" id="registerToggleBtn">Register</button>
+<button onclick="toggleAuthForm('login')">Login</button>
+<button onclick="toggleAuthForm('register')">Register</button>
 </div>
-
 <div id="loginDiv" style="max-width:400px;margin:1em auto;text-align:center;">
-<h3>Login to Shop</h3>
+<h3>Login</h3>
 <input type="text" id="usernameLogin" placeholder="Username">
 <input type="password" id="passwordLogin" placeholder="Password">
 <button onclick="customerLogin()">Login</button>
 <p id="loginMsg" style="color:red;"></p>
 </div>
-
 <div id="registerDiv" style="max-width:400px;margin:1em auto;text-align:center;display:none;">
-<h3>Register New Account</h3>
+<h3>Register</h3>
 <input type="text" id="usernameRegister" placeholder="Username">
 <input type="text" id="userWhatsappRegister" placeholder="WhatsApp Number">
 <input type="text" id="userAddressRegister" placeholder="Address">
@@ -97,36 +74,24 @@ h2{text-align:center;margin-bottom:0.5em;}
 </div>
 </div>
 
-<div id="support" onclick="openWhatsApp()">💬 Support</div>
-
 <script>
-// ====== Data Storage ======
-let products = JSON.parse(localStorage.getItem("products")||'[]');
-let vendors = JSON.parse(localStorage.getItem("vendors")||'[]');
-let cart = JSON.parse(localStorage.getItem("cart")||"[]");
-let customers = JSON.parse(localStorage.getItem("customers")||'[]');
-let loggedCustomer = JSON.parse(localStorage.getItem("loggedCustomer")||'null');
-
-// Auto-login check
-if(loggedCustomer){ showPage('home'); document.getElementById('logoutBtn').style.display='inline-block'; }
-else{ showPage('loginForm'); }
-
-// ====== Page & Dark Mode ======
-function showPage(page){
-document.querySelectorAll('.page').forEach(p=>p.style.display='none');
-document.getElementById(page).style.display='block';
-renderAllPageContent();
-}
-function toggleDarkMode(){ document.body.classList.toggle('dark'); }
+// ====== Data ======
+let products=JSON.parse(localStorage.getItem("products")||'[]');
+let vendors=JSON.parse(localStorage.getItem("vendors")||'[]');
+let cart=JSON.parse(localStorage.getItem("cart")||'[]');
+let customers=JSON.parse(localStorage.getItem("customers")||'[]');
+let orders=JSON.parse(localStorage.getItem("orders")||'[]');
+let loggedCustomer=JSON.parse(localStorage.getItem("loggedCustomer")||'null');
 
 // ====== Auth ======
+if(loggedCustomer){ showPage('home'); document.getElementById('logoutBtn').style.display='inline-block'; } 
+else{ showPage('loginForm'); }
+
 function toggleAuthForm(mode){
 const login=document.getElementById('loginDiv');
 const register=document.getElementById('registerDiv');
-const loginBtn=document.getElementById('loginToggleBtn');
-const registerBtn=document.getElementById('registerToggleBtn');
-if(mode==='login'){ login.style.display='block'; register.style.display='none'; loginBtn.style.backgroundColor='#28a745'; registerBtn.style.backgroundColor='#6c757d'; }
-else{ login.style.display='none'; register.style.display='block'; loginBtn.style.backgroundColor='#6c757d'; registerBtn.style.backgroundColor='#28a745'; }
+if(mode==='login'){ login.style.display='block'; register.style.display='none'; }
+else{ login.style.display='none'; register.style.display='block'; }
 }
 
 function customerRegister(){
@@ -138,103 +103,121 @@ if(!username||!whatsapp||!address||!password){ document.getElementById("register
 if(customers.some(c=>c.username===username)){ document.getElementById("registerMsg").innerText="Username exists"; return; }
 customers.push({username,whatsapp,address,password});
 localStorage.setItem("customers",JSON.stringify(customers));
-document.getElementById("registerMsg").innerText="Registered! Login now";
-toggleAuthForm('login');
+document.getElementById("registerMsg").innerText="Registered! Login now"; toggleAuthForm('login');
 }
 
 function customerLogin(){
 let username=document.getElementById("usernameLogin").value.trim();
-let password=document.getElementById("passwordLogin").value;
-let user = customers.find(c=>c.username===username && c.password===password);
-if(user){ loggedCustomer=user; localStorage.setItem("loggedCustomer",JSON.stringify(loggedCustomer)); showPage('home'); document.getElementById('logoutBtn').style.display='inline-block'; }
-else{ document.getElementById("loginMsg").innerText="Invalid username/password"; }
+let password=document.getElementById("passwordLogin").value.trim();
+let user=customers.find(c=>c.username===username && c.password===password);
+if(user){ loggedCustomer=user; localStorage.setItem("loggedCustomer",JSON.stringify(loggedCustomer));
+showPage('home'); document.getElementById('logoutBtn').style.display='inline-block';
+document.getElementById("loginMsg").innerText="";
+document.getElementById("usernameLogin").value=''; document.getElementById("passwordLogin").value=''; }
+else{ document.getElementById("loginMsg").innerText="Invalid credentials"; }
 }
 
-function logout(){ loggedCustomer=null; localStorage.removeItem("loggedCustomer"); showPage('loginForm'); document.getElementById('logoutBtn').style.display='none'; toggleAuthForm('login'); }
+function logout(){ loggedCustomer=null; localStorage.removeItem("loggedCustomer"); showPage('loginForm'); document.getElementById('logoutBtn').style.display='none'; }
 
-// ====== Products Rendering ======
+// ====== Render Products ======
 const homeList=document.getElementById("homeList");
 const categoryList=document.getElementById("categoryList");
 const cartList=document.getElementById("cartList");
 const cartLink=document.getElementById("cartLink");
-
-function renderProducts(list, arr){
+function renderProducts(list,arr){
 list.innerHTML='';
 if(arr.length===0){ list.innerHTML="<p>No products.</p>"; return; }
 arr.forEach(p=>{
+if(!p.approved) return; // Only approved products
+const vendor=p.vendorId?vendors.find(v=>v.id===p.vendorId):null;
 const div=document.createElement('div'); div.className='product';
-let badgeHTML=p.badge?`<div class="badge">${p.badge}</div>`:'';
-const img=p.imageURL||p.image||"https://via.placeholder.com/150";
-div.innerHTML=`${badgeHTML}<img src="${img}" alt="${p.name}"><h3>${p.name}</h3><p>Category: ${p.category}</p><p>$${p.price.toFixed(2)}</p><p>Stock: ${p.stock}</p>`;
-div.innerHTML+=`<button onclick="addToCart(${p.id})"${p.stock<=0?' disabled style="background:#ff6347"':''}>${p.stock>0?'Add to Cart':'Out of Stock'}</button>`;
+const image=p.imageURL?p.imageURL:p.image?p.image:"https://via.placeholder.com/150";
+div.innerHTML=`<img src="${image}" alt="${p.name}"><h3>${p.name}</h3>
+<p>Price: $${p.price.toFixed(2)}</p><p>Stock: ${p.stock}</p>
+<button ${p.stock<=0?'disabled':''} onclick="addToCart(${p.id})">${p.stock>0?'Add to Cart':'Out of Stock'}</button>`;
 list.appendChild(div);
 });
 updateCartBadge();
 }
 
-// ====== Category Filter ======
+// ====== Home & Categories ======
+function showPage(page){
+document.querySelectorAll('.page').forEach(p=>p.style.display='none');
+document.getElementById(page).style.display='block';
+renderAllContent();
+}
+
+function renderAllContent(){
+renderProducts(homeList,products.slice(0,6));
+populateCategoryFilter(); filterCategory(); renderCart();
+}
+
 function populateCategoryFilter(){
-const categories=[...new Set(products.map(p=>p.category))];
+const categories=[...new Set(products.filter(p=>p.approved).map(p=>p.category))];
 const filter=document.getElementById('categoryFilter'); filter.innerHTML='<option value="All">All</option>';
-categories.forEach(c=>{ const opt=document.createElement('option'); opt.value=c; opt.textContent=c; filter.appendChild(opt); });
+categories.forEach(c=>{ let opt=document.createElement('option'); opt.value=c; opt.textContent=c; filter.appendChild(opt); });
 }
 
 function filterCategory(){
 let filtered=products.filter(p=>p.approved);
 const cat=document.getElementById('categoryFilter').value;
-const search=document.getElementById('searchInput').value.toLowerCase();
-const sort=document.getElementById('sortSelect').value;
-if(cat!=='All'){ filtered=filtered.filter(p=>p.category===cat);}
-if(search){ filtered=filtered.filter(p=>p.name.toLowerCase().includes(search));}
-if(sort==='price-asc'){ filtered.sort((a,b)=>a.price-b.price);}
-else if(sort==='price-desc'){ filtered.sort((a,b)=>b.price-a.price);}
-else if(sort==='name-asc'){ filtered.sort((a,b)=>a.name.localeCompare(b.name));}
-else if(sort==='name-desc'){ filtered.sort((a,b)=>b.name.localeCompare(a.name));}
+const term=document.getElementById('searchInput').value.toLowerCase();
+if(cat!=='All'){ filtered=filtered.filter(p=>p.category===cat); }
+if(term){ filtered=filtered.filter(p=>p.name.toLowerCase().includes(term)); }
 renderProducts(categoryList,filtered);
 }
 
 // ====== Cart ======
-function addToCart(id){
-if(!loggedCustomer){ alert("Login first"); showPage('loginForm'); toggleAuthForm('login'); return; }
-const p=products.find(x=>x.id===id);
-if(!p||p.stock<1){ alert("Out of stock"); return; }
-const existing=cart.find(c=>c.id===id);
-if(existing){ if(existing.quantity>=p.stock){ alert(`Max stock reached (${p.stock})`); return;} existing.quantity+=1;}
-else{ cart.push({...p,quantity:1}); }
-localStorage.setItem("cart",JSON.stringify(cart));
-renderCart();
-alert(`${p.name} added!`);
+function addToCart(productId){
+if(!loggedCustomer){ alert("Login first!"); showPage('loginForm'); toggleAuthForm('login'); return; }
+const product=products.find(p=>p.id===productId); if(!product||product.stock<1){ alert("Out of stock"); return; }
+const item=cart.find(c=>c.id===productId);
+if(item){ if(item.quantity>=product.stock){ alert(`Max stock ${product.stock}`); return; } item.quantity++; }
+else{ cart.push({...product,quantity:1}); }
+localStorage.setItem("cart",JSON.stringify(cart)); renderCart(); alert(`${product.name} added!`);
 }
 
 function renderCart(){
-cartList.innerHTML='';
-if(cart.length===0){ cartList.innerHTML="<p>Cart is empty.</p>"; return;}
+cartList.innerHTML=''; if(cart.length===0){ cartList.innerHTML="<p>Cart is empty</p>"; updateCartBadge(); return; }
 cart.forEach((p,i)=>{
 const div=document.createElement('div'); div.className='product';
-div.innerHTML=`<p>${p.name} - $<span class="price">${(p.price*(p.quantity||1)).toFixed(2)}</span></p>
+div.innerHTML=`<p>${p.name} x ${p.quantity} - $${(p.price*p.quantity).toFixed(2)}</p>
 <input type="number" value="${p.quantity}" min="1" onchange="updateQuantity(${i},this.value)">
 <button onclick="removeFromCart(${i})">Remove</button>`;
 cartList.appendChild(div);
-});
-updateCartTotal(); updateCartBadge();
+}); updateCartTotal(); updateCartBadge();
 }
 
-function updateQuantity(i,val){ const q=Number(val); if(q<1) return; const p=products.find(x=>x.id===cart[i].id); if(p && q>p.stock){ alert(`Max stock ${p.stock}`); cart[i].quantity=p.stock; } else{ cart[i].quantity=q; } localStorage.setItem("cart",JSON.stringify(cart)); renderCart(); }
+function updateQuantity(i,val){
+const quantity=Number(val); if(quantity<1||isNaN(quantity)) return;
+const productInStock=products.find(p=>p.id===cart[i].id);
+if(productInStock && quantity>productInStock.stock){ alert(`Max stock ${productInStock.stock}`); cart[i].quantity=productInStock.stock; }
+else{ cart[i].quantity=quantity; }
+localStorage.setItem("cart",JSON.stringify(cart)); renderCart(); updateCartTotal();
+}
+
 function removeFromCart(i){ cart.splice(i,1); localStorage.setItem("cart",JSON.stringify(cart)); renderCart(); }
-function updateCartTotal(){ let total=0; cart.forEach(p=>total+=p.price*(p.quantity||1)); document.getElementById('cartSummary').innerText=`Total: $${total.toFixed(2)}`; }
-function updateCartBadge(){ cartLink.setAttribute('data-count',cart.reduce((sum,c)=>sum+(c.quantity||1),0)); }
-function checkout(){ if(cart.length===0){ alert("Cart empty"); return;} if(!loggedCustomer){ alert("Login first"); return; } const newOrders=cart.map(c=>({id:c.id,name:c.name,quantity:c.quantity||1,vendorId:c.vendorId})); cart.forEach(ci=>{ const p=products.find(x=>x.id===ci.id); if(p)p.stock-=(ci.quantity||1);}); localStorage.setItem("products",JSON.stringify(products)); cart=[]; localStorage.setItem("cart",JSON.stringify(cart)); renderCart(); alert("Order placed!"); showPage('home'); }
 
-// ====== Promo Code ======
-function applyPromo(){ const code=document.getElementById('promoInput').value.trim(); if(!code){ alert("Enter promo"); return;} const vendor=vendors.find(v=>v.promoCode===code); if(!vendor){ alert("Invalid code"); return;} vendor.customers=vendor.customers+1||1; localStorage.setItem("vendors",JSON.stringify(vendors)); alert(`Promo applied! Vendor ${vendor.name} customer count +1`); document.getElementById('promoInput').value='';}
+function updateCartTotal(){ let total=0; cart.forEach(p=>{ total+=p.price*(p.quantity||1); }); document.getElementById('cartSummary').innerText=`Total: $${total.toFixed(2)}`; }
 
-// ====== Utilities ======
-function openWhatsApp(){ window.open("https://wa.me/8801913821910","_blank"); }
-function renderAllPageContent(){ renderProducts(homeList,products.filter(p=>p.approved).slice(0,6)); populateCategoryFilter(); filterCategory(); renderCart(); updateCartBadge(); }
+function updateCartBadge(){ cartLink.innerText=`Cart (${cart.length})`; }
 
-// Initial render
-renderAllPageContent();
-if(!loggedCustomer){ toggleAuthForm('login'); }
+function checkout(){
+if(cart.length===0){ alert("Cart empty!"); return; }
+let total=cart.reduce((sum,p)=>sum+p.price*(p.quantity||1),0);
+// Update stock & vendor promo count
+cart.forEach(item=>{
+const prodIndex=products.findIndex(p=>p.id===item.id); if(prodIndex!==-1){ products[prodIndex].stock-=item.quantity; }
+const vendor=vendors.find(v=>v.id===item.vendorId); if(vendor){ vendor.customers=vendor.customers?vendor.customers+1:1; }
+});
+localStorage.setItem("products",JSON.stringify(products));
+localStorage.setItem("vendors",JSON.stringify(vendors));
+orders.push({id:orders.length+1,customerName:loggedCustomer.username,products:cart,total:total.toFixed(2),status:'Pending'});
+localStorage.setItem("orders",JSON.stringify(orders));
+cart=[]; localStorage.setItem("cart",JSON.stringify(cart));
+alert(`Order placed! Total: $${total.toFixed(2)}`);
+showPage('home'); renderAllContent();
+}
 </script>
 </body>
 </html>
