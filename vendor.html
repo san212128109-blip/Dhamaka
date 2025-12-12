@@ -33,6 +33,7 @@ img.product-img{width:50px;height:50px;border-radius:5px;object-fit:cover;}
 
 <div class="container">
 
+<!-- LOGIN PAGE -->
 <div id="loginPage" class="page">
 <h2>Vendor Login</h2>
 <input type="text" id="vendorId" placeholder="Vendor ID">
@@ -42,6 +43,7 @@ img.product-img{width:50px;height:50px;border-radius:5px;object-fit:cover;}
 <p style="margin-top:1em;">Need support? WhatsApp: 01913821910</p>
 </div>
 
+<!-- DASHBOARD PAGE -->
 <div id="dashboardPage" class="page">
 <h2>Welcome, <span id="vendorName"></span></h2>
 <button onclick="logout()">Logout</button>
@@ -89,18 +91,21 @@ img.product-img{width:50px;height:50px;border-radius:5px;object-fit:cover;}
 // --- Global State ---
 let editingIndex = null;
 let vendors = JSON.parse(localStorage.getItem("vendors")||'[]');
+
 if(vendors.length===0){
   vendors.push({id:'vendor1',password:'1234',name:'Vendor One',status:'Approved'});
   vendors.push({id:'vendor2',password:'1234',name:'Vendor Two',status:'Pending'});
   localStorage.setItem("vendors",JSON.stringify(vendors));
 }
+
 let products = JSON.parse(localStorage.getItem('products')||'[]');
 let orders = JSON.parse(localStorage.getItem('orders')||'[]');
 let currentVendor = JSON.parse(localStorage.getItem('currentVendor')||'null');
 
 if(currentVendor){ showPage('dashboard'); } else { showPage('login'); }
 
-// --- Page Control ---
+
+// --- Helper ---
 function reloadVendorData() {
     products = JSON.parse(localStorage.getItem('products')||'[]');
     orders = JSON.parse(localStorage.getItem('orders')||'[]');
@@ -109,6 +114,7 @@ function reloadVendorData() {
 function showPage(page){
   document.getElementById('loginPage').style.display=(page==='login')?'block':'none';
   document.getElementById('dashboardPage').style.display=(page==='dashboard')?'block':'none';
+
   if(page==='dashboard'){
     reloadVendorData();
     document.getElementById('vendorName').innerText=currentVendor.name;
@@ -118,18 +124,23 @@ function showPage(page){
   }
 }
 
-// --- Auth ---
+
+// --- Authentication ---
 function vendorLogin(){
   let id=document.getElementById('vendorId').value.trim();
   let pass=document.getElementById('vendorPass').value.trim();
+
   let v=vendors.find(v=>v.id===id && v.password===pass);
+
   if(v){
     if(v.status==='Approved'){
       currentVendor=v;
       localStorage.setItem('currentVendor',JSON.stringify(v));
       showPage('dashboard');
     } else { document.getElementById('msg').innerText='Account not approved yet. WhatsApp: 01913821910'; }
-  } else { document.getElementById('msg').innerText='Invalid ID or Password'; }
+  } else {
+      document.getElementById('msg').innerText='Invalid ID or Password';
+  }
 }
 
 function logout(){
@@ -138,10 +149,11 @@ function logout(){
   showPage('login');
 }
 
-// --- Product Management ---
+
+// --- Product System ---
 function generateProductId(){
   products = JSON.parse(localStorage.getItem('products')||'[]');
-  return products.length>0?Math.max(...products.map(p=>p.id))+1:1;
+  return products.length>0 ? Math.max(...products.map(p=>p.id))+1 : 1;
 }
 
 function resetForm(){
@@ -151,6 +163,7 @@ function resetForm(){
   document.getElementById('prodStock').value='';
   document.getElementById('prodImageURL').value='';
   editingIndex=null;
+
   document.getElementById('formTitle').innerText='Add Product';
   document.getElementById('addProductBtn').style.display='block';
   document.getElementById('updateProductBtn').style.display='none';
@@ -159,17 +172,30 @@ function resetForm(){
 
 function renderProducts(){
   reloadVendorData();
-  let tbody=document.querySelector('#productTable tbody'); tbody.innerHTML='';
+  let tbody=document.querySelector('#productTable tbody');
+  tbody.innerHTML='';
+
   const vendorProducts=products.filter(p=>p.vendorId===currentVendor.id);
-  if(vendorProducts.length===0){ tbody.innerHTML='<tr><td colspan="6">No products added yet.</td></tr>'; return;}
-  vendorProducts.forEach(p=>{
-    const originalIndex=products.findIndex(prod=>prod.id===p.id);
-    let imgURL=p.imageURL||`https://via.placeholder.com/50?text=${p.name[0]}`;
+
+  if(vendorProducts.length===0){
+    tbody.innerHTML='<tr><td colspan="6">No products added yet.</td></tr>';
+    return;
+  }
+
+  vendorProducts.forEach(product=>{
+    const index=products.findIndex(p=>p.id===product.id);
+
     let tr=document.createElement('tr');
-    tr.innerHTML=`<td>${p.name}</td><td>${p.category}</td><td>$${p.price.toFixed(2)}</td><td>${p.stock}</td>
-    <td><img class='product-img' src='${imgURL}' alt='${p.name}'></td>
-    <td><button class="update" onclick="editProduct(${originalIndex})">Edit</button>
-        <button class="delete" onclick="deleteProduct(${originalIndex})">Delete</button></td>`;
+    tr.innerHTML=`
+      <td>${product.name}</td>
+      <td>${product.category}</td>
+      <td>$${product.price.toFixed(2)}</td>
+      <td>${product.stock}</td>
+      <td><img class='product-img' src='${product.imageURL}'></td>
+      <td>
+        <button class="update" onclick="editProduct(${index})">Edit</button>
+        <button class="delete" onclick="deleteProduct(${index})">Delete</button>
+      </td>`;
     tbody.appendChild(tr);
   });
 }
@@ -180,10 +206,23 @@ function addProduct(){
   let price=parseFloat(document.getElementById('prodPrice').value);
   let stock=parseInt(document.getElementById('prodStock').value);
   let imageURL=document.getElementById('prodImageURL').value.trim();
-  if(!name||!category||isNaN(price)||price<=0||isNaN(stock)||stock<0||!imageURL){ alert("Please fill all fields correctly."); return;}
-  let newProduct={id:generateProductId(),name,category,price,stock,rating:5,imageURL,vendorId:currentVendor.id};
+
+  if(!name||!category||isNaN(price)||price<=0||isNaN(stock)||stock<0||!imageURL){
+      alert("Please fill all fields correctly."); 
+      return;
+  }
+
+  let newProduct={
+    id:generateProductId(),
+    name,category,price,stock,
+    rating:5,
+    imageURL,
+    vendorId:currentVendor.id
+  };
+
   products.push(newProduct);
   localStorage.setItem('products',JSON.stringify(products));
+
   renderProducts();
   resetForm();
 }
@@ -191,13 +230,16 @@ function addProduct(){
 function editProduct(i){
   editingIndex=i;
   let p=products[i];
+
   if(p.vendorId!==currentVendor.id){ alert("Not your product"); return; }
+
   document.getElementById('prodName').value=p.name;
   document.getElementById('prodCategory').value=p.category;
   document.getElementById('prodPrice').value=p.price;
   document.getElementById('prodStock').value=p.stock;
-  document.getElementById('prodImageURL').value=p.imageURL||'';
-  document.getElementById('formTitle').innerText=`Edit Product: ${p.name}`;
+  document.getElementById('prodImageURL').value=p.imageURL;
+
+  document.getElementById('formTitle').innerText='Edit Product: '+p.name;
   document.getElementById('addProductBtn').style.display='none';
   document.getElementById('updateProductBtn').style.display='block';
   document.getElementById('cancelEditBtn').style.display='inline-block';
@@ -205,24 +247,45 @@ function editProduct(i){
 
 function updateProduct(){
   if(editingIndex===null){ alert("No product selected"); return; }
+
   let p=products[editingIndex];
-  if(p.vendorId!==currentVendor.id){ alert("Product ownership mismatch"); return; }
+
+  if(p.vendorId!==currentVendor.id){
+      alert("Ownership mismatch");
+      return;
+  }
+
   let name=document.getElementById('prodName').value.trim();
   let category=document.getElementById('prodCategory').value.trim();
   let price=parseFloat(document.getElementById('prodPrice').value);
   let stock=parseInt(document.getElementById('prodStock').value);
   let imageURL=document.getElementById('prodImageURL').value.trim();
-  if(!name||!category||isNaN(price)||price<=0||isNaN(stock)||stock<0||!imageURL){ alert("Please fill all fields correctly"); return; }
-  p.name=name; p.category=category; p.price=price; p.stock=stock; p.imageURL=imageURL;
+
+  if(!name||!category||isNaN(price)||price<=0||isNaN(stock)||stock<0||!imageURL){
+      alert("Fill all fields correctly");
+      return;
+  }
+
+  p.name=name;
+  p.category=category;
+  p.price=price;
+  p.stock=stock;
+  p.imageURL=imageURL;
+
   localStorage.setItem('products',JSON.stringify(products));
-  alert(`Product ID ${p.id} updated successfully!`);
+
+  alert("Updated successfully!");
   renderProducts();
   resetForm();
 }
 
 function deleteProduct(i){
-  if(products[i].vendorId!==currentVendor.id){ alert("Not your product"); return; }
-  if(confirm(`Delete ${products[i].name}?`)){
+  if(products[i].vendorId!==currentVendor.id){
+      alert("Not your product");
+      return;
+  }
+
+  if(confirm("Delete "+products[i].name+"?")){
     products.splice(i,1);
     localStorage.setItem('products',JSON.stringify(products));
     renderProducts();
@@ -230,29 +293,50 @@ function deleteProduct(i){
   }
 }
 
-// --- Vendor Orders ---
+
+// --- Vendor Order System ---
 function renderVendorOrders(){
   reloadVendorData();
-  let vendorOrderList=document.getElementById('vendorOrderList'); vendorOrderList.innerHTML='';
+  let vendorOrderList=document.getElementById('vendorOrderList');
+  vendorOrderList.innerHTML='';
+
   let hasOrders=false;
+
   orders.forEach(order=>{
-    const vendorProductsInOrder=order.products.filter(p=>products.find(mp=>mp.id===p.id && mp.vendorId===currentVendor.id));
+    const vendorProductsInOrder=order.products.filter(
+        p=>products.find(mp=>mp.id===p.id && mp.vendorId===currentVendor.id)
+    );
+
     if(vendorProductsInOrder.length>0){
       hasOrders=true;
-      let productsStr=vendorProductsInOrder.map(p=>`${p.name} (x${p.quantity})`).join(', ');
-      let div=document.createElement('div');
-      div.style.width='280px'; div.style.backgroundColor='#fff'; div.style.border='1px solid #007bff'; div.style.padding='1em'; div.style.borderRadius='8px';
-      div.innerHTML=`<p><b>Order ID:</b> ${order.id}</p>
+
+      let itemList=vendorProductsInOrder.map(p=>`${p.name} (x${p.quantity})`).join(", ");
+
+      let card=document.createElement("div");
+      card.style.width="280px";
+      card.style.background="#fff";
+      card.style.border="1px solid #007bff";
+      card.style.padding="1em";
+      card.style.borderRadius="8px";
+
+      card.innerHTML=`
+        <p><b>Order ID:</b> ${order.id}</p>
         <p><b>Customer:</b> ${order.customerName}</p>
-        <p><b>Your Items:</b> ${productsStr}</p>
-        <p><b>Total Item Price:</b> $${vendorProductsInOrder.reduce((sum,p)=>sum+(p.price*p.quantity),0).toFixed(2)}</p>
+        <p><b>Your Items:</b> ${itemList}</p>
+        <p><b>Total:</b> $${vendorProductsInOrder.reduce((a,b)=>a+(b.price*b.quantity),0).toFixed(2)}</p>
         <p><b>Status:</b> ${order.status}</p>
-        <p><i>Full order details on Admin Panel</i></p>`;
-      vendorOrderList.appendChild(div);
+        <p><i>Full details in Admin Panel</i></p>
+      `;
+
+      vendorOrderList.appendChild(card);
     }
   });
-  if(!hasOrders){ vendorOrderList.innerHTML='<p style="width:100%;text-align:center;">No orders containing your products.</p>'; }
+
+  if(!hasOrders){
+    vendorOrderList.innerHTML='<p style="width:100%;text-align:center;">No orders containing your products.</p>';
+  }
 }
 </script>
+
 </body>
 </html>
