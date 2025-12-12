@@ -3,146 +3,222 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vendor Panel - Dhamaka Daily Items</title>
+<title>Vendor Dashboard - Dhamaka</title>
 <style>
-*{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:Arial,sans-serif;background:#f7f7f7;color:#212529;transition:0.3s;}
-body.dark{background:#121212;color:#ddd;}
-header{background:#17a2b8;color:white;padding:1em;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;}
-header h1{font-size:1.5em;}
-nav a{color:white;margin-left:1em;text-decoration:none;font-weight:bold;transition:0.3s;}
-nav a:hover{text-decoration:underline;color:#ffc107;}
-nav button{margin-left:1em;cursor:pointer;}
-.page{display:none;padding:1em;}
-input,select,textarea,button{padding:0.5em;margin:0.3em 0;border-radius:5px;border:1px solid #ccc;}
-button{background:#17a2b8;color:white;border:none;cursor:pointer;}
-button:hover{background:#138496;}
-.product-list{display:flex;flex-wrap:wrap;gap:1em;}
-.product{border:1px solid #17a2b8;padding:1em;border-radius:10px;width:200px;position:relative;}
-.badge{position:absolute;top:10px;left:10px;background:#ffc107;color:#000;padding:2px 6px;border-radius:4px;font-size:0.8em;}
+body{font-family:Arial,sans-serif;background:#f8f9fa;color:#212529;margin:0;padding:0;}
+header{background:#28a745;color:white;padding:1em;display:flex;justify-content:space-between;align-items:center;}
+header h1{margin:0;}
+header button{padding:0.5em 1em;border:none;border-radius:5px;background:#ffc107;color:#212529;cursor:pointer;}
+.container{padding:1em;}
+input,select,textarea{width:100%;padding:0.5em;margin:0.3em 0;border-radius:5px;border:1px solid #ccc;}
+button.action-btn{padding:0.5em 1em;margin:0.3em;border:none;border-radius:5px;cursor:pointer; width: 48%;}
+button.add{background:#28a745;color:white;}
+button.update{background:#007bff;color:white;}
+button.delete{background:#dc3545;color:white; width: auto;}
+button.cancel{background:#6c757d;color:white;}
+table{width:100%;border-collapse:collapse;margin-top:1em;}
+table,th,td{border:1px solid #ccc;}
+th,td{padding:0.5em;text-align:center;}
+.page{display:none;}
+img.product-img{width:50px;height:50px;border-radius:5px; object-fit: cover;}
+#addProductContainer{max-width:600px;margin:1em auto;padding:1em;border:1px solid #28a745;border-radius:8px;background:#e2f0e6;}
 </style>
 </head>
 <body>
 
 <header>
-<h1>Vendor Panel</h1>
-<nav>
-<button onclick="toggleDarkMode()">🌙</button>
-<button id="logoutBtn" style="display:none;" onclick="logout()">Logout</button>
-</nav>
+<h1>Vendor System</h1>
+<div id="headerInfo"></div>
 </header>
 
-<div id="vendorLogin" class="page">
+<div class="container">
+
+<div id="loginPage" class="page">
 <h2>Vendor Login</h2>
-<input type="text" id="vendorUsername" placeholder="Username">
-<input type="password" id="vendorPassword" placeholder="Password">
-<button onclick="vendorLogin()">Login</button>
-<p id="vendorLoginMsg" style="color:red;"></p>
-<p>New vendor? Register below (admin approval required)</p>
-<input type="text" id="vendorRegName" placeholder="Name">
-<input type="text" id="vendorRegPromo" placeholder="Promo Code">
-<input type="password" id="vendorRegPass" placeholder="Password">
-<button onclick="vendorRegister()">Register</button>
-<p id="vendorRegMsg" style="color:red;"></p>
+<input type="text" id="vendorId" placeholder="Vendor ID">
+<input type="password" id="vendorPass" placeholder="Password">
+<button class="add action-btn" onclick="vendorLogin()">Login</button>
+<p id="msg" style="color:red;"></p>
+<h3>New Vendor? <button onclick="showRegister()">Register</button></h3>
 </div>
 
-<div id="vendorDashboard" class="page">
+<div id="registerPage" class="page">
+<h2>Vendor Registration</h2>
+<input type="text" id="regName" placeholder="Vendor Name">
+<input type="text" id="regWhatsapp" placeholder="WhatsApp Number">
+<input type="password" id="regPass" placeholder="Password">
+<button class="add action-btn" onclick="vendorRegister()">Register</button>
+<p id="regMsg" style="color:red;"></p>
+<button class="cancel action-btn" onclick="showLogin()">Back to Login</button>
+</div>
+
+<div id="dashboardPage" class="page">
 <h2>Welcome, <span id="vendorName"></span></h2>
-<p>Promo Code: <b><span id="vendorPromo"></span></b></p>
-<p>Total Customers from Promo: <b><span id="vendorCustomerCount">0</span></b></p>
+<button onclick="logout()">Logout</button>
+<a href="index.html" target="_blank" style="margin-left: 15px; color: #28a745; font-weight: bold;">View Shop</a>
 
-<h3>Add / Edit Product</h3>
-<input type="text" id="productName" placeholder="Product Name">
-<input type="text" id="productCategory" placeholder="Category">
-<input type="number" id="productPrice" placeholder="Price">
-<input type="number" id="productStock" placeholder="Stock">
-<input type="text" id="productImage" placeholder="Image URL">
-<select id="productBadge">
-<option value="">No Badge</option>
-<option value="New">New</option>
-<option value="Sale">Sale</option>
-<option value="Popular">Popular</option>
-<option value="Best Seller">Best Seller</option>
-<option value="Premium">Premium</option>
-</select>
-<button onclick="addProduct()">Add Product</button>
+<div id="addProductContainer">
+    <h3 id="formTitle">Add Product</h3>
+    <input type="hidden" id="editProductId">
+    <input type="text" id="prodName" placeholder="Product Name">
+    <input type="text" id="prodCategory" placeholder="Category">
+    <input type="number" id="prodPrice" placeholder="Price">
+    <input type="number" id="prodStock" placeholder="Stock Quantity">
+    <input type="url" id="prodImageURL" placeholder="Product Image URL">
+    
+    <div id="actionButtons">
+        <button class="add action-btn" id="addProductBtn" onclick="addProduct()">Add Product</button>
+        <button class="update action-btn" id="updateProductBtn" style="display:none;" onclick="updateProduct()">Update Product</button>
+        <button class="cancel action-btn" id="cancelEditBtn" style="display:none;" onclick="resetForm()">Cancel</button>
+    </div>
+</div>
 
-<h3>Your Products</h3>
-<div class="product-list" id="vendorProductList"></div>
+<h3>My Products</h3>
+<table id="productTable">
+<thead>
+<tr>
+<th>Name</th><th>Category</th><th>Price</th><th>Stock</th><th>Image</th><th>Status</th><th>Actions</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+</div>
+
 </div>
 
 <script>
-// ====== Data Storage ======
-let vendors=JSON.parse(localStorage.getItem("vendors")||'[]');
-let products=JSON.parse(localStorage.getItem("products")||'[]');
-let loggedVendor=JSON.parse(localStorage.getItem("loggedVendor")||'null');
+// ===== GLOBAL STATE =====
+let vendors = JSON.parse(localStorage.getItem("vendors")||'[]');
+let products = JSON.parse(localStorage.getItem("products")||'[]');
+let editingIndex = null;
+let currentVendor = JSON.parse(localStorage.getItem('currentVendor')||'null');
 
-if(loggedVendor && loggedVendor.approved){ showPage('vendorDashboard'); renderVendorDashboard(); }
-else{ showPage('vendorLogin'); }
+// ===== INIT =====
+if(currentVendor){ showPage('dashboard'); } else { showPage('login'); }
 
-function showPage(page){ document.querySelectorAll('.page').forEach(p=>p.style.display='none'); document.getElementById(page).style.display='block'; }
+function showPage(page){
+  document.querySelectorAll('.page').forEach(p=>p.style.display='none');
+  if(page==='dashboard'){
+    document.getElementById('vendorName').innerText=currentVendor.name;
+    renderProducts();
+  }
+  document.getElementById(page+'Page').style.display='block';
+}
 
-function toggleDarkMode(){ document.body.classList.toggle('dark'); }
+function showRegister(){ showPage('register'); }
+function showLogin(){ showPage('login'); }
 
-// ====== Vendor Auth ======
+// ====== AUTH =====
 function vendorRegister(){
-let name=document.getElementById("vendorRegName").value.trim();
-let promo=document.getElementById("vendorRegPromo").value.trim();
-let pass=document.getElementById("vendorRegPass").value;
-if(!name||!promo||!pass){ document.getElementById("vendorRegMsg").innerText="Fill all fields"; return; }
-if(vendors.some(v=>v.name===name)){ document.getElementById("vendorRegMsg").innerText="Username exists"; return; }
-vendors.push({id:vendors.length+1,name, password:pass, approved:false, promoCode:promo, customers:0});
-localStorage.setItem("vendors",JSON.stringify(vendors));
-document.getElementById("vendorRegMsg").innerText="Registered! Wait for admin approval";
+  let name=document.getElementById('regName').value.trim();
+  let whatsapp=document.getElementById('regWhatsapp').value.trim();
+  let pass=document.getElementById('regPass').value.trim();
+  if(!name || !whatsapp || !pass){ document.getElementById('regMsg').innerText='Fill all fields'; return; }
+  let id = 'vendor'+(vendors.length+1);
+  vendors.push({id,name,whatsapp,password:pass,status:'Pending',promocode:'PROMO'+(vendors.length+1)});
+  localStorage.setItem('vendors',JSON.stringify(vendors));
+  document.getElementById('regMsg').innerText='Registered! Wait for admin approval.';
 }
 
 function vendorLogin(){
-let name=document.getElementById("vendorUsername").value.trim();
-let pass=document.getElementById("vendorPassword").value.trim();
-let vendor=vendors.find(v=>v.name===name && v.password===pass);
-if(!vendor){ document.getElementById("vendorLoginMsg").innerText="Invalid credentials"; return; }
-if(!vendor.approved){ document.getElementById("vendorLoginMsg").innerText="Not approved yet"; return; }
-loggedVendor=vendor; localStorage.setItem("loggedVendor",JSON.stringify(loggedVendor));
-showPage('vendorDashboard'); renderVendorDashboard();
+  let id=document.getElementById('vendorId').value.trim();
+  let pass=document.getElementById('vendorPass').value.trim();
+  let v = vendors.find(v=>v.id===id && v.password===pass);
+  if(!v){ document.getElementById('msg').innerText='Invalid ID or password'; return; }
+  if(v.status!=='Approved'){ document.getElementById('msg').innerText='Not approved by admin yet'; return; }
+  currentVendor=v;
+  localStorage.setItem('currentVendor',JSON.stringify(v));
+  showPage('dashboard');
 }
 
-function logout(){ loggedVendor=null; localStorage.removeItem("loggedVendor"); showPage('vendorLogin'); }
+function logout(){ localStorage.removeItem('currentVendor'); currentVendor=null; showPage('login'); }
 
-// ====== Vendor Dashboard ======
-function renderVendorDashboard(){
-if(!loggedVendor) return;
-document.getElementById("vendorName").innerText=loggedVendor.name;
-document.getElementById("vendorPromo").innerText=loggedVendor.promoCode;
-document.getElementById("vendorCustomerCount").innerText=loggedVendor.customers||0;
-renderVendorProducts();
+// ====== PRODUCTS =====
+function generateProductId(){
+  return products.length>0 ? Math.max(...products.map(p=>p.id))+1 : 1;
 }
 
-// ====== Products ======
+function resetForm(){
+  document.getElementById('prodName').value='';
+  document.getElementById('prodCategory').value='';
+  document.getElementById('prodPrice').value='';
+  document.getElementById('prodStock').value='';
+  document.getElementById('prodImageURL').value='';
+  editingIndex=null;
+  document.getElementById('formTitle').innerText='Add Product';
+  document.getElementById('addProductBtn').style.display='block';
+  document.getElementById('updateProductBtn').style.display='none';
+  document.getElementById('cancelEditBtn').style.display='none';
+}
+
+function renderProducts(){
+  const tbody=document.querySelector('#productTable tbody');
+  tbody.innerHTML='';
+  const vendorProducts = products.filter(p=>p.vendorId===currentVendor.id);
+  if(vendorProducts.length===0){ tbody.innerHTML='<tr><td colspan="7">No products added</td></tr>'; return; }
+  vendorProducts.forEach((p)=>{
+    const idx=products.findIndex(pr=>pr.id===p.id);
+    let tr=document.createElement('tr');
+    tr.innerHTML=`<td>${p.name}</td>
+                  <td>${p.category}</td>
+                  <td>$${p.price.toFixed(2)}</td>
+                  <td>${p.stock}</td>
+                  <td><img class='product-img' src='${p.imageURL}'></td>
+                  <td>${p.status}</td>
+                  <td>
+                    <button class="update" onclick="editProduct(${idx})">Edit</button>
+                    <button class="delete" onclick="deleteProduct(${idx})">Delete</button>
+                  </td>`;
+    tbody.appendChild(tr);
+  });
+}
+
 function addProduct(){
-if(!loggedVendor) return;
-let name=document.getElementById("productName").value.trim();
-let category=document.getElementById("productCategory").value.trim();
-let price=parseFloat(document.getElementById("productPrice").value);
-let stock=parseInt(document.getElementById("productStock").value);
-let image=document.getElementById("productImage").value.trim();
-let badge=document.getElementById("productBadge").value;
-if(!name||!category||isNaN(price)||isNaN(stock)){ alert("Fill valid product info"); return; }
-products.push({id:products.length+1,name,category,price,stock,imageURL:image,badge,buyer:[],vendorId:loggedVendor.id,approved:false});
-localStorage.setItem("products",JSON.stringify(products));
-renderVendorProducts();
-alert("Product added! Wait for admin approval");
-document.getElementById("productName").value=''; document.getElementById("productCategory").value=''; document.getElementById("productPrice").value=''; document.getElementById("productStock").value=''; document.getElementById("productImage").value=''; document.getElementById("productBadge").value='';
+  let name=document.getElementById('prodName').value.trim();
+  let category=document.getElementById('prodCategory').value.trim();
+  let price=parseFloat(document.getElementById('prodPrice').value);
+  let stock=parseInt(document.getElementById('prodStock').value);
+  let imageURL=document.getElementById('prodImageURL').value.trim();
+  if(!name || !category || isNaN(price) || isNaN(stock) || !imageURL){ alert("Fill all fields correctly"); return; }
+  products.push({id:generateProductId(),name,category,price,stock,imageURL,vendorId:currentVendor.id,status:'Pending'});
+  localStorage.setItem('products',JSON.stringify(products));
+  renderProducts(); resetForm();
 }
 
-function renderVendorProducts(){
-const list=document.getElementById("vendorProductList"); list.innerHTML='';
-products.filter(p=>p.vendorId===loggedVendor.id).forEach(p=>{
-const div=document.createElement('div'); div.className='product';
-let badgeHTML=p.badge?`<div class="badge">${p.badge}</div>`:'';
-div.innerHTML=`${badgeHTML}<h4>${p.name}</h4><p>$${p.price}</p><p>Stock: ${p.stock}</p><p>Status: ${p.approved?'Approved':'Pending'}</p>`;
-list.appendChild(div);
-});
+function editProduct(i){
+  editingIndex=i;
+  let p=products[i];
+  document.getElementById('prodName').value=p.name;
+  document.getElementById('prodCategory').value=p.category;
+  document.getElementById('prodPrice').value=p.price;
+  document.getElementById('prodStock').value=p.stock;
+  document.getElementById('prodImageURL').value=p.imageURL;
+  document.getElementById('formTitle').innerText=`Edit Product: ${p.name}`;
+  document.getElementById('addProductBtn').style.display='none';
+  document.getElementById('updateProductBtn').style.display='block';
+  document.getElementById('cancelEditBtn').style.display='inline-block';
 }
+
+function updateProduct(){
+  if(editingIndex===null){ alert("No product selected"); return; }
+  let name=document.getElementById('prodName').value.trim();
+  let category=document.getElementById('prodCategory').value.trim();
+  let price=parseFloat(document.getElementById('prodPrice').value);
+  let stock=parseInt(document.getElementById('prodStock').value);
+  let imageURL=document.getElementById('prodImageURL').value.trim();
+  if(!name || !category || isNaN(price) || isNaN(stock) || !imageURL){ alert("Fill all fields"); return; }
+  let p=products[editingIndex];
+  if(p.vendorId!==currentVendor.id){ alert("Not your product"); return; }
+  p.name=name; p.category=category; p.price=price; p.stock=stock; p.imageURL=imageURL; p.status='Pending';
+  localStorage.setItem('products',JSON.stringify(products));
+  renderProducts(); resetForm();
+}
+
+function deleteProduct(i){
+  if(products[i].vendorId!==currentVendor.id){ alert("Not your product"); return; }
+  if(confirm(`Delete ${products[i].name}?`)){ products.splice(i,1); localStorage.setItem('products',JSON.stringify(products)); renderProducts(); resetForm(); }
+}
+
 </script>
 </body>
 </html>
