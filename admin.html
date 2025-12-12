@@ -3,144 +3,157 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vendor Panel - Dhamaka Daily Items</title>
+<title>Admin Panel - Dhamaka Daily Items</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:Arial,sans-serif;background:#f7f7f7;color:#212529;transition:0.3s;}
-body.dark{background:#121212;color:#ddd;}
-header{background:#17a2b8;color:white;padding:1em;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;}
+body{font-family:Arial,sans-serif;background:#f1f1f1;color:#212529;}
+header{background:#343a40;color:white;padding:1em;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;}
 header h1{font-size:1.5em;}
-nav a{color:white;margin-left:1em;text-decoration:none;font-weight:bold;transition:0.3s;}
-nav a:hover{text-decoration:underline;color:#ffc107;}
-nav button{margin-left:1em;cursor:pointer;}
+nav button{margin-left:1em;cursor:pointer;padding:0.3em 0.7em;border-radius:5px;border:none;color:white;background:#17a2b8;}
+nav button:hover{background:#138496;}
 .page{display:none;padding:1em;}
-input,select,textarea,button{padding:0.5em;margin:0.3em 0;border-radius:5px;border:1px solid #ccc;}
-button{background:#17a2b8;color:white;border:none;cursor:pointer;}
-button:hover{background:#138496;}
-.product-list{display:flex;flex-wrap:wrap;gap:1em;}
-.product{border:1px solid #17a2b8;padding:1em;border-radius:10px;width:200px;position:relative;}
-.badge{position:absolute;top:10px;left:10px;background:#ffc107;color:#000;padding:2px 6px;border-radius:4px;font-size:0.8em;}
+table{width:100%;border-collapse:collapse;margin-top:1em;}
+th,td{border:1px solid #ccc;padding:0.5em;text-align:center;}
+button.action{padding:0.3em 0.7em;margin:0.2em;border:none;border-radius:5px;cursor:pointer;}
+button.approve{background:#28a745;color:white;}
+button.reject{background:#dc3545;color:white;}
 </style>
 </head>
 <body>
 
 <header>
-<h1>Vendor Panel</h1>
+<h1>Admin Panel</h1>
 <nav>
-<button onclick="toggleDarkMode()">🌙</button>
-<button id="logoutBtn" style="display:none;" onclick="logout()">Logout</button>
+<button onclick="logout()">Logout</button>
 </nav>
 </header>
 
-<div id="vendorLogin" class="page">
-<h2>Vendor Login</h2>
-<input type="text" id="vendorUsername" placeholder="Username">
-<input type="password" id="vendorPassword" placeholder="Password">
-<button onclick="vendorLogin()">Login</button>
-<p id="vendorLoginMsg" style="color:red;"></p>
-<p>New vendor? Register below (admin approval required)</p>
-<input type="text" id="vendorRegName" placeholder="Name">
-<input type="text" id="vendorRegPromo" placeholder="Promo Code">
-<input type="password" id="vendorRegPass" placeholder="Password">
-<button onclick="vendorRegister()">Register</button>
-<p id="vendorRegMsg" style="color:red;"></p>
+<div id="adminLogin" class="page">
+<h2>Admin Login</h2>
+<input type="text" id="adminUsername" placeholder="Username">
+<input type="password" id="adminPassword" placeholder="Password">
+<button onclick="adminLogin()">Login</button>
+<p id="adminLoginMsg" style="color:red;"></p>
 </div>
 
-<div id="vendorDashboard" class="page">
-<h2>Welcome, <span id="vendorName"></span></h2>
-<p>Promo Code: <b><span id="vendorPromo"></span></b></p>
-<p>Total Customers from Promo: <b><span id="vendorCustomerCount">0</span></b></p>
+<div id="adminDashboard" class="page">
+<h2>Welcome, Admin</h2>
 
-<h3>Add / Edit Product</h3>
-<input type="text" id="productName" placeholder="Product Name">
-<input type="text" id="productCategory" placeholder="Category">
-<input type="number" id="productPrice" placeholder="Price">
-<input type="number" id="productStock" placeholder="Stock">
-<input type="text" id="productImage" placeholder="Image URL">
-<select id="productBadge">
-<option value="">No Badge</option>
-<option value="New">New</option>
-<option value="Sale">Sale</option>
-<option value="Popular">Popular</option>
-<option value="Best Seller">Best Seller</option>
-<option value="Premium">Premium</option>
-</select>
-<button onclick="addProduct()">Add Product</button>
+<h3>Vendors Pending Approval</h3>
+<table id="vendorTable">
+<thead>
+<tr><th>Name</th><th>Promo Code</th><th>Status</th><th>Actions</th></tr>
+</thead>
+<tbody></tbody>
+</table>
 
-<h3>Your Products</h3>
-<div class="product-list" id="vendorProductList"></div>
+<h3>Products Pending Approval</h3>
+<table id="productTable">
+<thead>
+<tr><th>Name</th><th>Vendor</th><th>Price</th><th>Stock</th><th>Status</th><th>Actions</th></tr>
+</thead>
+<tbody></tbody>
+</table>
+
+<h3>Vendor Promo Stats</h3>
+<table id="promoTable">
+<thead>
+<tr><th>Vendor</th><th>Promo Code</th><th>Customers</th></tr>
+</thead>
+<tbody></tbody>
+</table>
+
+<h3>Orders</h3>
+<table id="orderTable">
+<thead>
+<tr><th>Order ID</th><th>Customer</th><th>Vendor Products</th><th>Total</th><th>Status</th></tr>
+</thead>
+<tbody></tbody>
+</table>
 </div>
 
 <script>
-// ====== Data Storage ======
+// ====== Data ======
+let adminUser={username:"admin",password:"admin123"};
 let vendors=JSON.parse(localStorage.getItem("vendors")||'[]');
 let products=JSON.parse(localStorage.getItem("products")||'[]');
-let loggedVendor=JSON.parse(localStorage.getItem("loggedVendor")||'null');
+let orders=JSON.parse(localStorage.getItem("orders")||'[]');
+let loggedAdmin=JSON.parse(localStorage.getItem("loggedAdmin")||'null');
 
-if(loggedVendor && loggedVendor.approved){ showPage('vendorDashboard'); renderVendorDashboard(); }
-else{ showPage('vendorLogin'); }
+if(loggedAdmin){ showPage('adminDashboard'); renderAdminData(); }
+else{ showPage('adminLogin'); }
 
+// ====== Auth ======
+function adminLogin(){
+let u=document.getElementById("adminUsername").value.trim();
+let p=document.getElementById("adminPassword").value.trim();
+if(u===adminUser.username && p===adminUser.password){
+loggedAdmin=true; localStorage.setItem("loggedAdmin",JSON.stringify(loggedAdmin));
+showPage('adminDashboard'); renderAdminData();
+}else{ document.getElementById("adminLoginMsg").innerText="Invalid credentials"; }
+}
+function logout(){ loggedAdmin=null; localStorage.removeItem("loggedAdmin"); showPage('adminLogin'); }
+
+// ====== Page Control ======
 function showPage(page){ document.querySelectorAll('.page').forEach(p=>p.style.display='none'); document.getElementById(page).style.display='block'; }
 
-function toggleDarkMode(){ document.body.classList.toggle('dark'); }
-
-// ====== Vendor Auth ======
-function vendorRegister(){
-let name=document.getElementById("vendorRegName").value.trim();
-let promo=document.getElementById("vendorRegPromo").value.trim();
-let pass=document.getElementById("vendorRegPass").value;
-if(!name||!promo||!pass){ document.getElementById("vendorRegMsg").innerText="Fill all fields"; return; }
-if(vendors.some(v=>v.name===name)){ document.getElementById("vendorRegMsg").innerText="Username exists"; return; }
-vendors.push({id:vendors.length+1,name, password:pass, approved:false, promoCode:promo, customers:0});
-localStorage.setItem("vendors",JSON.stringify(vendors));
-document.getElementById("vendorRegMsg").innerText="Registered! Wait for admin approval";
+// ====== Vendors ======
+function renderAdminData(){
+renderVendors(); renderProducts(); renderPromoStats(); renderOrders();
 }
 
-function vendorLogin(){
-let name=document.getElementById("vendorUsername").value.trim();
-let pass=document.getElementById("vendorPassword").value.trim();
-let vendor=vendors.find(v=>v.name===name && v.password===pass);
-if(!vendor){ document.getElementById("vendorLoginMsg").innerText="Invalid credentials"; return; }
-if(!vendor.approved){ document.getElementById("vendorLoginMsg").innerText="Not approved yet"; return; }
-loggedVendor=vendor; localStorage.setItem("loggedVendor",JSON.stringify(loggedVendor));
-showPage('vendorDashboard'); renderVendorDashboard();
+function renderVendors(){
+const tbody=document.querySelector("#vendorTable tbody"); tbody.innerHTML='';
+vendors.forEach((v,i)=>{
+const tr=document.createElement('tr');
+tr.innerHTML=`<td>${v.name}</td>
+<td>${v.promoCode}</td>
+<td>${v.approved?'Approved':'Pending'}</td>
+<td>${v.approved?'':'<button class="approve" onclick="approveVendor(${i})">Approve</button><button class="reject" onclick="rejectVendor(${i})">Reject</button>'}</td>`;
+tbody.appendChild(tr);
+});
 }
 
-function logout(){ loggedVendor=null; localStorage.removeItem("loggedVendor"); showPage('vendorLogin'); }
-
-// ====== Vendor Dashboard ======
-function renderVendorDashboard(){
-if(!loggedVendor) return;
-document.getElementById("vendorName").innerText=loggedVendor.name;
-document.getElementById("vendorPromo").innerText=loggedVendor.promoCode;
-document.getElementById("vendorCustomerCount").innerText=loggedVendor.customers||0;
-renderVendorProducts();
-}
+function approveVendor(i){ vendors[i].approved=true; localStorage.setItem("vendors",JSON.stringify(vendors)); renderVendors(); }
+function rejectVendor(i){ vendors.splice(i,1); localStorage.setItem("vendors",JSON.stringify(vendors)); renderVendors(); }
 
 // ====== Products ======
-function addProduct(){
-if(!loggedVendor) return;
-let name=document.getElementById("productName").value.trim();
-let category=document.getElementById("productCategory").value.trim();
-let price=parseFloat(document.getElementById("productPrice").value);
-let stock=parseInt(document.getElementById("productStock").value);
-let image=document.getElementById("productImage").value.trim();
-let badge=document.getElementById("productBadge").value;
-if(!name||!category||isNaN(price)||isNaN(stock)){ alert("Fill valid product info"); return; }
-products.push({id:products.length+1,name,category,price,stock,imageURL:image,badge,buyer:[],vendorId:loggedVendor.id,approved:false});
-localStorage.setItem("products",JSON.stringify(products));
-renderVendorProducts();
-alert("Product added! Wait for admin approval");
-document.getElementById("productName").value=''; document.getElementById("productCategory").value=''; document.getElementById("productPrice").value=''; document.getElementById("productStock").value=''; document.getElementById("productImage").value=''; document.getElementById("productBadge").value='';
+function renderProducts(){
+const tbody=document.querySelector("#productTable tbody"); tbody.innerHTML='';
+products.forEach((p,i)=>{
+const vendorName=(vendors.find(v=>v.id===p.vendorId)||{}).name||'Unknown';
+const tr=document.createElement('tr');
+tr.innerHTML=`<td>${p.name}</td>
+<td>${vendorName}</td>
+<td>$${p.price}</td>
+<td>${p.stock}</td>
+<td>${p.approved?'Approved':'Pending'}</td>
+<td>${p.approved?'':'<button class="approve" onclick="approveProduct(${i})">Approve</button><button class="reject" onclick="rejectProduct(${i})">Reject</button>'}</td>`;
+tbody.appendChild(tr);
+});
 }
 
-function renderVendorProducts(){
-const list=document.getElementById("vendorProductList"); list.innerHTML='';
-products.filter(p=>p.vendorId===loggedVendor.id).forEach(p=>{
-const div=document.createElement('div'); div.className='product';
-let badgeHTML=p.badge?`<div class="badge">${p.badge}</div>`:'';
-div.innerHTML=`${badgeHTML}<h4>${p.name}</h4><p>$${p.price}</p><p>Stock: ${p.stock}</p><p>Status: ${p.approved?'Approved':'Pending'}</p>`;
-list.appendChild(div);
+function approveProduct(i){ products[i].approved=true; localStorage.setItem("products",JSON.stringify(products)); renderProducts(); }
+function rejectProduct(i){ products.splice(i,1); localStorage.setItem("products",JSON.stringify(products)); renderProducts(); }
+
+// ====== Promo Stats ======
+function renderPromoStats(){
+const tbody=document.querySelector("#promoTable tbody"); tbody.innerHTML='';
+vendors.forEach(v=>{
+const tr=document.createElement('tr');
+tr.innerHTML=`<td>${v.name}</td><td>${v.promoCode}</td><td>${v.customers||0}</td>`;
+tbody.appendChild(tr);
+});
+}
+
+// ====== Orders ======
+function renderOrders(){
+const tbody=document.querySelector("#orderTable tbody"); tbody.innerHTML='';
+orders.forEach(o=>{
+const vendorProducts=o.products.filter(p=>vendors.some(v=>v.id===p.vendorId)).map(p=>p.name+" x"+p.quantity).join(", ");
+const tr=document.createElement('tr');
+tr.innerHTML=`<td>${o.id}</td><td>${o.customerName}</td><td>${vendorProducts}</td><td>$${o.total}</td><td>${o.status}</td>`;
+tbody.appendChild(tr);
 });
 }
 </script>
