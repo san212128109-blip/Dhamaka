@@ -12,7 +12,7 @@ body {
     color: #f0f0f0;
     margin: 0;
     padding: 0;
-    display: flex;
+    /* Removed display: flex from body */
     min-height: 100vh;
 }
 /* Header */
@@ -27,7 +27,6 @@ header {
     position: sticky;
     top: 0;
     z-index: 100;
-    /* Added to span the width */
     width: 100%; 
 }
 header h1 { margin: 0; font-size: 1.5em; }
@@ -49,20 +48,19 @@ header button {
     font-size: 2em;
     cursor: pointer;
     margin-right: 15px;
-    display: block; /* Always visible */
+    display: block; 
     line-height: 0.5;
 }
 
 /* Sidebar Navigation */
 .sidebar {
     width: 250px;
-    background: #282828; /* Darker sidebar */
+    background: #282828; 
     padding: 1em 0;
     box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5);
     flex-shrink: 0;
-    /* Transition and Positioning for toggle effect */
     transition: margin-left 0.3s ease-in-out;
-    margin-left: 0; /* Default: Visible */
+    margin-left: 0; 
 }
 
 /* State when sidebar is hidden */
@@ -70,39 +68,50 @@ header button {
     margin-left: -250px;
 }
 
-/* Main Content Area */
+/* Main Content Container - NOW THIS CONTAINS THE FLEX LOGIC */
 .main-content-container {
     display: flex;
     flex-grow: 1;
-    overflow-x: hidden; /* Prevent horizontal scroll when sidebar is hidden */
+    overflow-x: hidden; 
+    min-height: calc(100vh - 60px); /* Adjust height based on header height */
 }
 
+/* Main Content Area */
 .main-content {
     flex-grow: 1;
     padding: 2em;
     overflow-y: auto;
-    /* Ensure content expands when sidebar hides */
-    transition: margin-left 0.3s ease-in-out;
+    transition: width 0.3s ease-in-out;
 }
+
 /* When sidebar is hidden, main content uses full width */
 .sidebar.hidden + .main-content {
     width: 100%; 
-    margin-left: 0;
 }
 
-.page-section {
-    display: none;
-    animation: fadeIn 0.5s;
-}
-.page-section.active {
+/* Sidebar Links/Headers (Rest of the CSS is the same) */
+.sidebar a {
     display: block;
+    padding: 12px 20px;
+    color: #f0f0f0;
+    text-decoration: none;
+    border-left: 4px solid transparent;
+    transition: all 0.3s;
 }
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+.sidebar a:hover, .sidebar a.active {
+    background: #3a3a3a;
+    border-left: 4px solid #28a745;
+    color: #28a745;
+}
+.sidebar h3 {
+    color: #999;
+    padding: 0 20px;
+    margin-top: 1.5em;
+    font-size: 0.9em;
+    text-transform: uppercase;
 }
 
-/* Dashboard Cards (KPIs) - Same as before */
+/* Dashboard Cards (KPIs) */
 .dashboard-cards {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -121,7 +130,7 @@ header button {
 .card .value { font-size: 2.5em; font-weight: bold; color: #28a745; }
 .card .label { font-size: 1em; color: #aaa; margin-top: 5px; }
 
-/* Other styles (Tables, Buttons, Forms) are kept the same for brevity */
+/* Table Styles */
 table {
     width: 100%;
     border-collapse: collapse;
@@ -151,6 +160,7 @@ input, select {
     background: #3a3a3a;
     color: #f0f0f0;
 }
+/* Button Styles */
 button {
     padding: 8px 12px;
     margin: 4px;
@@ -175,6 +185,19 @@ button.reject { background: #ffc107; color: black; }
     margin-bottom: 15px;
 }
 .form-group label { color: #aaa; }
+
+/* Section visibility */
+.page-section {
+    display: none;
+    animation: fadeIn 0.5s;
+}
+.page-section.active {
+    display: block;
+}
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
 </style>
 </head>
 <body>
@@ -338,6 +361,8 @@ button.reject { background: #ffc107; color: black; }
 </div>
 
 <script>
+// (JavaScript code remains exactly the same as the previous version)
+
 // ======= ADMIN CREDENTIALS (for prompt login) =======
 const ADMIN_CRED = {id:"admin",password:"admin123"};
 
