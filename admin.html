@@ -12,7 +12,6 @@ body {
     color: #f0f0f0;
     margin: 0;
     padding: 0;
-    /* Removed display: flex from body */
     min-height: 100vh;
 }
 /* Header */
@@ -344,7 +343,6 @@ button.reject { background: #ffc107; color: black; }
                 <tbody></tbody>
             </table>
         </div>
-        
         <div id="customer-management" class="page-section">
             <h2>Customers</h2>
             <table id="customerTable">
@@ -361,8 +359,6 @@ button.reject { background: #ffc107; color: black; }
 </div>
 
 <script>
-// (JavaScript code remains exactly the same as the previous version)
-
 // ======= ADMIN CREDENTIALS (for prompt login) =======
 const ADMIN_CRED = {id:"admin",password:"admin123"};
 
@@ -386,12 +382,12 @@ function toggleSidebar() {
 // ======= ADMIN LOGIN CHECK =======
 let loggedAdmin = JSON.parse(localStorage.getItem("loggedAdmin")||'null');
 if(!loggedAdmin){
-  let username = prompt("Enter Admin ID:", ADMIN_CRED.id);
-  let password = prompt("Enter Admin Password:", ADMIN_CRED.password);
-  if(username===ADMIN_CRED.id && password===ADMIN_CRED.password){
-    loggedAdmin = ADMIN_CRED;
-    localStorage.setItem("loggedAdmin",JSON.stringify(loggedAdmin));
-  } else { alert("Invalid Admin Credentials! Redirecting to shop."); window.location.href="index.html"; }
+  let username = prompt("Enter Admin ID:", ADMIN_CRED.id);
+  let password = prompt("Enter Admin Password:", ADMIN_CRED.password);
+  if(username===ADMIN_CRED.id && password===ADMIN_CRED.password){
+    loggedAdmin = ADMIN_CRED;
+    localStorage.setItem("loggedAdmin",JSON.stringify(loggedAdmin));
+  } else { alert("Invalid Admin Credentials! Redirecting to shop."); window.location.href="index.html"; }
 }
 
 // ======= NAVIGATION AND UI CONTROL =======
@@ -410,9 +406,9 @@ function showSection(sectionId, element) {
 
 // ======= LOGOUT =======
 function logout(){
-  localStorage.removeItem("loggedAdmin");
-  alert("Admin logged out");
-  window.location.href="index.html";
+  localStorage.removeItem("loggedAdmin");
+  alert("Admin logged out");
+  window.location.href="index.html";
 }
 
 // ======= DASHBOARD RENDER (KPIs and Pending Items) =======
@@ -485,320 +481,321 @@ function renderDashboard() {
 // ======= UTILITIES, CRUD FUNCTIONS (Keep updated) =======
 
 function saveAllData(){
-  localStorage.setItem("vendors",JSON.stringify(vendors));
-  localStorage.setItem("customers",JSON.stringify(customers));
-  localStorage.setItem("products",JSON.stringify(products));
-  localStorage.setItem("orders",JSON.stringify(orders));
-  localStorage.setItem("masterPromocodes",JSON.stringify(masterPromocodes));
-  localStorage.setItem("banners",JSON.stringify(banners));
+    localStorage.setItem("vendors",JSON.stringify(vendors));
+    localStorage.setItem("customers",JSON.stringify(customers));
+    localStorage.setItem("products",JSON.stringify(products));
+    localStorage.setItem("orders",JSON.stringify(orders));
+    localStorage.setItem("masterPromocodes",JSON.stringify(masterPromocodes));
+    localStorage.setItem("banners",JSON.stringify(banners));
 }
 
 function getVendorName(vendorId){
-  return vendors.find(v=>v.id===vendorId)?.name || "Unknown Vendor";
+    return vendors.find(v=>v.id===vendorId)?.name || "Unknown Vendor";
 }
 
 // VENDOR CRUD 
 function renderVendors(){
-  const tbody = document.querySelector("#vendorTable tbody");
-  tbody.innerHTML="";
-  vendors.forEach((v,i)=>{
-    const tr=document.createElement("tr");
-    const statusColor = v.status === 'Approved' ? '#28a745' : (v.status === 'Rejected' ? '#dc3545' : 'orange');
-    tr.innerHTML=`
-      <td>${v.id}</td>
-      <td>${v.name} (${v.whatsapp})</td>
-      <td><span style="font-weight:bold; color:${statusColor}">${v.status}</span></td>
-      <td>${v.promocode}</td>
-      <td>
-        ${v.status!=='Approved'?`<button class="approve" onclick="approveVendor(${i})">Approve</button>`:""}
-        ${v.status!=='Rejected'?`<button class="reject" onclick="rejectVendor(${i})">Reject</button>`:""}
-        <button class="delete" onclick="deleteVendor(${i})">Delete</button>
-      </td>
-    `;
-    tbody.appendChild(tr);
-  });
+    const tbody = document.querySelector("#vendorTable tbody");
+    tbody.innerHTML="";
+    vendors.forEach((v,i)=>{
+        const tr=document.createElement("tr");
+        const statusColor = v.status === 'Approved' ? '#28a745' : (v.status === 'Rejected' ? '#dc3545' : 'orange');
+        tr.innerHTML=`
+            <td>${v.id}</td>
+            <td>${v.name} (${v.whatsapp})</td>
+            <td><span style="font-weight:bold; color:${statusColor}">${v.status}</span></td>
+            <td>${v.promocode}</td>
+            <td>
+                ${v.status!=='Approved'?`<button class="approve" onclick="approveVendor(${i})">Approve</button>`:""}
+                ${v.status!=='Rejected'?`<button class="reject" onclick="rejectVendor(${i})">Reject</button>`:""}
+                <button class="delete" onclick="deleteVendor(${i})">Delete</button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
 }
 
 function approveVendor(i){
-  vendors[i].status="Approved";
-  saveAllData();
-  initRender(); 
+    vendors[i].status="Approved";
+    saveAllData();
+    initRender(); 
 }
 
 function rejectVendor(i){
-  vendors[i].status="Rejected";
-  saveAllData();
-  initRender(); 
+    vendors[i].status="Rejected";
+    saveAllData();
+    initRender(); 
 }
 
 function deleteVendor(i){
-  if(confirm(`Delete vendor ${vendors[i].name}? This will NOT delete their products.`)){
-    vendors.splice(i,1);
-    saveAllData();
-    initRender();
-  }
+    if(confirm(`Delete vendor ${vendors[i].name}? This will NOT delete their products.`)){
+        vendors.splice(i,1);
+        saveAllData();
+        initRender();
+    }
 }
 
 
 // PRODUCT CRUD 
 function renderProductsTable(){
-  const tbody = document.querySelector("#productTable tbody");
-  tbody.innerHTML="";
-  products.forEach((p,i)=>{
-    const vendorName = getVendorName(p.vendorId);
-    const tr=document.createElement("tr");
-    const statusColor = p.status === 'Approved' ? '#28a745' : (p.status === 'Rejected' ? '#dc3545' : 'orange');
+    const tbody = document.querySelector("#productTable tbody");
+    tbody.innerHTML="";
+    products.forEach((p,i)=>{
+        const vendorName = getVendorName(p.vendorId);
+        const tr=document.createElement("tr");
+        const statusColor = p.status === 'Approved' ? '#28a745' : (p.status === 'Rejected' ? '#dc3545' : 'orange');
 
-    tr.innerHTML=`
-      <td><span style="font-weight:bold; color:${statusColor}">${p.status}</span></td>
-      <td>${p.name}</td>
-      <td>${vendorName}</td>
-      <td>$${p.price.toFixed(2)}</td>
-      <td>${p.stock}</td>
-      <td>${p.category}</td>
-      <td>${p.promoCodeAssigned || 'None'}</td>
-      <td>
-        ${p.status!=='Approved'?`<button class="approve" onclick="approveProduct(${i})">Approve</button>`:""}
-        ${p.status!=='Rejected'?`<button class="reject" onclick="rejectProduct(${i})">Reject</button>`:""}
-        <button class="delete" onclick="deleteProduct(${i})">Delete</button>
-      </td>
-    `;
-    tbody.appendChild(tr);
-  });
+        tr.innerHTML=`
+            <td><span style="font-weight:bold; color:${statusColor}">${p.status}</span></td>
+            <td>${p.name}</td>
+            <td>${vendorName}</td>
+            <td>$${p.price.toFixed(2)}</td>
+            <td>${p.stock}</td>
+            <td>${p.category}</td>
+            <td>${p.promoCodeAssigned || 'None'}</td>
+            <td>
+                ${p.status!=='Approved'?`<button class="approve" onclick="approveProduct(${i})">Approve</button>`:""}
+                ${p.status!=='Rejected'?`<button class="reject" onclick="rejectProduct(${i})">Reject</button>`:""}
+                <button class="delete" onclick="deleteProduct(${i})">Delete</button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
 }
 
 function approveProduct(i){
-  products[i].status="Approved";
-  saveAllData();
-  initRender();
+    products[i].status="Approved";
+    saveAllData();
+    initRender();
 }
 
 function rejectProduct(i){
-  products[i].status="Rejected";
-  saveAllData();
-  initRender();
+    products[i].status="Rejected";
+    saveAllData();
+    initRender();
 }
 
 function deleteProduct(i){
-  if(confirm(`Delete product ${products[i].name}?`)){
-    products.splice(i,1);
-    saveAllData();
-    initRender();
-  }
+    if(confirm(`Delete product ${products[i].name}?`)){
+        products.splice(i,1);
+        saveAllData();
+        initRender();
+    }
 }
 
 // PROMOCODE CRUD 
 function resetPromoForm() {
-  document.getElementById('editPromoCode').value = '';
-  document.getElementById('promoCode').value = '';
-  document.getElementById('promoDiscount').value = '';
-  document.getElementById('promoType').value = 'percent';
-  document.getElementById('promoMinOrder').value = 0;
+    document.getElementById('editPromoCode').value = '';
+    document.getElementById('promoCode').value = '';
+    document.getElementById('promoDiscount').value = '';
+    document.getElementById('promoType').value = 'percent';
+    document.getElementById('promoMinOrder').value = 0;
 }
 
 function savePromocode(){
-  const code = document.getElementById('promoCode').value.trim().toUpperCase();
-  const discount = parseFloat(document.getElementById('promoDiscount').value);
-  const type = document.getElementById('promoType').value;
-  const minOrder = parseFloat(document.getElementById('promoMinOrder').value);
-  const editCode = document.getElementById('editPromoCode').value;
+    const code = document.getElementById('promoCode').value.trim().toUpperCase();
+    const discount = parseFloat(document.getElementById('promoDiscount').value);
+    const type = document.getElementById('promoType').value;
+    const minOrder = parseFloat(document.getElementById('promoMinOrder').value);
+    const editCode = document.getElementById('editPromoCode').value;
 
-  if (!code || isNaN(discount) || discount <= 0 || isNaN(minOrder) || minOrder < 0) {
-    alert("Fill all fields correctly.");
-    return;
-  }
+    if (!code || isNaN(discount) || discount <= 0 || isNaN(minOrder) || minOrder < 0) {
+        alert("Fill all fields correctly.");
+        return;
+    }
 
-  const newPromo = {
-    code,
-    discount,
-    type,
-    minOrder,
-    scope: 'global',
-    expiry: '2026-12-31'
-  };
+    const newPromo = {
+        code,
+        discount,
+        type,
+        minOrder,
+        scope: 'global',
+        expiry: '2026-12-31'
+    };
 
-  if (editCode) {
-    const index = masterPromocodes.findIndex(p => p.code === editCode);
-    if (index !== -1) {
-      masterPromocodes[index] = { ...masterPromocodes[index], ...newPromo };
-    }
-  } else {
-    if (masterPromocodes.some(p => p.code === code)) {
-      alert("Promocode already exists.");
-      return;
-    }
-    masterPromocodes.push(newPromo);
-  }
+    if (editCode) {
+        const index = masterPromocodes.findIndex(p => p.code === editCode);
+        if (index !== -1) {
+            masterPromocodes[index] = { ...masterPromocodes[index], ...newPromo };
+        }
+    } else {
+        if (masterPromocodes.some(p => p.code === code)) {
+            alert("Promocode already exists.");
+            return;
+        }
+        masterPromocodes.push(newPromo);
+    }
 
-  saveAllData();
-  initRender();
-  resetPromoForm();
+    saveAllData();
+    initRender();
+    resetPromoForm();
 }
 
 function editPromocode(code){
-  const promo = masterPromocodes.find(p => p.code === code);
-  if (promo && promo.scope === 'global') {
-    document.getElementById('editPromoCode').value = promo.code;
-    document.getElementById('promoCode').value = promo.code;
-    document.getElementById('promoDiscount').value = promo.discount;
-    document.getElementById('promoType').value = promo.type;
-    document.getElementById('promoMinOrder').value = promo.minOrder;
-  } else if (promo && promo.scope === 'vendor') {
-    alert("Vendor-specific promo codes cannot be edited by Admin here.");
-  }
+    const promo = masterPromocodes.find(p => p.code === code);
+    if (promo && promo.scope === 'global') {
+        document.getElementById('editPromoCode').value = promo.code;
+        document.getElementById('promoCode').value = promo.code;
+        document.getElementById('promoDiscount').value = promo.discount;
+        document.getElementById('promoType').value = promo.type;
+        document.getElementById('promoMinOrder').value = promo.minOrder;
+    } else if (promo && promo.scope === 'vendor') {
+        alert("Vendor-specific promo codes cannot be edited by Admin here.");
+    }
 }
 
 function deletePromocode(code){
-  if(confirm(`Delete promocode ${code}?`)){
-    masterPromocodes = masterPromocodes.filter(p => p.code !== code);
-    saveAllData();
-    initRender();
-  }
+    if(confirm(`Delete promocode ${code}?`)){
+        masterPromocodes = masterPromocodes.filter(p => p.code !== code);
+        saveAllData();
+        initRender();
+    }
 }
 
 
 function renderPromocodes(){
-  const tbody = document.querySelector("#promocodeTable tbody");
-  tbody.innerHTML="";
-  masterPromocodes.forEach(p=>{
-    const usageCount = promocodeUsage[p.code] || 0;
-    const tr=document.createElement("tr");
-    const scopeInfo = p.scope === 'vendor' ? `Vendor: ${p.vendorId}` : 'Global';
-    tr.innerHTML=`
-      <td>${p.code}</td>
-      <td>${p.discount} ${p.type === 'percent' ? '%' : '$ Fixed'}</td>
-      <td>$${p.minOrder.toFixed(2)}</td>
-      <td>${scopeInfo}</td>
-      <td>${usageCount}</td>
-      <td>
-        <button class="edit" onclick="editPromocode('${p.code}')" ${p.scope === 'vendor' ? 'disabled' : ''}>Edit</button>
-        <button class="delete" onclick="deletePromocode('${p.code}')">Delete</button>
-      </td>
-    `;
-    tbody.appendChild(tr);
-  });
+    const tbody = document.querySelector("#promocodeTable tbody");
+    tbody.innerHTML="";
+    masterPromocodes.forEach(p=>{
+        const usageCount = promocodeUsage[p.code] || 0;
+        const tr=document.createElement("tr");
+        const scopeInfo = p.scope === 'vendor' ? `Vendor: ${p.vendorId}` : 'Global';
+        tr.innerHTML=`
+            <td>${p.code}</td>
+            <td>${p.discount} ${p.type === 'percent' ? '%' : '$ Fixed'}</td>
+            <td>${p.type}</td>
+            <td>$${p.minOrder.toFixed(2)}</td>
+            <td>${scopeInfo}</td>
+            <td>${usageCount}</td>
+            <td>
+                <button class="edit" onclick="editPromocode('${p.code}')" ${p.scope === 'vendor' ? 'disabled' : ''}>Edit</button>
+                <button class="delete" onclick="deletePromocode('${p.code}')">Delete</button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
 }
 
-// BANNER CRUD 
+// 🖼️ BANNER CRUD (ফাংশনগুলি যা ব্যানার ম্যানেজ করবে) 🖼️
 function saveBanner(){
-  const imageURL = document.getElementById('bannerImageURL').value.trim();
-  const linkURL = document.getElementById('bannerLinkURL').value.trim();
-  const editId = parseInt(document.getElementById('editBannerId').value);
+    const imageURL = document.getElementById('bannerImageURL').value.trim();
+    const linkURL = document.getElementById('bannerLinkURL').value.trim();
+    const editId = parseInt(document.getElementById('editBannerId').value);
 
-  if (!imageURL) {
-    alert("Image URL is required.");
-    return;
-  }
+    if (!imageURL) {
+        alert("Image URL is required.");
+        return;
+    }
 
-  if (editId) {
-    const index = banners.findIndex(b => b.id === editId);
-    if (index !== -1) {
-      banners[index].imageURL = imageURL;
-      banners[index].link = linkURL || '#';
-    }
-  } else {
-    const newId = banners.length > 0 ? Math.max(...banners.map(b => b.id)) + 1 : 1;
-    banners.push({ id: newId, imageURL, link: linkURL || '#' });
-  }
+    if (editId) {
+        const index = banners.findIndex(b => b.id === editId);
+        if (index !== -1) {
+            banners[index].imageURL = imageURL;
+            banners[index].link = linkURL || '#';
+        }
+    } else {
+        const newId = banners.length > 0 ? Math.max(...banners.map(b => b.id)) + 1 : 1;
+        banners.push({ id: newId, imageURL, link: linkURL || '#' });
+    }
 
-  saveAllData();
-  initRender();
-  document.getElementById('editBannerId').value = '';
-  document.getElementById('bannerImageURL').value = '';
-  document.getElementById('bannerLinkURL').value = '';
+    saveAllData();
+    initRender();
+    document.getElementById('editBannerId').value = '';
+    document.getElementById('bannerImageURL').value = '';
+    document.getElementById('bannerLinkURL').value = '';
 }
 
 function editBanner(id){
-  const banner = banners.find(b => b.id === id);
-  if (banner) {
-    document.getElementById('editBannerId').value = banner.id;
-    document.getElementById('bannerImageURL').value = banner.imageURL;
-    document.getElementById('bannerLinkURL').value = banner.link;
-  }
+    const banner = banners.find(b => b.id === id);
+    if (banner) {
+        document.getElementById('editBannerId').value = banner.id;
+        document.getElementById('bannerImageURL').value = banner.imageURL;
+        document.getElementById('bannerLinkURL').value = banner.link;
+    }
 }
 
 function deleteBanner(id){
-  if(confirm(`Delete banner ${id}?`)){
-    banners = banners.filter(b => b.id !== id);
-    saveAllData();
-    initRender();
-  }
+    if(confirm(`Delete banner ${id}?`)){
+        banners = banners.filter(b => b.id !== id);
+        saveAllData();
+        initRender();
+    }
 }
 
 function renderBanners(){
-  const tbody = document.querySelector("#bannerTable tbody");
-  tbody.innerHTML="";
-  banners.forEach(b=>{
-    const tr=document.createElement("tr");
-    tr.innerHTML=`
-      <td><img src="${b.imageURL}" style="width:100px; height:50px; object-fit:cover;"></td>
-      <td>${b.imageURL}</td>
-      <td><a href="${b.link}" target="_blank" style="color:#007bff;">${b.link}</a></td>
-      <td>
-        <button class="edit" onclick="editBanner(${b.id})">Edit</button>
-        <button class="delete" onclick="deleteBanner(${b.id})">Delete</button>
-      </td>
-    `;
-    tbody.appendChild(tr);
-  });
+    const tbody = document.querySelector("#bannerTable tbody");
+    tbody.innerHTML="";
+    banners.forEach(b=>{
+        const tr=document.createElement("tr");
+        tr.innerHTML=`
+            <td><img src="${b.imageURL}" style="width:100px; height:50px; object-fit:cover;"></td>
+            <td>${b.imageURL}</td>
+            <td><a href="${b.link}" target="_blank" style="color:#007bff;">${b.link}</a></td>
+            <td>
+                <button class="edit" onclick="editBanner(${b.id})">Edit</button>
+                <button class="delete" onclick="deleteBanner(${b.id})">Delete</button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
 }
 
 
 // ORDER CRUD 
 function renderOrders(){
-  const tbody = document.querySelector("#orderTable tbody");
-  tbody.innerHTML="";
-  orders.forEach((o,i)=>{
-    const statusColor = o.status === 'Completed' ? '#28a745' : (o.status === 'Cancelled' ? '#dc3545' : 'orange');
+    const tbody = document.querySelector("#orderTable tbody");
+    tbody.innerHTML="";
+    orders.forEach((o,i)=>{
+        const statusColor = o.status === 'Completed' ? '#28a745' : (o.status === 'Cancelled' ? '#dc3545' : 'orange');
 
-    tr=document.createElement("tr");
-    tr.innerHTML=`
-      <td>#${o.id} (${o.date ? new Date(o.date).toLocaleDateString() : 'N/A'})</td>
-      <td>${o.customer}</td>
-      <td>$${o.total}</td>
-      <td>${o.promocode}</td>
-      <td><span style="font-weight:bold; color:${statusColor}">${o.status}</span></td>
-      <td>
-        <select onchange="updateOrderStatus(${i},this.value)">
-          <option value="Pending" ${o.status==="Pending"?"selected":""}>Pending</option>
-          <option value="Completed" ${o.status==="Completed"?"selected":""}>Completed</option>
-          <option value="Cancelled" ${o.status==="Cancelled"?"selected":""}>Cancelled</option>
-        </select>
-      </td>
-    `;
-    tbody.appendChild(tr);
-  });
+        tr=document.createElement("tr");
+        tr.innerHTML=`
+            <td>#${o.id} (${o.date ? new Date(o.date).toLocaleDateString() : 'N/A'})</td>
+            <td>${o.customer}</td>
+            <td>$${o.total}</td>
+            <td>${o.promocode}</td>
+            <td><span style="font-weight:bold; color:${statusColor}">${o.status}</span></td>
+            <td>
+                <select onchange="updateOrderStatus(${i},this.value)">
+                    <option value="Pending" ${o.status==="Pending"?"selected":""}>Pending</option>
+                    <option value="Completed" ${o.status==="Completed"?"selected":""}>Completed</option>
+                    <option value="Cancelled" ${o.status==="Cancelled"?"selected":""}>Cancelled</option>
+                </select>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
 }
 
 function updateOrderStatus(i,status){
-  orders[i].status=status;
-  saveAllData();
-  initRender();
+    orders[i].status=status;
+    saveAllData();
+    initRender();
 }
 
 
 // CUSTOMER CRUD 
 function renderCustomers(){
-  const tbody = document.querySelector("#customerTable tbody");
-  tbody.innerHTML="";
-  customers.forEach((c,i)=>{
-    const tr=document.createElement("tr");
-    tr.innerHTML=`
-      <td>${c.username}</td>
-      <td>${c.whatsapp}</td>
-      <td>${c.address}</td>
-      <td><button class="delete" onclick="deleteCustomer(${i})">Delete</button></td>
-    `;
-    tbody.appendChild(tr);
-  });
+    const tbody = document.querySelector("#customerTable tbody");
+    tbody.innerHTML="";
+    customers.forEach((c,i)=>{
+        const tr=document.createElement("tr");
+        tr.innerHTML=`
+            <td>${c.username}</td>
+            <td>${c.whatsapp}</td>
+            <td>${c.address}</td>
+            <td><button class="delete" onclick="deleteCustomer(${i})">Delete</button></td>
+        `;
+        tbody.appendChild(tr);
+    });
 }
 
 function deleteCustomer(i){
-  if(confirm(`Delete customer ${customers[i].username}?`)){
-    customers.splice(i,1);
-    saveAllData();
-    initRender();
-  }
+    if(confirm(`Delete customer ${customers[i].username}?`)){
+        customers.splice(i,1);
+        saveAllData();
+        initRender();
+    }
 }
 
 
@@ -814,13 +811,13 @@ function initRender() {
     customers = JSON.parse(localStorage.getItem("customers")||'[]');
 
 
-  renderDashboard(); // Always render dashboard first
-  renderVendors();
-  renderCustomers();
-  renderProductsTable();
-  renderOrders();
-  renderPromocodes();
-  renderBanners();
+    renderDashboard(); // Always render dashboard first
+    renderVendors();
+    renderCustomers();
+    renderProductsTable();
+    renderOrders();
+    renderPromocodes();
+    renderBanners(); // 🖼️ এটি ব্যানার টেবিল তৈরি করবে
 }
 
 initRender();
