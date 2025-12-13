@@ -2,7 +2,10 @@
 // ====== INITIALIZE LOCALSTORAGE DATA MODELS (For testing environment) ======
 function initializeLocalStorage() {
     if (!localStorage.getItem('vendors')) {
-        localStorage.setItem('vendors', JSON.stringify([]));
+        // Sample Approved Vendor for easy testing (Optional)
+        localStorage.setItem('vendors', JSON.stringify([
+            { id: 'vendor001', name: 'Test Vendor', whatsapp: '1234567890', password: 'pass', status: 'Approved', promocode: 'VEND001' }
+        ]));
     }
     if (!localStorage.getItem('products')) {
         localStorage.setItem('products', JSON.stringify([]));
@@ -11,7 +14,9 @@ function initializeLocalStorage() {
     if (!localStorage.getItem('masterPromocodes')) {
         localStorage.setItem('masterPromocodes', JSON.stringify([
             { code: 'FLASH10', discount: 10, type: 'percent', scope: 'global', minOrder: 100, expiry: '2026-01-01' },
-            { code: 'SAVE25', discount: 25, type: 'percent', scope: 'global', minOrder: 200, expiry: '2026-01-01' }
+            { code: 'SAVE25', discount: 25, type: 'percent', scope: 'global', minOrder: 200, expiry: '2026-01-01' },
+            // Add the sample vendor's unique code
+            { code: 'VEND001', discount: 15, type: 'percent', scope: 'vendor', vendorId: 'vendor001', minOrder: 50, expiry: '2026-12-31'}
         ]));
     }
 }
@@ -66,9 +71,11 @@ function showRegister(){
     document.getElementById('regPass').value='';
     showPage('register'); 
 }
+
+// 🛑 UPDATED: লগইন পেজ রিসেট করার সময় WhatsApp ইনপুট রিসেট করা
 function showLogin(){ 
     document.getElementById('msg').innerText='';
-    document.getElementById('vendorId').value='';
+    document.getElementById('vendorWhatsappLogin').value=''; 
     document.getElementById('vendorPass').value='';
     showPage('login'); 
 }
@@ -106,17 +113,19 @@ function vendorRegister(){
     document.getElementById('regPass').value='';
 }
 
+// 🛑 UPDATED: WhatsApp এবং Password দিয়ে লগইন
 function vendorLogin(){
     loadData(); // *** IMPORTANT: Reload data before checking login ***
-    let id=document.getElementById('vendorId').value.trim();
+    // Vendor ID-এর বদলে WhatsApp নম্বর নেওয়া হচ্ছে
+    let whatsapp=document.getElementById('vendorWhatsappLogin').value.trim(); 
     let pass=document.getElementById('vendorPass').value.trim();
     
-    // Use the trimmed ID and PASS to find the vendor
-    let v = vendors.find(v => v.id===id && v.password===pass); 
+    // WhatsApp এবং Password এর ভিত্তিতে Vendor খোঁজা হচ্ছে
+    let v = vendors.find(v => v.whatsapp===whatsapp && v.password===pass); 
     
     document.getElementById('msg').innerText='';
     if(!v){ 
-        document.getElementById('msg').innerText='Invalid Vendor ID or password'; 
+        document.getElementById('msg').innerText='Invalid WhatsApp Number or password'; 
         return; 
     }
     
@@ -308,4 +317,20 @@ function deleteProduct(i){
 document.addEventListener('DOMContentLoaded', () => {
     // Already handled outside DOMContentLoaded for immediate execution flow control
 });
+
+// 💡 BONUS: Simple Admin Approval Function for testing
+// Console-এ এই ফাংশনটি run করে Vendor-কে Approved করা যাবে: approveVendor('vendor002')
+function approveVendor(vendorId) {
+    loadData();
+    const vendorIndex = vendors.findIndex(v => v.id === vendorId);
+    if (vendorIndex !== -1) {
+        vendors[vendorIndex].status = 'Approved';
+        localStorage.setItem('vendors', JSON.stringify(vendors));
+        console.log(`Vendor ${vendorId} status set to Approved.`);
+        alert(`Vendor ${vendorId} status set to Approved. Try logging in now.`);
+        // Reload page or re-render login form if needed
+    } else {
+        console.error(`Vendor ${vendorId} not found.`);
+    }
+}
 </script>
