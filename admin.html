@@ -518,11 +518,24 @@ function rejectVendor(i){
     initRender(); 
 }
 
+// 🛑 UPDATED: Vendor ডিলিট করলে তাদের Product এবং Promocode ডিলিট হবে
 function deleteVendor(i){
-    if(confirm(`Delete vendor ${vendors[i].name}? This will NOT delete their products.`)){
+    const vendorToDelete = vendors[i];
+    
+    if(confirm(`Delete vendor ${vendorToDelete.name} (${vendorToDelete.id})? This will also delete ALL their products and remove their associated promocode from the master list.`)){
+        
+        // 1. Delete associated products
+        products = products.filter(p => p.vendorId !== vendorToDelete.id);
+        
+        // 2. Delete the vendor-specific promocode from the master list
+        masterPromocodes = masterPromocodes.filter(p => p.vendorId !== vendorToDelete.id);
+        
+        // 3. Delete the vendor
         vendors.splice(i,1);
+        
         saveAllData();
         initRender();
+        alert(`Vendor ${vendorToDelete.name}, their products, and their promocode have been deleted.`);
     }
 }
 
