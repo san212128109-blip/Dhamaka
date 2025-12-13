@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dhamaka Daily Items - Shop</title>
 <style>
+/* CSS কোড অপরিবর্তিত রাখা হয়েছে */
 body{font-family:Arial,sans-serif;background:#d4edda;color:#155724;transition:0.3s;}
 body.dark{background:#121212;color:#ddd;}
 header{background:#28a745;color:white;padding:1em;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10;}
@@ -12,17 +13,17 @@ header h1{margin:0;font-size:1.5em;}
 
 /* NAV স্টাইল আপডেট করা হলো: মেনু অ্যালাইনমেন্ট ঠিক করা হয়েছে */
 nav{
-    display:flex;
-    align-items:center;
-    flex-wrap:wrap;
-    gap: 1em; /* মেনু আইটেমগুলোর মধ্যে ব্যবধান */
+    display:flex;
+    align-items:center;
+    flex-wrap:wrap;
+    gap: 1em; /* মেনু আইটেমগুলোর মধ্যে ব্যবধান */
 }
 nav a{
-    color:white;
-    text-decoration:none;
-    font-weight:bold;
-    transition:0.3s;
-    position:relative;
+    color:white;
+    text-decoration:none;
+    font-weight:bold;
+    transition:0.3s;
+    position:relative;
 }
 nav a:hover{text-decoration:underline;color:#ffc107;}
 nav #cartLink::after{content:attr(data-count);position:absolute;top:-10px;right:-10px;background:red;color:white;width:20px;height:20px;text-align:center;line-height:20px;border-radius:50%;font-size:0.8em;display:inline-block;}
@@ -53,13 +54,13 @@ input,select,textarea{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;b
 #support{position:fixed;bottom:20px;right:20px;background:#25D366;color:white;padding:10px 15px;border-radius:50px;cursor:pointer;box-shadow:2px2px10px rgba(0,0,0,0.2);}
 .product-image-container img {width: 150px; height: 150px; object-fit: cover; border-radius: 8px;}
 @media(max-width:600px){ 
-    .product{width:45%; } 
-    header{flex-direction:column;align-items:flex-start;} 
-    /* NAV স্টাইল মোবাইল ভিউয়ের জন্য আপডেট করা হলো */
-    nav {flex-direction: row; gap: 0.5em; margin-top: 5px; width: 100%; justify-content: space-between;} 
-    nav a{margin:0;}
-    nav button{margin-left: 0; margin-right: 0;}
-    .carousel {height: 150px;} /* ছোট স্ক্রিনের জন্য ক্যারাউজেলের উচ্চতা কমানো হলো */
+    .product{width:45%; } 
+    header{flex-direction:column;align-items:flex-start;} 
+    /* NAV স্টাইল মোবাইল ভিউয়ের জন্য আপডেট করা হলো */
+    nav {flex-direction: row; gap: 0.5em; margin-top: 5px; width: 100%; justify-content: space-between;} 
+    nav a{margin:0;}
+    nav button{margin-left: 0; margin-right: 0;}
+    .carousel {height: 150px;} /* ছোট স্ক্রিনের জন্য ক্যারাউজেলের উচ্চতা কমানো হলো */
 }
 #home {padding-top: 20px;}
 .product-list {padding: 20px 0; border-top: 1px solid #28a745;}
@@ -163,54 +164,53 @@ input,select,textarea{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;b
 <div id="support" onclick="openWhatsApp()">💬 Support</div>
 
 <script>
-// ==== INITIALIZE LOCALSTORAGE DATA MODELS (UNCHANGED) ====
+// ==== INITIALIZE LOCALSTORAGE DATA MODELS (আপডেট করা হয়েছে) ====
 function initializeLocalStorage() {
-    // Default Products (আপডেট করা হয়েছে: imageURL যোগ করা হয়েছে)
-    if (!localStorage.getItem('products')) {
-        localStorage.setItem('products', JSON.stringify([
-            // আপনার আসল ইমেজ URL দিয়ে এই 'https://via.placeholder.com/...' বদলে দিন
-            { id: 1, name: 'Premium Rice (5kg)', category: 'Groceries', price: 6.50, stock: 100, vendorId: 101, status: 'Approved', promoCodeAssigned: 'RICE10', imageURL: 'https://via.placeholder.com/150/28a745/ffffff?text=Rice+5kg' },
-            { id: 2, name: 'Organic Eggs (1 doz)', category: 'Groceries', price: 2.80, stock: 50, vendorId: 101, status: 'Approved', promoCodeAssigned: '', imageURL: 'https://via.placeholder.com/150/ffc107/000000?text=Eggs+Doz' },
-            { id: 3, name: 'T-Shirt (Blue)', category: 'Fashion', price: 12.00, stock: 80, vendorId: 102, status: 'Approved', promoCodeAssigned: 'FASHION20', imageURL: 'https://via.placeholder.com/150/007bff/ffffff?text=Blue+T-Shirt' },
-            { id: 4, name: 'Smartphone A99', category: 'Electronics', price: 350.00, stock: 10, vendorId: 103, status: 'Approved', promoCodeAssigned: '', imageURL: 'https://via.placeholder.com/150/6c757d/ffffff?text=Smartphone' },
-            { id: 5, name: 'Running Shoes', category: 'Fashion', price: 45.00, stock: 30, vendorId: 102, status: 'Approved', promoCodeAssigned: '', imageURL: 'https://via.placeholder.com/150/17a2b8/ffffff?text=Shoes' },
-            { id: 6, name: 'Dish Soap (1L)', category: 'Household', price: 4.50, stock: 200, vendorId: 101, status: 'Approved', promoCodeAssigned: '', imageURL: 'https://via.placeholder.com/150/dc3545/ffffff?text=Dish+Soap' },
-        ]));
-    }
-    // Default Banners (আপডেট করা হয়েছে: imageURL যোগ করা হয়েছে)
-    if (!localStorage.getItem('banners')) {
-        localStorage.setItem('banners', JSON.stringify([
-            // আপনার আসল ইমেজ URL দিয়ে এই 'https://via.placeholder.com/...' বদলে দিন
-            { id: 1, imageURL: 'https://via.placeholder.com/1200x300/28a745/ffffff?text=12.12+Grand+Sale', link: '#categories' }, 
-            { id: 2, imageURL: 'https://via.placeholder.com/1200x300/ffc107/000000?text=Upto+50%25+OFF', link: '#categories' }, 
-            { id: 3, imageURL: 'https://via.placeholder.com/1200x300/6c757d/ffffff?text=New+Customer+Voucher', link: '#loginForm' }
-        ]));
-    }
-    // Default Reviews
-    if (!localStorage.getItem('reviews')) {
-        localStorage.setItem('reviews', JSON.stringify([
-            { id: 1, customerName: 'Guest User', rating: 5, text: 'Great products and fast delivery!', date: new Date().toLocaleDateString() }
-        ]));
-    }
-    // Default Customers
-    if (!localStorage.getItem('customers')) {
-        localStorage.setItem('customers', JSON.stringify([{username: 'test', whatsapp: '01XXXXXXXXX', address: 'Test address', password: '123'}]));
-    }
-    // Default Promo Code Usage (for Admin Panel)
-    if (!localStorage.getItem('promocodeUsage')) {
-        localStorage.setItem('promocodeUsage', JSON.stringify({}));
-    }
-    // Dummy Orders data (if not exists)
-    if (!localStorage.getItem('orders')) {
-        localStorage.setItem('orders', JSON.stringify([]));
-    }
+    // Default Products (আপডেট করা হয়েছে: imageURL যোগ করা হয়েছে)
+    if (!localStorage.getItem('products')) {
+        localStorage.setItem('products', JSON.stringify([
+            // আপনার আসল ইমেজ URL দিয়ে এই 'https://via.placeholder.com/...' বদলে দিন
+            { id: 1, name: 'Premium Rice (5kg)', category: 'Groceries', price: 6.50, stock: 100, vendorId: 101, status: 'Approved', promoCodeAssigned: 'RICE10', imageURL: 'https://via.placeholder.com/150/28a745/ffffff?text=Rice+5kg' },
+            { id: 2, name: 'Organic Eggs (1 doz)', category: 'Groceries', price: 2.80, stock: 50, vendorId: 101, status: 'Approved', promoCodeAssigned: '', imageURL: 'https://via.placeholder.com/150/ffc107/000000?text=Eggs+Doz' },
+            { id: 3, name: 'T-Shirt (Blue)', category: 'Fashion', price: 12.00, stock: 80, vendorId: 102, status: 'Approved', promoCodeAssigned: 'FASHION20', imageURL: 'https://via.placeholder.com/150/007bff/ffffff?text=Blue+T-Shirt' },
+            { id: 4, name: 'Smartphone A99', category: 'Electronics', price: 350.00, stock: 10, vendorId: 103, status: 'Approved', promoCodeAssigned: '', imageURL: 'https://via.placeholder.com/150/6c757d/ffffff?text=Smartphone' },
+            { id: 5, name: 'Running Shoes', category: 'Fashion', price: 45.00, stock: 30, vendorId: 102, status: 'Approved', promoCodeAssigned: '', imageURL: 'https://via.placeholder.com/150/17a2b8/ffffff?text=Shoes' },
+            { id: 6, name: 'Dish Soap (1L)', category: 'Household', price: 4.50, stock: 200, vendorId: 101, status: 'Approved', promoCodeAssigned: '', imageURL: 'https://via.placeholder.com/150/dc3545/ffffff?text=Dish+Soap' },
+        ]));
+    }
+    // Default Banners (আপডেট করা হয়েছে: imageURL যোগ করা হয়েছে)
+    if (!localStorage.getItem('banners')) {
+        localStorage.setItem('banners', JSON.stringify([
+            // আপনার আসল ইমেজ URL দিয়ে এই 'https://via.placeholder.com/...' বদলে দিন
+            { id: 1, imageURL: 'https://via.placeholder.com/1200x300/28a745/ffffff?text=12.12+Grand+Sale', link: '#categories' }, 
+            { id: 2, imageURL: 'https://via.placeholder.com/1200x300/ffc107/000000?text=Upto+50%25+OFF', link: '#categories' }, 
+            { id: 3, imageURL: 'https://via.placeholder.com/1200x300/6c757d/ffffff?text=New+Customer+Voucher', link: '#loginForm' }
+        ]));
+    }
+    // Default Reviews
+    if (!localStorage.getItem('reviews')) {
+        localStorage.setItem('reviews', JSON.stringify([
+            { id: 1, customerName: 'Guest User', rating: 5, text: 'Great products and fast delivery!', date: new Date().toLocaleDateString() }
+        ]));
+    }
+    // Default Customers
+    if (!localStorage.getItem('customers')) {
+        localStorage.setItem('customers', JSON.stringify([{username: 'test', whatsapp: '01XXXXXXXXX', address: 'Test address', password: '123'}]));
+    }
+    // Default Promo Code Usage (for Admin Panel)
+    if (!localStorage.getItem('promocodeUsage')) {
+        localStorage.setItem('promocodeUsage', JSON.stringify({}));
+    }
+    // Dummy Orders data (if not exists)
+    if (!localStorage.getItem('orders')) {
+        localStorage.setItem('orders', JSON.stringify([]));
+    }
 }
 initializeLocalStorage();
 
 
 // ==== GLOBAL STATE & DATA FETCH ====
-// products কে এখন renderAll ফাংশনের মধ্যে লোড করা হবে যাতে এটি সব সময় আপ-টু-ডেট থাকে।
-let products = []; 
+let products = []; 
 let masterPromocodes = JSON.parse(localStorage.getItem("masterPromocodes")||'[]');
 let banners = JSON.parse(localStorage.getItem("banners")||'[]');
 let reviews = JSON.parse(localStorage.getItem("reviews")||'[]');
@@ -221,30 +221,29 @@ let appliedPromo = null; // Stores the currently applied promo object
 
 // ==== PAGE CONTROL ====
 function showPage(page){
-    document.querySelectorAll('.page').forEach(p=>p.style.display='none');
-    document.getElementById(page).style.display='block';
-    renderAll();
-    if (page === 'home') {
-        startCarousel();
-    } else {
-        clearInterval(carouselInterval);
-    }
+    document.querySelectorAll('.page').forEach(p=>p.style.display='none');
+    document.getElementById(page).style.display='block';
+    renderAll();
+    if (page === 'home') {
+        startCarousel();
+    } else {
+        clearInterval(carouselInterval);
+    }
 }
 
 // Initial page load
 document.addEventListener('DOMContentLoaded', () => {
-    // লগইন করা না থাকলে loginForm দেখাও, না হলে home
-    if(loggedCustomer){ 
-        showPage('home'); 
-        document.getElementById('logoutBtn').style.display='inline-block'; 
-    } else { 
-        showPage('loginForm'); 
-        toggleAuthForm('login');
-    }
-    // Render features that don't depend on specific pages
-    // populateCategoryFilter() now runs inside renderAll()
-    renderReviews();
-    renderStarRatingForm();
+    // লগইন করা না থাকলে loginForm দেখাও, না হলে home
+    if(loggedCustomer){ 
+        showPage('home'); 
+        document.getElementById('logoutBtn').style.display='inline-block'; 
+    } else { 
+        showPage('loginForm'); 
+        toggleAuthForm('login');
+    }
+    // Render features that don't depend on specific pages
+    renderReviews();
+    renderStarRatingForm();
 });
 
 
@@ -252,87 +251,87 @@ function toggleDarkMode(){ document.body.classList.toggle('dark'); }
 
 // ==== AUTH (UNCHANGED) ====
 function toggleAuthForm(mode){
-    document.getElementById('loginDiv').style.display = mode==='login'?'block':'none';
-    document.getElementById('registerDiv').style.display = mode==='register'?'block':'none';
-    document.getElementById('loginToggleBtn').style.backgroundColor = mode==='login'?'#28a745':'#6c757d';
-    document.getElementById('registerToggleBtn').style.backgroundColor = mode==='register'?'#28a745':'#6c757d';
+    document.getElementById('loginDiv').style.display = mode==='login'?'block':'none';
+    document.getElementById('registerDiv').style.display = mode==='register'?'block':'none';
+    document.getElementById('loginToggleBtn').style.backgroundColor = mode==='login'?'#28a745':'#6c757d';
+    document.getElementById('registerToggleBtn').style.backgroundColor = mode==='register'?'#28a745':'#6c757d';
 }
 
 function customerRegister(){
-    let username=document.getElementById("usernameRegister").value.trim();
-    let whatsapp=document.getElementById("userWhatsappRegister").value.trim();
-    let address=document.getElementById("userAddressRegister").value.trim();
-    let password=document.getElementById("passwordRegister").value;
-    if(!username||!whatsapp||!address||!password){ document.getElementById("registerMsg").innerText="Fill all fields"; return; }
-    if(customers.some(c=>c.username===username)){ document.getElementById("registerMsg").innerText="Username exists"; return; }
-    customers.push({username,whatsapp,address,password});
-    localStorage.setItem("customers",JSON.stringify(customers));
-    toggleAuthForm('login'); 
-    document.getElementById("registerMsg").innerText="Registered! Login now.";
+    let username=document.getElementById("usernameRegister").value.trim();
+    let whatsapp=document.getElementById("userWhatsappRegister").value.trim();
+    let address=document.getElementById("userAddressRegister").value.trim();
+    let password=document.getElementById("passwordRegister").value;
+    if(!username||!whatsapp||!address||!password){ document.getElementById("registerMsg").innerText="Fill all fields"; return; }
+    if(customers.some(c=>c.username===username)){ document.getElementById("registerMsg").innerText="Username exists"; return; }
+    customers.push({username,whatsapp,address,password});
+    localStorage.setItem("customers",JSON.stringify(customers));
+    toggleAuthForm('login'); 
+    document.getElementById("registerMsg").innerText="Registered! Login now.";
 }
 
 function customerLogin(){
-    let username=document.getElementById("usernameLogin").value.trim();
-    let password=document.getElementById("passwordLogin").value;
-    let user = customers.find(c=>c.username===username && c.password===password);
-    if(!user){ document.getElementById("loginMsg").innerText="Invalid username/password"; return; }
-    loggedCustomer=user; 
-    localStorage.setItem("loggedCustomer",JSON.stringify(loggedCustomer));
-    showPage('home'); 
-    document.getElementById('logoutBtn').style.display='inline-block';
+    let username=document.getElementById("usernameLogin").value.trim();
+    let password=document.getElementById("passwordLogin").value;
+    let user = customers.find(c=>c.username===username && c.password===password);
+    if(!user){ document.getElementById("loginMsg").innerText="Invalid username/password"; return; }
+    loggedCustomer=user; 
+    localStorage.setItem("loggedCustomer",JSON.stringify(loggedCustomer));
+    showPage('home'); 
+    document.getElementById('logoutBtn').style.display='inline-block';
 }
 
 function logout(){ 
-    loggedCustomer=null; 
-    localStorage.removeItem("loggedCustomer"); 
-    cart = [];
-    localStorage.removeItem("cart");
-    document.getElementById('promoResult').innerText = '';
-    appliedPromo = null;
-    showPage('loginForm'); 
-    document.getElementById('logoutBtn').style.display='none'; 
-    toggleAuthForm('login'); 
+    loggedCustomer=null; 
+    localStorage.removeItem("loggedCustomer"); 
+    cart = [];
+    localStorage.removeItem("cart");
+    document.getElementById('promoResult').innerText = '';
+    appliedPromo = null;
+    showPage('loginForm'); 
+    document.getElementById('logoutBtn').style.display='none'; 
+    toggleAuthForm('login'); 
 }
 
-// ==== RENDER PRODUCTS (UPDATED) ====
+// ==== RENDER PRODUCTS (আপডেট করা হয়েছে) ====
 const homeList=document.getElementById("homeList");
 const categoryList=document.getElementById("categoryList");
 const cartList=document.getElementById("cartList");
 const cartLink=document.getElementById("cartLink");
 
 function renderAll() {
-    // ⭐ FIX: products array must be reloaded from localStorage in renderAll()
-    // This ensures that Admin-approved products are immediately available for the shop and cart logic.
-    products = JSON.parse(localStorage.getItem("products")||'[]').filter(p=>p.status==='Approved');
+    // ⭐ FIX: products array must be reloaded from localStorage in renderAll()
+    // এটি নিশ্চিত করে যে অ্যাডমিন অনুমোদিত পণ্যগুলি অবিলম্বে দোকানের জন্য উপলব্ধ।
+    products = JSON.parse(localStorage.getItem("products")||'[]').filter(p=>p.status==='Approved');
 
-    // Other data reload
-    banners = JSON.parse(localStorage.getItem("banners")||'[]'); 
-    masterPromocodes = JSON.parse(localStorage.getItem("masterPromocodes")||'[]');
+    // Other data reload
+    banners = JSON.parse(localStorage.getItem("banners")||'[]'); 
+    masterPromocodes = JSON.parse(localStorage.getItem("masterPromocodes")||'[]');
 
-    renderProducts(homeList, products.slice(0, 6)); // Show first 6 approved products on home
-    // Ensure categoryList is rendered with all approved products
-    filterCategory(); 
-    renderCart();
-    updateCartBadge();
-    populateCategoryFilter();
-    renderReviews();
+    renderProducts(homeList, products.slice(0, 6)); // Show first 6 approved products on home
+    // Ensure categoryList is rendered with all approved products
+    filterCategory(); 
+    renderCart();
+    updateCartBadge();
+    populateCategoryFilter();
+    renderReviews();
 }
 
 function renderProducts(list, arr){
-    list.innerHTML=''; if(arr.length===0){ list.innerHTML="<p>No Approved products available.</p>"; return; }
-    arr.forEach(p=>{
-        // Note: The product index (idx) is now found relative to the global 'products' array, 
-        // which is reloaded in renderAll().
-        const idx=products.findIndex(pr=>pr.id===p.id); 
-        const div=document.createElement('div'); div.className='product';
-        const badgeHTML=p.promoCodeAssigned?`<div class="badge">${p.promoCodeAssigned}</div>`:'';
-        // Placeholder image ব্যবহার করা হয়েছে
-        const imageUrl = p.imageURL || 'https://via.placeholder.com/150?text=No+Image';
-        div.innerHTML=`${badgeHTML}<div class="product-image-container"><img src="${imageUrl}" alt="${p.name}"></div>
-        <h3>${p.name}</h3><p>Category: ${p.category}</p><p><b>$${p.price.toFixed(2)}</b></p><p>Stock: ${p.stock}</p>
-        <button onclick="addToCart(${idx})" ${p.stock<=0?'disabled style="background-color:#ff6347;"':''}>${p.stock>0?'Add to Cart':'Out of Stock'}</button>`;
-        list.appendChild(div);
-    });
+    list.innerHTML=''; if(arr.length===0){ list.innerHTML="<p>No Approved products available.</p>"; return; }
+    arr.forEach(p=>{
+        // Note: The product index (idx) is now found relative to the global 'products' array, 
+        // which is reloaded in renderAll().
+        const idx=products.findIndex(pr=>pr.id===p.id); 
+        const div=document.createElement('div'); div.className='product';
+        const badgeHTML=p.promoCodeAssigned?`<div class="badge">${p.promoCodeAssigned}</div>`:'';
+        // ⭐ FIX: Placeholder image ব্যবহার করা হয়েছে (যেহেতু আপনার আসল ছবি নেই)
+        const imageUrl = p.imageURL || 'https://via.placeholder.com/150?text=No+Image';
+        div.innerHTML=`${badgeHTML}<div class="product-image-container"><img src="${imageUrl}" alt="${p.name}"></div>
+        <h3>${p.name}</h3><p>Category: ${p.category}</p><p><b>$${p.price.toFixed(2)}</b></p><p>Stock: ${p.stock}</p>
+        <button onclick="addToCart(${idx})" ${p.stock<=0?'disabled style="background-color:#ff6347;"':''}>${p.stock>0?'Add to Cart':'Out of Stock'}</button>`;
+        list.appendChild(div);
+    });
 }
 
 // ==== CAROUSEL (Admin Controlled) - UNCHANGED ====
@@ -340,400 +339,400 @@ let currentSlide = 0;
 let carouselInterval;
 
 function renderCarousel() {
-    const track = document.querySelector('#carousel .carousel-track');
-    track.innerHTML = '';
-    if (banners.length === 0) {
-        track.innerHTML = '<div class="carousel-slide" style="text-align:center; display:flex; justify-content:center; align-items:center;"><h3>No active banners.</h3></div>';
-        return;
-    }
-     
-    banners.forEach(banner => {
-        const slide = document.createElement('div');
-        slide.className = 'carousel-slide';
-        // এখানে alt অ্যাট্রিবিউট যোগ করা হলো
-        slide.innerHTML = `<a href="${banner.link}"><img src="${banner.imageURL}" alt="Promotion Banner"></a>`;
-        track.appendChild(slide);
-    });
-    // Reset track position after rendering new slides
-    track.style.transform = `translateX(0%)`;
+    const track = document.querySelector('#carousel .carousel-track');
+    track.innerHTML = '';
+    if (banners.length === 0) {
+        track.innerHTML = '<div class="carousel-slide" style="text-align:center; display:flex; justify-content:center; align-items:center;"><h3>No active banners.</h3></div>';
+        return;
+    }
+     
+    banners.forEach(banner => {
+        const slide = document.createElement('div');
+        slide.className = 'carousel-slide';
+        // এখানে alt অ্যাট্রিবিউট যোগ করা হলো
+        slide.innerHTML = `<a href="${banner.link}"><img src="${banner.imageURL}" alt="Promotion Banner"></a>`;
+        track.appendChild(slide);
+    });
+    // Reset track position after rendering new slides
+    track.style.transform = `translateX(0%)`;
 }
 
 function moveCarousel() {
-    const track = document.querySelector('#carousel .carousel-track');
-    const totalSlides = banners.length;
-    if (totalSlides <= 1) return;
+    const track = document.querySelector('#carousel .carousel-track');
+    const totalSlides = banners.length;
+    if (totalSlides <= 1) return;
 
-    currentSlide = (currentSlide + 1) % totalSlides;
-    track.style.transform = `translateX(-${currentSlide * 100}%)`;
+    currentSlide = (currentSlide + 1) % totalSlides;
+    track.style.transform = `translateX(-${currentSlide * 100}%)`;
 }
 
 function startCarousel() {
-    renderCarousel();
-    if (banners.length > 1) {
-        clearInterval(carouselInterval);
-        currentSlide = 0;
-        carouselInterval = setInterval(moveCarousel, 5000); // Change slide every 5 seconds
-    } else {
-        clearInterval(carouselInterval); // Stop interval if 0 or 1 banner
-    }
+    renderCarousel();
+    if (banners.length > 1) {
+        clearInterval(carouselInterval);
+        currentSlide = 0;
+        carouselInterval = setInterval(moveCarousel, 5000); // Change slide every 5 seconds
+    } else {
+        clearInterval(carouselInterval); // Stop interval if 0 or 1 banner
+    }
 }
 
 
 // ==== CART (UNCHANGED) ====
 function renderCart(){
-    cartList.innerHTML=''; 
-    if(cart.length===0){ 
-        cartList.innerHTML="<p>Your cart is empty.</p>"; 
-        document.getElementById('promoCodeInput').style.display = 'none';
-        document.querySelector('#cart button[onclick="applyPromo()"]').style.display = 'none';
-        document.getElementById('promoResult').innerText = '';
-        return; 
-    }
-     
-    document.getElementById('promoCodeInput').style.display = 'block';
-    document.querySelector('#cart button[onclick="applyPromo()"]').style.display = 'block';
+    cartList.innerHTML=''; 
+    if(cart.length===0){ 
+        cartList.innerHTML="<p>Your cart is empty.</p>"; 
+        document.getElementById('promoCodeInput').style.display = 'none';
+        document.querySelector('#cart button[onclick="applyPromo()"]').style.display = 'none';
+        document.getElementById('promoResult').innerText = '';
+        return; 
+    }
+     
+    document.getElementById('promoCodeInput').style.display = 'block';
+    document.querySelector('#cart button[onclick="applyPromo()"]').style.display = 'block';
 
-    cart.forEach((p,i)=>{
-        const div=document.createElement('div'); div.className='product';
-        const qty=p.quantity||1;
-        div.innerHTML=`<p><b>${p.name}</b></p>
-        <p>$${p.price.toFixed(2)} x ${qty} = $<b>${(p.price*qty).toFixed(2)}</b></p>
-        <input type="number" value="${qty}" min="1" max="${p.stock}" onchange="updateQuantity(${i},this.value)">
-        <button onclick="removeFromCart(${i})">Remove</button>`;
-        cartList.appendChild(div);
-    });
-    updateCartTotal(); 
-    updateCartBadge();
+    cart.forEach((p,i)=>{
+        const div=document.createElement('div'); div.className='product';
+        const qty=p.quantity||1;
+        div.innerHTML=`<p><b>${p.name}</b></p>
+        <p>$${p.price.toFixed(2)} x ${qty} = $<b>${(p.price*qty).toFixed(2)}</b></p>
+        <input type="number" value="${qty}" min="1" max="${p.stock}" onchange="updateQuantity(${i},this.value)">
+        <button onclick="removeFromCart(${i})">Remove</button>`;
+        cartList.appendChild(div);
+    });
+    updateCartTotal(); 
+    updateCartBadge();
 }
 
 function addToCart(i){
-    if(!loggedCustomer){ 
-        alert("Please login first to add items to the cart!"); 
-        showPage('loginForm'); 
-        toggleAuthForm('login'); 
-        return; 
-    }
-    // ⭐ FIX: Product is fetched from the global 'products' array which is now re-loaded in renderAll()
-    const product = products[i]; 
-    if(!product || product.stock < 1){ 
-        alert("Out of stock or product not found."); 
-        return; 
-    }
-    const exist=cart.find(item=>item.id===product.id);
-    if(exist){ 
-        if((exist.quantity||1)>=product.stock){ 
-            alert(`Maximum stock reached for ${product.name} (${product.stock} units).`); 
-            return; 
-        } 
-        exist.quantity=(exist.quantity||1)+1; 
-    } else{ 
-        // Note: When adding to cart, save a copy of the product data
-        cart.push({...product, quantity:1}); 
-    }
-    localStorage.setItem("cart",JSON.stringify(cart)); 
-    renderCart(); 
-    alert(`${product.name} added to cart!`);
+    if(!loggedCustomer){ 
+        alert("Please login first to add items to the cart!"); 
+        showPage('loginForm'); 
+        toggleAuthForm('login'); 
+        return; 
+    }
+    // ⭐ FIX: Product is fetched from the global 'products' array which is now re-loaded in renderAll()
+    const product = products[i]; 
+    if(!product || product.stock < 1){ 
+        alert("Out of stock or product not found."); 
+        return; 
+    }
+    const exist=cart.find(item=>item.id===product.id);
+    if(exist){ 
+        if((exist.quantity||1)>=product.stock){ 
+            alert(`Maximum stock reached for ${product.name} (${product.stock} units).`); 
+            return; 
+        } 
+        exist.quantity=(exist.quantity||1)+1; 
+    } else{ 
+        // Note: When adding to cart, save a copy of the product data
+        cart.push({...product, quantity:1}); 
+    }
+    localStorage.setItem("cart",JSON.stringify(cart)); 
+    renderCart(); 
+    alert(`${product.name} added to cart!`);
 }
 
 function removeFromCart(i){ 
-    cart.splice(i,1); 
-    localStorage.setItem("cart",JSON.stringify(cart)); 
-    appliedPromo = null; // Remove promo if cart changes
-    document.getElementById('promoResult').innerText = '';
-    renderCart(); 
+    cart.splice(i,1); 
+    localStorage.setItem("cart",JSON.stringify(cart)); 
+    appliedPromo = null; // Remove promo if cart changes
+    document.getElementById('promoResult').innerText = '';
+    renderCart(); 
 }
 
 function updateQuantity(i,val){ 
-    const quantity=Number(val); 
-    if(quantity<1 || isNaN(quantity)) return; 
-    const p=cart[i]; 
-    const stockP=products.find(pr=>pr.id===p.id); 
-     
-    if(stockP && quantity>stockP.stock){ 
-        alert(`Maximum available stock is ${stockP.stock}.`); 
-        cart[i].quantity=stockP.stock; 
-    } else{ 
-        cart[i].quantity=quantity; 
-    } 
-     
-    localStorage.setItem("cart",JSON.stringify(cart)); 
-    appliedPromo = null; // Remove promo if cart changes
-    document.getElementById('promoResult').innerText = '';
-    updateCartTotal(); 
+    const quantity=Number(val); 
+    if(quantity<1 || isNaN(quantity)) return; 
+    const p=cart[i]; 
+    const stockP=products.find(pr=>pr.id===p.id); 
+     
+    if(stockP && quantity>stockP.stock){ 
+        alert(`Maximum available stock is ${stockP.stock}.`); 
+        cart[i].quantity=stockP.stock; 
+    } else{ 
+        cart[i].quantity=quantity; 
+    } 
+     
+    localStorage.setItem("cart",JSON.stringify(cart)); 
+    appliedPromo = null; // Remove promo if cart changes
+    document.getElementById('promoResult').innerText = '';
+    updateCartTotal(); 
 }
 
 function updateCartTotal(){ 
-    let subtotal=cart.reduce((sum,p)=>sum+p.price*(p.quantity||1),0);
-    let finalTotal = subtotal;
-    let discount = 0;
+    let subtotal=cart.reduce((sum,p)=>sum+p.price*(p.quantity||1),0);
+    let finalTotal = subtotal;
+    let discount = 0;
 
-    if (appliedPromo) {
-        if (appliedPromo.minOrder > subtotal) {
-             document.getElementById('promoResult').innerText = `❌ Subtotal ($${subtotal.toFixed(2)}) is less than minimum order for ${appliedPromo.code} ($${appliedPromo.minOrder.toFixed(2)})`;
-             appliedPromo = null;
-        } else {
-             if (appliedPromo.type === 'percent') {
-                 discount = subtotal * (appliedPromo.discount / 100);
-             } else if (appliedPromo.type === 'fixed') {
-                 discount = appliedPromo.discount;
-             }
-             finalTotal = subtotal - discount;
-             document.getElementById('promoResult').innerText = `✅ Promo ${appliedPromo.code} applied! Discount: $${discount.toFixed(2)}`;
-        }
-    }
+    if (appliedPromo) {
+        if (appliedPromo.minOrder > subtotal) {
+             document.getElementById('promoResult').innerText = `❌ Subtotal ($${subtotal.toFixed(2)}) is less than minimum order for ${appliedPromo.code} ($${appliedPromo.minOrder.toFixed(2)})`;
+             appliedPromo = null;
+        } else {
+             if (appliedPromo.type === 'percent') {
+                 discount = subtotal * (appliedPromo.discount / 100);
+             } else if (appliedPromo.type === 'fixed') {
+                 discount = appliedPromo.discount;
+             }
+             finalTotal = subtotal - discount;
+             document.getElementById('promoResult').innerText = `✅ Promo ${appliedPromo.code} applied! Discount: $${discount.toFixed(2)}`;
+        }
+    }
 
-    document.getElementById('cartSummary').innerHTML=`
-        Subtotal: $${subtotal.toFixed(2)}<br>
-        Discount: $${discount.toFixed(2)}<br>
-        <b>Final Total: $${finalTotal.toFixed(2)}</b>
-    `;
+    document.getElementById('cartSummary').innerHTML=`
+        Subtotal: $${subtotal.toFixed(2)}<br>
+        Discount: $${discount.toFixed(2)}<br>
+        <b>Final Total: $${finalTotal.toFixed(2)}</b>
+    `;
 }
 
 function updateCartBadge(){ cartLink.setAttribute('data-count',cart.length); }
 
 // ==== CATEGORY/FILTER (UNCHANGED) ====
 function filterCategory(){
-    let filtered=products; 
-    const cat=document.getElementById('categoryFilter').value;
-    const search=document.getElementById('searchInput').value.toLowerCase();
-    const sort=document.getElementById('sortSelect').value;
-     
-    if(cat!=='All'){ filtered=filtered.filter(p=>p.category===cat); }
-    if(search){ filtered=filtered.filter(p=>p.name.toLowerCase().includes(search)); }
-     
-    if(sort==='price-asc'){ filtered.sort((a,b)=>a.price-b.price); }
-    if(sort==='price-desc'){ filtered.sort((a,b)=>b.price-a.price); }
-    if(sort==='name-asc'){ filtered.sort((a,b)=>a.name.localeCompare(b.name)); }
-    if(sort==='name-desc'){ filtered.sort((a,b)=>b.name.localeCompare(a.name)); }
-     
-    renderProducts(categoryList, filtered);
+    let filtered=products; 
+    const cat=document.getElementById('categoryFilter').value;
+    const search=document.getElementById('searchInput').value.toLowerCase();
+    const sort=document.getElementById('sortSelect').value;
+     
+    if(cat!=='All'){ filtered=filtered.filter(p=>p.category===cat); }
+    if(search){ filtered=filtered.filter(p=>p.name.toLowerCase().includes(search)); }
+     
+    if(sort==='price-asc'){ filtered.sort((a,b)=>a.price-b.price); }
+    if(sort==='price-desc'){ filtered.sort((a,b)=>b.price-a.price); }
+    if(sort==='name-asc'){ filtered.sort((a,b)=>a.name.localeCompare(b.name)); }
+    if(sort==='name-desc'){ filtered.sort((a,b)=>b.name.localeCompare(a.name)); }
+     
+    renderProducts(categoryList, filtered);
 }
 
 function populateCategoryFilter(){ 
-    // Filter categories only from Approved products
-    const categories=[...new Set(products.map(p=>p.category))]; 
-    const filter=document.getElementById('categoryFilter'); 
-    filter.innerHTML='<option value="All">All</option>'; 
-    categories.forEach(c=>{ 
-        const opt=document.createElement('option'); 
-        opt.value=c; 
-        opt.textContent=c; 
-        filter.appendChild(opt); 
-    }); 
+    // Filter categories only from Approved products
+    const categories=[...new Set(products.map(p=>p.category))]; 
+    const filter=document.getElementById('categoryFilter'); 
+    filter.innerHTML='<option value="All">All</option>'; 
+    categories.forEach(c=>{ 
+        const opt=document.createElement('option'); 
+        opt.value=c; 
+        opt.textContent=c; 
+        filter.appendChild(opt); 
+    }); 
 }
 
 // ==== PROMOCODE LOGIC (UNCHANGED) ====
 function applyPromo(){
-    const code=document.getElementById('promoCodeInput').value.trim().toUpperCase();
-    document.getElementById('promoResult').innerText = ''; // Reset result
-     
-    if(!code){ alert("Enter promo code"); return; }
-    if(cart.length === 0) { alert("Add items to cart first."); return; }
+    const code=document.getElementById('promoCodeInput').value.trim().toUpperCase();
+    document.getElementById('promoResult').innerText = ''; // Reset result
+     
+    if(!code){ alert("Enter promo code"); return; }
+    if(cart.length === 0) { alert("Add items to cart first."); return; }
 
-    const promo = masterPromocodes.find(p => p.code === code);
-     
-    if(!promo){ 
-        document.getElementById('promoResult').innerText = "❌ Invalid promo code."; 
-        appliedPromo = null;
-        updateCartTotal();
-        return; 
-    }
-     
-    // Check Scope (Global or Vendor Specific)
-    let isApplicable = true;
-    if (promo.scope === 'vendor') {
-        // Check if at least one cart item is from the promo's vendor
-        const vendorProductsInCart = cart.filter(citem => {
-            const product = products.find(p => p.id === citem.id);
-            return product && product.vendorId === promo.vendorId;
-        });
-        if (vendorProductsInCart.length === 0) {
-            isApplicable = false;
-        }
-    }
-     
-    if (!isApplicable) {
-        document.getElementById('promoResult').innerText = `❌ Promo ${code} is only valid for specific products/vendors.`;
-        appliedPromo = null;
-        updateCartTotal();
-        return;
-    }
+    const promo = masterPromocodes.find(p => p.code === code);
+     
+    if(!promo){ 
+        document.getElementById('promoResult').innerText = "❌ Invalid promo code."; 
+        appliedPromo = null;
+        updateCartTotal();
+        return; 
+    }
+     
+    // Check Scope (Global or Vendor Specific)
+    let isApplicable = true;
+    if (promo.scope === 'vendor') {
+        // Check if at least one cart item is from the promo's vendor
+        const vendorProductsInCart = cart.filter(citem => {
+            const product = products.find(p => p.id === citem.id);
+            return product && product.vendorId === promo.vendorId;
+        });
+        if (vendorProductsInCart.length === 0) {
+            isApplicable = false;
+        }
+    }
+     
+    if (!isApplicable) {
+        document.getElementById('promoResult').innerText = `❌ Promo ${code} is only valid for specific products/vendors.`;
+        appliedPromo = null;
+        updateCartTotal();
+        return;
+    }
 
-    // Apply the valid promo
-    appliedPromo = promo;
-    updateCartTotal(); // This will recalculate total and check minOrder
+    // Apply the valid promo
+    appliedPromo = promo;
+    updateCartTotal(); // This will recalculate total and check minOrder
 }
 
 // ==== CHECKOUT (UNCHANGED) ====
 function checkout(){
-    if(cart.length===0){ alert("Cart empty"); return; }
-    if(!loggedCustomer){ alert("Login to checkout"); return; }
-     
-    let subtotal=cart.reduce((sum,p)=>sum+p.price*(p.quantity||1),0);
-    let finalTotal = subtotal;
-    let discount = 0;
-     
-    // Final Promo Check
-    if (appliedPromo) {
-            if (appliedPromo.minOrder > subtotal) {
-               alert("Checkout failed: Minimum order requirement not met for the applied promo code.");
-               return;
-        }
-        if (appliedPromo.type === 'percent') {
-             discount = subtotal * (appliedPromo.discount / 100);
-        } else if (appliedPromo.type === 'fixed') {
-             discount = appliedPromo.discount;
-        }
-        finalTotal = subtotal - discount;
-         
-        // Update Promocode Usage (for Admin panel tracking)
-        let usage = JSON.parse(localStorage.getItem("promocodeUsage")||'{}');
-        usage[appliedPromo.code] = (usage[appliedPromo.code] || 0) + 1;
-        localStorage.setItem("promocodeUsage", JSON.stringify(usage));
-    }
+    if(cart.length===0){ alert("Cart empty"); return; }
+    if(!loggedCustomer){ alert("Login to checkout"); return; }
+     
+    let subtotal=cart.reduce((sum,p)=>sum+p.price*(p.quantity||1),0);
+    let finalTotal = subtotal;
+    let discount = 0;
+     
+    // Final Promo Check
+    if (appliedPromo) {
+            if (appliedPromo.minOrder > subtotal) {
+               alert("Checkout failed: Minimum order requirement not met for the applied promo code.");
+               return;
+        }
+        if (appliedPromo.type === 'percent') {
+             discount = subtotal * (appliedPromo.discount / 100);
+        } else if (appliedPromo.type === 'fixed') {
+             discount = appliedPromo.discount;
+        }
+        finalTotal = subtotal - discount;
+         
+        // Update Promocode Usage (for Admin panel tracking)
+        let usage = JSON.parse(localStorage.getItem("promocodeUsage")||'{}');
+        usage[appliedPromo.code] = (usage[appliedPromo.code] || 0) + 1;
+        localStorage.setItem("promocodeUsage", JSON.stringify(usage));
+    }
 
-    // 1. Stock Validation
-    let outOfStockItems = [];
-    cart.forEach(citem => {
-        const p = products.find(pr=>pr.id===citem.id);
-        if (p && p.stock < citem.quantity) {
-            outOfStockItems.push(`${p.name} (Available: ${p.stock})`);
-        }
-    });
+    // 1. Stock Validation
+    let outOfStockItems = [];
+    cart.forEach(citem => {
+        const p = products.find(pr=>pr.id===citem.id);
+        if (p && p.stock < citem.quantity) {
+            outOfStockItems.push(`${p.name} (Available: ${p.stock})`);
+        }
+    });
 
-    if (outOfStockItems.length > 0) {
-        alert(`Checkout Failed! Some items are out of stock or quantity exceeds stock:\n- ${outOfStockItems.join('\n- ')}\nPlease adjust your cart.`);
-        renderAll(); // Re-render to show updated stock
-        return;
-    }
-     
-    // 2. Update Stock
-    cart.forEach(citem=>{ 
-        const pidx=products.findIndex(pr=>pr.id===citem.id); 
-        if(pidx!==-1){ 
-            products[pidx].stock-=citem.quantity||1; 
-        } 
-    });
-    // Save updated products to localStorage so admin/vendor can see stock change
-    localStorage.setItem("products",JSON.stringify(products));
+    if (outOfStockItems.length > 0) {
+        alert(`Checkout Failed! Some items are out of stock or quantity exceeds stock:\n- ${outOfStockItems.join('\n- ')}\nPlease adjust your cart.`);
+        renderAll(); // Re-render to show updated stock
+        return;
+    }
+     
+    // 2. Update Stock
+    cart.forEach(citem=>{ 
+        const pidx=products.findIndex(pr=>pr.id===citem.id); 
+        if(pidx!==-1){ 
+            products[pidx].stock-=citem.quantity||1; 
+        } 
+    });
+    // Save updated products to localStorage so admin/vendor can see stock change
+    localStorage.setItem("products",JSON.stringify(products));
 
-    // 3. Record Order (Optional but good for prototype)
-    const orders = JSON.parse(localStorage.getItem('orders') || '[]');
-    orders.push({
-        id: orders.length + 1,
-        customer: loggedCustomer.username,
-        items: cart,
-        total: finalTotal.toFixed(2),
-        discount: discount.toFixed(2),
-        promocode: appliedPromo ? appliedPromo.code : 'None',
-        status: 'Pending', // Add status for admin panel
-        date: new Date().toISOString()
-    });
-    localStorage.setItem('orders', JSON.stringify(orders));
+    // 3. Record Order (Optional but good for prototype)
+    const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+    orders.push({
+        id: orders.length + 1,
+        customer: loggedCustomer.username,
+        items: cart,
+        total: finalTotal.toFixed(2),
+        discount: discount.toFixed(2),
+        promocode: appliedPromo ? appliedPromo.code : 'None',
+        status: 'Pending', // Add status for admin panel
+        date: new Date().toISOString()
+    });
+    localStorage.setItem('orders', JSON.stringify(orders));
 
-    // 4. Clear Cart
-    cart=[]; 
-    localStorage.setItem("cart",JSON.stringify(cart)); 
-    appliedPromo = null;
-    document.getElementById('promoResult').innerText = '';
-     
-    // 5. Send WhatsApp Message (Final Confirmation)
-    const orderDetails = cart.map(item => `${item.name} (${item.quantity} units)`).join(', ');
-    const message = `Order Placed!%0AUser: ${loggedCustomer.username}%0AItems: ${orderDetails}%0ATotal: $${finalTotal.toFixed(2)}%0AAddress: ${loggedCustomer.address}`;
-    window.open(`https://wa.me/8801XXXXXXXXX?text=${message}`, "_blank");
+    // 4. Clear Cart
+    cart=[]; 
+    localStorage.setItem("cart",JSON.stringify(cart)); 
+    appliedPromo = null;
+    document.getElementById('promoResult').innerText = '';
+     
+    // 5. Send WhatsApp Message (Final Confirmation)
+    const orderDetails = cart.map(item => `${item.name} (${item.quantity} units)`).join(', ');
+    const message = `Order Placed!%0AUser: ${loggedCustomer.username}%0AItems: ${orderDetails}%0ATotal: $${finalTotal.toFixed(2)}%0AAddress: ${loggedCustomer.address}`;
+    window.open(`https://wa.me/8801XXXXXXXXX?text=${message}`, "_blank");
 
 
-    alert(`Order placed successfully! Final Total: $${finalTotal.toFixed(2)}`);
-    showPage('home'); // Go back to home
+    alert(`Order placed successfully! Final Total: $${finalTotal.toFixed(2)}`);
+    showPage('home'); // Go back to home
 }
 
 // ==== REVIEWS (UNCHANGED) ====
 let currentRating = 0;
 
 function renderStarRatingForm() {
-    const ratingDiv = document.getElementById('ratingStars');
-    ratingDiv.innerHTML = '';
-    for (let i = 1; i <= 5; i++) {
-        const star = document.createElement('span');
-        star.className = 'star';
-        star.innerText = '★';
-        star.dataset.value = i;
-        star.onclick = () => { currentRating = i; highlightStars(i); };
-        ratingDiv.appendChild(star);
-    }
-    highlightStars(currentRating);
+    const ratingDiv = document.getElementById('ratingStars');
+    ratingDiv.innerHTML = '';
+    for (let i = 1; i <= 5; i++) {
+        const star = document.createElement('span');
+        star.className = 'star';
+        star.innerText = '★';
+        star.dataset.value = i;
+        star.onclick = () => { currentRating = i; highlightStars(i); };
+        ratingDiv.appendChild(star);
+    }
+    highlightStars(currentRating);
 }
 
 function highlightStars(rating) {
-    document.querySelectorAll('#ratingStars .star').forEach(star => {
-        star.style.color = star.dataset.value <= rating ? 'gold' : 'gray';
-    });
+    document.querySelectorAll('#ratingStars .star').forEach(star => {
+        star.style.color = star.dataset.value <= rating ? 'gold' : 'gray';
+    });
 }
 
 function renderReviews() {
-    const reviewList = document.getElementById('reviewList');
-    reviewList.innerHTML = '';
+    const reviewList = document.getElementById('reviewList');
+    reviewList.innerHTML = '';
 
-    if (reviews.length === 0) {
-        reviewList.innerHTML = '<p style="text-align: center;">No reviews yet. Be the first!</p>';
-        return;
-    }
+    if (reviews.length === 0) {
+        reviewList.innerHTML = '<p style="text-align: center;">No reviews yet. Be the first!</p>';
+        return;
+    }
 
-    reviews.slice(-5).reverse().forEach(r => { // Show last 5 reviews
-        const div = document.createElement('div');
-        div.className = 'review-item';
-        div.innerHTML = `
-            <div>${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</div>
-            <p>${r.text}</p>
-            <p class="review-customer">Reviewed by <b>${r.customerName}</b> on ${r.date}</p>
-        `;
-        reviewList.appendChild(div);
-    });
-     
-    // Show/hide review form based on login status
-    if (loggedCustomer) {
-        document.getElementById('reviewText').style.display = 'block';
-        document.querySelector('#reviewForm button').style.display = 'block';
-        document.getElementById('reviewAuthMsg').style.display = 'none';
-        document.getElementById('ratingStars').style.display = 'block';
-    } else {
-        document.getElementById('reviewText').style.display = 'none';
-        document.querySelector('#reviewForm button').style.display = 'none';
-        document.getElementById('reviewAuthMsg').style.display = 'block';
-        document.getElementById('ratingStars').style.display = 'none';
-    }
+    reviews.slice(-5).reverse().forEach(r => { // Show last 5 reviews
+        const div = document.createElement('div');
+        div.className = 'review-item';
+        div.innerHTML = `
+            <div>${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</div>
+            <p>${r.text}</p>
+            <p class="review-customer">Reviewed by <b>${r.customerName}</b> on ${r.date}</p>
+        `;
+        reviewList.appendChild(div);
+    });
+     
+    // Show/hide review form based on login status
+    if (loggedCustomer) {
+        document.getElementById('reviewText').style.display = 'block';
+        document.querySelector('#reviewForm button').style.display = 'block';
+        document.getElementById('reviewAuthMsg').style.display = 'none';
+        document.getElementById('ratingStars').style.display = 'block';
+    } else {
+        document.getElementById('reviewText').style.display = 'none';
+        document.querySelector('#reviewForm button').style.display = 'none';
+        document.getElementById('reviewAuthMsg').style.display = 'block';
+        document.getElementById('ratingStars').style.display = 'none';
+    }
 }
 
 function submitReview(){ 
-    if(!loggedCustomer){ alert("Login to submit review."); return; }
-     
-    const text=document.getElementById("reviewText").value.trim();
-    if(currentRating === 0 || !text){ 
-        alert("Please provide a rating (1-5 stars) and review text."); 
-        return; 
-    }
-     
-    reviews.push({
-        id: reviews.length + 1,
-        customerName: loggedCustomer.username,
-        rating: currentRating,
-        text: text,
-        date: new Date().toLocaleDateString()
-    });
-    localStorage.setItem("reviews",JSON.stringify(reviews));
-     
-    document.getElementById("reviewText").value = '';
-    currentRating = 0;
-    highlightStars(0);
-    renderReviews();
-    alert("Review submitted successfully!");
+    if(!loggedCustomer){ alert("Login to submit review."); return; }
+     
+    const text=document.getElementById("reviewText").value.trim();
+    if(currentRating === 0 || !text){ 
+        alert("Please provide a rating (1-5 stars) and review text."); 
+        return; 
+    }
+     
+    reviews.push({
+        id: reviews.length + 1,
+        customerName: loggedCustomer.username,
+        rating: currentRating,
+        text: text,
+        date: new Date().toLocaleDateString()
+    });
+    localStorage.setItem("reviews",JSON.stringify(reviews));
+     
+    document.getElementById("reviewText").value = '';
+    currentRating = 0;
+    highlightStars(0);
+    renderReviews();
+    alert("Review submitted successfully!");
 }
 
 
 // ==== MISC ====
 function openWhatsApp(){ 
-    // এখানে আপনার WhatsApp নাম্বার দিন
-    window.open("https://wa.me/8801XXXXXXXXX?text=Hello%20Dhamaka%2C%20I%20need%20support%20regarding%20my%20order.", "_blank"); 
+    // এখানে আপনার WhatsApp নাম্বার দিন
+    window.open("https://wa.me/8801XXXXXXXXX?text=Hello%20Dhamaka%2C%20I%20need%20support%20regarding%20my%20order.", "_blank"); 
 }
 </script>
 </body>
