@@ -205,7 +205,6 @@ function showPage(page){
                 document.getElementById('vendorPromoCode').innerText = currentVendor.promocode;
                 populatePromoDropdown(); 
                 renderProducts();
-                // Optionally render orders if you add that section later: renderOrders(); 
             }
         }
     } else {
@@ -470,20 +469,6 @@ function deleteProduct(i){
         localStorage.setItem('products',JSON.stringify(products)); 
         renderProducts(); 
         resetForm(); 
-    }
-}
-
-// 💡 BONUS: Simple Admin Approval Function for testing
-function approveVendor(vendorId) {
-    loadData();
-    const vendorIndex = vendors.findIndex(v => v.id === vendorId);
-    if (vendorIndex !== -1) {
-        vendors[vendorIndex].status = 'Approved';
-        localStorage.setItem('vendors', JSON.stringify(vendors));
-        console.log(`Vendor ${vendorId} status set to Approved.`);
-        alert(`Vendor ${vendorId} status set to Approved. Try logging in now.`);
-    } else {
-        console.error(`Vendor ${vendorId} not found.`);
     }
 }
     </script>
