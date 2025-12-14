@@ -78,9 +78,10 @@ input,select,textarea{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;b
 <header>
 <h1>Dhamaka Daily Items</h1>
 <nav>
-<a href="#home" onclick="showPage('home')">Home</a>
-<a href="#categories" onclick="showPage('categories')">Products</a>
-<a id="cartLink" href="#cart" data-count="0" onclick="showPage('cart')">Cart</a>
+<a href="#home" onclick="showPage('home')" id="homeLink" style="display:none;">Home</a>
+<a href="#categories" onclick="showPage('categories')" id="productsLink" style="display:none;">Products</a>
+<a id="cartLink" href="#cart" data-count="0" onclick="showPage('cart')" style="display:none;">Cart</a>
+<a href="#loginForm" onclick="showPage('loginForm')" id="loginRegisterLink">Login/Register</a>
 <button onclick="toggleDarkMode()">🌙</button>
 <button id="logoutBtn" style="display:none;" onclick="logout()">Logout</button>
 </nav>
@@ -194,6 +195,7 @@ function initializeLocalStorage() {
         ]));
     }
     // Default Customers
+    // ⭐ FIX: একটি ডিফল্ট কাস্টমার যোগ করা হয়েছে
     if (!localStorage.getItem('customers')) {
         localStorage.setItem('customers', JSON.stringify([{username: 'test', whatsapp: '01XXXXXXXXX', address: 'Test address', password: '123'}]));
     }
@@ -205,12 +207,19 @@ function initializeLocalStorage() {
     if (!localStorage.getItem('orders')) {
         localStorage.setItem('orders', JSON.stringify([]));
     }
+    // Master Promocodes (যদি প্রয়োজন হয়)
+    if (!localStorage.getItem('masterPromocodes')) {
+        localStorage.setItem('masterPromocodes', JSON.stringify([{
+            code: 'FLAT10', type: 'fixed', discount: 10, minOrder: 50, scope: 'global', vendorId: null, status: 'Active'
+        }]));
+    }
 }
 initializeLocalStorage();
 
 
 // ==== GLOBAL STATE & DATA FETCH ====
 let products = []; 
+// ⭐ FIX: masterPromocodes, banners, reviews, customers, cart, loggedCustomer লোড করা হয়েছে।
 let masterPromocodes = JSON.parse(localStorage.getItem("masterPromocodes")||'[]');
 let banners = JSON.parse(localStorage.getItem("banners")||'[]');
 let reviews = JSON.parse(localStorage.getItem("reviews")||'[]');
@@ -219,7 +228,7 @@ let customers = JSON.parse(localStorage.getItem("customers")||'[]');
 let loggedCustomer = JSON.parse(localStorage.getItem("loggedCustomer")||'null');
 let appliedPromo = null; // Stores the currently applied promo object
 
-// ==== PAGE CONTROL ====
+// ==== PAGE CONTROL & AUTH STATE MANAGEMENT ====
 function showPage(page){
     document.querySelectorAll('.page').forEach(p=>p.style.display='none');
     document.getElementById(page).style.display='block';
@@ -231,15 +240,25 @@ function showPage(page){
     }
 }
 
+function updateNavLinks() {
+    const isLoggedIn = !!loggedCustomer;
+    document.getElementById('homeLink').style.display = isLoggedIn ? 'block' : 'none';
+    document.getElementById('productsLink').style.display = isLoggedIn ? 'block' : 'none';
+    document.getElementById('cartLink').style.display = isLoggedIn ? 'block' : 'none';
+    document.getElementById('logoutBtn').style.display = isLoggedIn ? 'inline-block' : 'none';
+    document.getElementById('loginRegisterLink').style.display = isLoggedIn ? 'none' : 'block';
+}
+
 // Initial page load
 document.addEventListener('DOMContentLoaded', () => {
-    // লগইন করা না থাকলে loginForm দেখাও, না হলে home
+    // ⭐ FIX: অ্যাপ লোডের সময় লগইন স্টেট চেক ও নেভিগেশন আপডেট করা হয়েছে।
+    updateNavLinks(); // নেভিগেশন লিংক স্ট্যাটাস সেট করুন
+
     if(loggedCustomer){ 
         showPage('home'); 
-        document.getElementById('logoutBtn').style.display='inline-block'; 
     } else { 
         showPage('loginForm'); 
-        toggleAuthForm('login');
+        toggleAuthForm('login'); // লগইন ফর্ম ডিফল্ট হিসেবে দেখাবে
     }
     // Render features that don't depend on specific pages
     renderReviews();
@@ -249,12 +268,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function toggleDarkMode(){ document.body.classList.toggle('dark'); }
 
-// ==== AUTH (UNCHANGED) ====
+// ==== AUTH (UPDATED & FIXED) ====
 function toggleAuthForm(mode){
     document.getElementById('loginDiv').style.display = mode==='login'?'block':'none';
     document.getElementById('registerDiv').style.display = mode==='register'?'block':'none';
     document.getElementById('loginToggleBtn').style.backgroundColor = mode==='login'?'#28a745':'#6c757d';
     document.getElementById('registerToggleBtn').style.backgroundColor = mode==='register'?'#28a745':'#6c757d';
+    document.getElementById("loginMsg").innerText=""; // মেসেজ রিসেট
+    document.getElementById("registerMsg").innerText=""; // মেসেজ রিসেট
 }
 
 function customerRegister(){
@@ -262,23 +283,40 @@ function customerRegister(){
     let whatsapp=document.getElementById("userWhatsappRegister").value.trim();
     let address=document.getElementById("userAddressRegister").value.trim();
     let password=document.getElementById("passwordRegister").value;
+    
+    // ⭐ FIX: ডেটা লোড করার জন্য এই লাইনটি যোগ করা হয়েছে
+    customers = JSON.parse(localStorage.getItem("customers")||'[]');
+
     if(!username||!whatsapp||!address||!password){ document.getElementById("registerMsg").innerText="Fill all fields"; return; }
     if(customers.some(c=>c.username===username)){ document.getElementById("registerMsg").innerText="Username exists"; return; }
+    
     customers.push({username,whatsapp,address,password});
     localStorage.setItem("customers",JSON.stringify(customers));
+    
+    // রেজিস্ট্রেশনের পরে লগইন ফর্মে যান এবং সফল মেসেজ দেখান
+    document.getElementById("usernameLogin").value = username;
+    document.getElementById("passwordLogin").value = "";
     toggleAuthForm('login'); 
-    document.getElementById("registerMsg").innerText="Registered! Login now.";
+    document.getElementById("loginMsg").innerText="Registered successfully! Please login.";
 }
 
 function customerLogin(){
     let username=document.getElementById("usernameLogin").value.trim();
     let password=document.getElementById("passwordLogin").value;
+    
+    // ⭐ FIX: ডেটা লোড করার জন্য এই লাইনটি যোগ করা হয়েছে
+    customers = JSON.parse(localStorage.getItem("customers")||'[]');
+
     let user = customers.find(c=>c.username===username && c.password===password);
-    if(!user){ document.getElementById("loginMsg").innerText="Invalid username/password"; return; }
+    if(!user){ document.getElementById("loginMsg").innerText="Invalid username or password."; return; }
+    
     loggedCustomer=user; 
     localStorage.setItem("loggedCustomer",JSON.stringify(loggedCustomer));
+    
+    // সফল লগইনের পর
+    updateNavLinks(); // নেভিগেশন আপডেট করুন
     showPage('home'); 
-    document.getElementById('logoutBtn').style.display='inline-block';
+    document.getElementById("loginMsg").innerText=""; // মেসেজ সাফ করুন
 }
 
 function logout(){ 
@@ -286,10 +324,11 @@ function logout(){ 
     localStorage.removeItem("loggedCustomer"); 
     cart = [];
     localStorage.removeItem("cart");
-    document.getElementById('promoResult').innerText = '';
     appliedPromo = null;
+    
+    // লগআউটের পর
+    updateNavLinks(); // নেভিগেশন আপডেট করুন
     showPage('loginForm'); 
-    document.getElementById('logoutBtn').style.display='none'; 
     toggleAuthForm('login'); 
 }
 
@@ -639,6 +678,7 @@ function checkout(){
     // 5. Send WhatsApp Message (Final Confirmation)
     const orderDetails = cart.map(item => `${item.name} (${item.quantity} units)`).join(', ');
     const message = `Order Placed!%0AUser: ${loggedCustomer.username}%0AItems: ${orderDetails}%0ATotal: $${finalTotal.toFixed(2)}%0AAddress: ${loggedCustomer.address}`;
+    // এই WhatsApp নাম্বারটি পরিবর্তন করুন
     window.open(`https://wa.me/8801XXXXXXXXX?text=${message}`, "_blank");
 
 
@@ -672,6 +712,9 @@ function highlightStars(rating) {
 function renderReviews() {
     const reviewList = document.getElementById('reviewList');
     reviewList.innerHTML = '';
+
+    // ⭐ FIX: Reviews ডেটা লোড করার জন্য এই লাইনটি যোগ করা হয়েছে
+    reviews = JSON.parse(localStorage.getItem("reviews")||'[]');
 
     if (reviews.length === 0) {
         reviewList.innerHTML = '<p style="text-align: center;">No reviews yet. Be the first!</p>';
