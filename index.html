@@ -167,22 +167,21 @@ input,select,textarea{padding:0.5em;margin:0.3em 0;width:90%;border-radius:5px;b
 <script>
 // ==== INITIALIZE LOCALSTORAGE DATA MODELS (আপডেট করা হয়েছে) ====
 function initializeLocalStorage() {
-    // Default Products (আপডেট করা হয়েছে: imageURL যোগ করা হয়েছে)
+    // Default Products (ইমেজ URL পরিবর্তন করে ডামি টেক্সট যোগ করা হয়েছে)
     if (!localStorage.getItem('products')) {
         localStorage.setItem('products', JSON.stringify([
-            // আপনার আসল ইমেজ URL দিয়ে এই 'https://via.placeholder.com/...' বদলে দিন
-            { id: 1, name: 'Premium Rice (5kg)', category: 'Groceries', price: 6.50, stock: 100, vendorId: 101, status: 'Approved', promoCodeAssigned: 'RICE10', imageURL: 'https://via.placeholder.com/150/28a745/ffffff?text=Rice+5kg' },
-            { id: 2, name: 'Organic Eggs (1 doz)', category: 'Groceries', price: 2.80, stock: 50, vendorId: 101, status: 'Approved', promoCodeAssigned: '', imageURL: 'https://via.placeholder.com/150/ffc107/000000?text=Eggs+Doz' },
-            { id: 3, name: 'T-Shirt (Blue)', category: 'Fashion', price: 12.00, stock: 80, vendorId: 102, status: 'Approved', promoCodeAssigned: 'FASHION20', imageURL: 'https://via.placeholder.com/150/007bff/ffffff?text=Blue+T-Shirt' },
-            { id: 4, name: 'Smartphone A99', category: 'Electronics', price: 350.00, stock: 10, vendorId: 103, status: 'Approved', promoCodeAssigned: '', imageURL: 'https://via.placeholder.com/150/6c757d/ffffff?text=Smartphone' },
+            // ⭐ এখানে imageURL এ https://via.placeholder.com ব্যবহার করা হয়েছে। আপনি এই URL গুলো আপনার নিজস্ব ছবির পাথ বা URL দিয়ে বদলে দিন।
+            { id: 1, name: 'Premium Rice (5kg)', category: 'Groceries', price: 6.50, stock: 100, vendorId: 101, status: 'Approved', promoCodeAssigned: 'RICE10', imageURL: 'https://via.placeholder.com/150/28a745/ffffff?text=Rice' },
+            { id: 2, name: 'Organic Eggs (1 doz)', category: 'Groceries', price: 2.80, stock: 50, vendorId: 101, status: 'Approved', promoCodeAssigned: '', imageURL: 'https://via.placeholder.com/150/ffc107/000000?text=Eggs' },
+            { id: 3, name: 'T-Shirt (Blue)', category: 'Fashion', price: 12.00, stock: 80, vendorId: 102, status: 'Approved', promoCodeAssigned: 'FASHION20', imageURL: 'https://via.placeholder.com/150/007bff/ffffff?text=T-Shirt' },
+            { id: 4, name: 'Smartphone A99', category: 'Electronics', price: 350.00, stock: 10, vendorId: 103, status: 'Approved', promoCodeAssigned: '', imageURL: 'https://via.placeholder.com/150/6c757d/ffffff?text=Phone' },
             { id: 5, name: 'Running Shoes', category: 'Fashion', price: 45.00, stock: 30, vendorId: 102, status: 'Approved', promoCodeAssigned: '', imageURL: 'https://via.placeholder.com/150/17a2b8/ffffff?text=Shoes' },
-            { id: 6, name: 'Dish Soap (1L)', category: 'Household', price: 4.50, stock: 200, vendorId: 101, status: 'Approved', promoCodeAssigned: '', imageURL: 'https://via.placeholder.com/150/dc3545/ffffff?text=Dish+Soap' },
+            { id: 6, name: 'Dish Soap (1L)', category: 'Household', price: 4.50, stock: 200, vendorId: 101, status: 'Approved', promoCodeAssigned: '', imageURL: 'https://via.placeholder.com/150/dc3545/ffffff?text=Soap' },
         ]));
     }
-    // Default Banners (আপডেট করা হয়েছে: imageURL যোগ করা হয়েছে)
+    // Default Banners (ইমেজ URL পরিবর্তন করে ডামি টেক্সট যোগ করা হয়েছে)
     if (!localStorage.getItem('banners')) {
         localStorage.setItem('banners', JSON.stringify([
-            // আপনার আসল ইমেজ URL দিয়ে এই 'https://via.placeholder.com/...' বদলে দিন
             { id: 1, imageURL: 'https://via.placeholder.com/1200x300/28a745/ffffff?text=12.12+Grand+Sale', link: '#categories' }, 
             { id: 2, imageURL: 'https://via.placeholder.com/1200x300/ffc107/000000?text=Upto+50%25+OFF', link: '#categories' }, 
             { id: 3, imageURL: 'https://via.placeholder.com/1200x300/6c757d/ffffff?text=New+Customer+Voucher', link: '#loginForm' }
@@ -195,7 +194,6 @@ function initializeLocalStorage() {
         ]));
     }
     // Default Customers
-    // ⭐ FIX: একটি ডিফল্ট কাস্টমার যোগ করা হয়েছে
     if (!localStorage.getItem('customers')) {
         localStorage.setItem('customers', JSON.stringify([{username: 'test', whatsapp: '01XXXXXXXXX', address: 'Test address', password: '123'}]));
     }
@@ -207,10 +205,10 @@ function initializeLocalStorage() {
     if (!localStorage.getItem('orders')) {
         localStorage.setItem('orders', JSON.stringify([]));
     }
-    // Master Promocodes (যদি প্রয়োজন হয়)
+    // Master Promocodes
     if (!localStorage.getItem('masterPromocodes')) {
         localStorage.setItem('masterPromocodes', JSON.stringify([{
-            code: 'FLAT10', type: 'fixed', discount: 10, minOrder: 50, scope: 'global', vendorId: null, status: 'Active'
+            code: 'FLASH10', type: 'fixed', discount: 10, minOrder: 50, scope: 'global', vendorId: null, status: 'Active'
         }]));
     }
 }
@@ -219,7 +217,6 @@ initializeLocalStorage();
 
 // ==== GLOBAL STATE & DATA FETCH ====
 let products = []; 
-// ⭐ FIX: masterPromocodes, banners, reviews, customers, cart, loggedCustomer লোড করা হয়েছে।
 let masterPromocodes = JSON.parse(localStorage.getItem("masterPromocodes")||'[]');
 let banners = JSON.parse(localStorage.getItem("banners")||'[]');
 let reviews = JSON.parse(localStorage.getItem("reviews")||'[]');
@@ -251,7 +248,6 @@ function updateNavLinks() {
 
 // Initial page load
 document.addEventListener('DOMContentLoaded', () => {
-    // ⭐ FIX: অ্যাপ লোডের সময় লগইন স্টেট চেক ও নেভিগেশন আপডেট করা হয়েছে।
     updateNavLinks(); // নেভিগেশন লিংক স্ট্যাটাস সেট করুন
 
     if(loggedCustomer){ 
@@ -284,7 +280,6 @@ function customerRegister(){
     let address=document.getElementById("userAddressRegister").value.trim();
     let password=document.getElementById("passwordRegister").value;
     
-    // ⭐ FIX: ডেটা লোড করার জন্য এই লাইনটি যোগ করা হয়েছে
     customers = JSON.parse(localStorage.getItem("customers")||'[]');
 
     if(!username||!whatsapp||!address||!password){ document.getElementById("registerMsg").innerText="Fill all fields"; return; }
@@ -293,7 +288,6 @@ function customerRegister(){
     customers.push({username,whatsapp,address,password});
     localStorage.setItem("customers",JSON.stringify(customers));
     
-    // রেজিস্ট্রেশনের পরে লগইন ফর্মে যান এবং সফল মেসেজ দেখান
     document.getElementById("usernameLogin").value = username;
     document.getElementById("passwordLogin").value = "";
     toggleAuthForm('login'); 
@@ -304,7 +298,6 @@ function customerLogin(){
     let username=document.getElementById("usernameLogin").value.trim();
     let password=document.getElementById("passwordLogin").value;
     
-    // ⭐ FIX: ডেটা লোড করার জন্য এই লাইনটি যোগ করা হয়েছে
     customers = JSON.parse(localStorage.getItem("customers")||'[]');
 
     let user = customers.find(c=>c.username===username && c.password===password);
@@ -313,7 +306,6 @@ function customerLogin(){
     loggedCustomer=user; 
     localStorage.setItem("loggedCustomer",JSON.stringify(loggedCustomer));
     
-    // সফল লগইনের পর
     updateNavLinks(); // নেভিগেশন আপডেট করুন
     showPage('home'); 
     document.getElementById("loginMsg").innerText=""; // মেসেজ সাফ করুন
@@ -326,7 +318,6 @@ function logout(){ 
     localStorage.removeItem("cart");
     appliedPromo = null;
     
-    // লগআউটের পর
     updateNavLinks(); // নেভিগেশন আপডেট করুন
     showPage('loginForm'); 
     toggleAuthForm('login'); 
@@ -339,16 +330,11 @@ const cartList=document.getElementById("cartList");
 const cartLink=document.getElementById("cartLink");
 
 function renderAll() {
-    // ⭐ FIX: products array must be reloaded from localStorage in renderAll()
-    // এটি নিশ্চিত করে যে অ্যাডমিন অনুমোদিত পণ্যগুলি অবিলম্বে দোকানের জন্য উপলব্ধ।
     products = JSON.parse(localStorage.getItem("products")||'[]').filter(p=>p.status==='Approved');
-
-    // Other data reload
     banners = JSON.parse(localStorage.getItem("banners")||'[]'); 
     masterPromocodes = JSON.parse(localStorage.getItem("masterPromocodes")||'[]');
 
     renderProducts(homeList, products.slice(0, 6)); // Show first 6 approved products on home
-    // Ensure categoryList is rendered with all approved products
     filterCategory(); 
     renderCart();
     updateCartBadge();
@@ -359,12 +345,10 @@ function renderAll() {
 function renderProducts(list, arr){
     list.innerHTML=''; if(arr.length===0){ list.innerHTML="<p>No Approved products available.</p>"; return; }
     arr.forEach(p=>{
-        // Note: The product index (idx) is now found relative to the global 'products' array, 
-        // which is reloaded in renderAll().
         const idx=products.findIndex(pr=>pr.id===p.id); 
         const div=document.createElement('div'); div.className='product';
         const badgeHTML=p.promoCodeAssigned?`<div class="badge">${p.promoCodeAssigned}</div>`:'';
-        // ⭐ FIX: Placeholder image ব্যবহার করা হয়েছে (যেহেতু আপনার আসল ছবি নেই)
+        // ⭐ ছবি লোড না হলে, 'No Image' টেক্সট দেখাবে।
         const imageUrl = p.imageURL || 'https://via.placeholder.com/150?text=No+Image';
         div.innerHTML=`${badgeHTML}<div class="product-image-container"><img src="${imageUrl}" alt="${p.name}"></div>
         <h3>${p.name}</h3><p>Category: ${p.category}</p><p><b>$${p.price.toFixed(2)}</b></p><p>Stock: ${p.stock}</p>
@@ -388,11 +372,9 @@ function renderCarousel() {
     banners.forEach(banner => {
         const slide = document.createElement('div');
         slide.className = 'carousel-slide';
-        // এখানে alt অ্যাট্রিবিউট যোগ করা হলো
         slide.innerHTML = `<a href="${banner.link}"><img src="${banner.imageURL}" alt="Promotion Banner"></a>`;
         track.appendChild(slide);
     });
-    // Reset track position after rendering new slides
     track.style.transform = `translateX(0%)`;
 }
 
@@ -451,7 +433,6 @@ function addToCart(i){
         toggleAuthForm('login'); 
         return; 
     }
-    // ⭐ FIX: Product is fetched from the global 'products' array which is now re-loaded in renderAll()
     const product = products[i]; 
     if(!product || product.stock < 1){ 
         alert("Out of stock or product not found."); 
@@ -465,7 +446,6 @@ function addToCart(i){
         } 
         exist.quantity=(exist.quantity||1)+1; 
     } else{ 
-        // Note: When adding to cart, save a copy of the product data
         cart.push({...product, quantity:1}); 
     }
     localStorage.setItem("cart",JSON.stringify(cart)); 
@@ -548,7 +528,6 @@ function filterCategory(){
 }
 
 function populateCategoryFilter(){ 
-    // Filter categories only from Approved products
     const categories=[...new Set(products.map(p=>p.category))]; 
     const filter=document.getElementById('categoryFilter'); 
     filter.innerHTML='<option value="All">All</option>'; 
@@ -652,7 +631,6 @@ function checkout(){
             products[pidx].stock-=citem.quantity||1; 
         } 
     });
-    // Save updated products to localStorage so admin/vendor can see stock change
     localStorage.setItem("products",JSON.stringify(products));
 
     // 3. Record Order (Optional but good for prototype)
@@ -678,7 +656,7 @@ function checkout(){
     // 5. Send WhatsApp Message (Final Confirmation)
     const orderDetails = cart.map(item => `${item.name} (${item.quantity} units)`).join(', ');
     const message = `Order Placed!%0AUser: ${loggedCustomer.username}%0AItems: ${orderDetails}%0ATotal: $${finalTotal.toFixed(2)}%0AAddress: ${loggedCustomer.address}`;
-    // এই WhatsApp নাম্বারটি পরিবর্তন করুন
+    // এখানে আপনার WhatsApp নাম্বারটি পরিবর্তন করুন
     window.open(`https://wa.me/8801XXXXXXXXX?text=${message}`, "_blank");
 
 
@@ -713,7 +691,6 @@ function renderReviews() {
     const reviewList = document.getElementById('reviewList');
     reviewList.innerHTML = '';
 
-    // ⭐ FIX: Reviews ডেটা লোড করার জন্য এই লাইনটি যোগ করা হয়েছে
     reviews = JSON.parse(localStorage.getItem("reviews")||'[]');
 
     if (reviews.length === 0) {
@@ -774,7 +751,7 @@ function submitReview(){ 
 
 // ==== MISC ====
 function openWhatsApp(){ 
-    // এখানে আপনার WhatsApp নাম্বার দিন
+    // এখানে আপনার WhatsApp নাম্বারটি পরিবর্তন করুন
     window.open("https://wa.me/8801XXXXXXXXX?text=Hello%20Dhamaka%2C%20I%20need%20support%20regarding%20my%20order.", "_blank"); 
 }
 </script>
